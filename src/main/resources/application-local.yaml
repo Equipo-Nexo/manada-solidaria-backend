@@ -1,0 +1,5 @@
+spring:
+  jpa:
+    show-sql: true
+  datasource:
+    url: jdbc:mysql://localhost:3306/slot_app?createDatabaseIfNotExist=true
