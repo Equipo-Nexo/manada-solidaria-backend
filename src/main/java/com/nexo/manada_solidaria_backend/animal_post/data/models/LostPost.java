@@ -1,4 +1,4 @@
-package com.nexo.manada_solidaria_backend.animal_posts.data.models;
+package com.nexo.manada_solidaria_backend.animal_post.data.models;
 
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -7,6 +7,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor(force = true)
 public class LostPost extends AnimalPost {
     @Column(nullable = false)
     private final boolean hasOwner;

@@ -1,15 +1,21 @@
-package com.nexo.manada_solidaria_backend.animal_posts.data.models;
+package com.nexo.manada_solidaria_backend.animal_post.data.models;
 
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
 public class AdoptionPost extends AnimalPost {
     @OneToMany(
             mappedBy = "post",
