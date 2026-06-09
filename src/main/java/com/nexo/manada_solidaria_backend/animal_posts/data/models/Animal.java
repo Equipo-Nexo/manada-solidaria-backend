@@ -1,0 +1,28 @@
+package com.nexo.manada_solidaria_backend.animal_posts.data.models;
+
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalGender;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalSize;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+
+import java.util.UUID;
+
+@Entity
+public class Animal {
+    private String color;
+    private String breed;
+    private String fur;
+    private String age;
+    private String description;
+    @Enumerated(EnumType.STRING)
+    private AnimalSize size;
+    @Enumerated(EnumType.STRING)
+    private AnimalGender gender;
+    @Enumerated(EnumType.STRING)
+    private AnimalType type;
+    @Id
+    private final UUID id = UUID.randomUUID();
+}
