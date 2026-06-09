@@ -3,3 +3,7 @@ spring:
     show-sql: true
   datasource:
     url: jdbc:mysql://localhost:3306/manada_solidaria?createDatabaseIfNotExist=true
+security:
+  secret: D8B3B7BA8B42E5BFA6896FC4811127724A982FAF1446DB85BCFB89C82F
+  cors:
+    allowed-origins: http://localhost:5173
