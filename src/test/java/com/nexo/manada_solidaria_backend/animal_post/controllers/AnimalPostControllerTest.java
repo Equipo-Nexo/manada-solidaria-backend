@@ -7,6 +7,8 @@ import com.nexo.manada_solidaria_backend.animal_post.data.enums.AnimalGender;
 import com.nexo.manada_solidaria_backend.animal_post.data.enums.AnimalSize;
 import com.nexo.manada_solidaria_backend.animal_post.data.enums.AnimalType;
 import com.nexo.manada_solidaria_backend.animal_post.services.interfaces.AnimalPostService;
+import com.nexo.manada_solidaria_backend.auth.components.BearerTokenConverter;
+import com.nexo.manada_solidaria_backend.users.services.interfaces.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,8 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 
@@ -36,10 +40,23 @@ class AnimalPostControllerTest {
     @MockitoBean
     private AnimalPostService animalPostService;
 
+    /*
+     * SecurityConfig (sin @Profile) carga beans de auth con deps que @WebMvcTest no satisface.
+     * Con addFilters=false los filtros no corren, pero los beans deben existir para que el contexto arranque.
+     */
+    @MockitoBean
+    private UserService userService;
+    @MockitoBean
+    private AuthenticationManager authenticationManager;
+    @MockitoBean
+    private BearerTokenConverter bearerTokenConverter;
+    @MockitoBean
+    private AuthenticationEntryPoint customBasicAuthenticationEntryPoint;
+
     @Test
     @DisplayName("POST /animal-post LOST válido devuelve 201 con Location y cuerpo")
     void shouldCreateLostPost() {
-        given(animalPostService.create(any())).willReturn(sampleResponse(AnimalPostType.LOST, true));
+        given(animalPostService.create(any(), any())).willReturn(sampleResponse(AnimalPostType.LOST, true));
 
         var json = """
                 {
@@ -65,7 +82,7 @@ class AnimalPostControllerTest {
     @Test
     @DisplayName("POST /animal-post ADOPTION válido devuelve 201 con hasOwner nulo")
     void shouldCreateAdoptionPost() {
-        given(animalPostService.create(any())).willReturn(sampleResponse(AnimalPostType.ADOPTION, null));
+        given(animalPostService.create(any(), any())).willReturn(sampleResponse(AnimalPostType.ADOPTION, null));
 
         var json = """
                 {
@@ -128,7 +145,7 @@ class AnimalPostControllerTest {
     @Test
     @DisplayName("POST /animal-post LOST con hasOwner=false (animal encontrado) devuelve 201")
     void shouldCreateLostPostFoundOnStreet() {
-        given(animalPostService.create(any())).willReturn(sampleResponse(AnimalPostType.LOST, false));
+        given(animalPostService.create(any(), any())).willReturn(sampleResponse(AnimalPostType.LOST, false));
 
         var json = """
                 {

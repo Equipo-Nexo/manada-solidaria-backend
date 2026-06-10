@@ -45,7 +45,7 @@ class AnimalPostServiceTest {
                         "marrón", "mestizo", "corto", "3 años", "muy amigable"),
                 new LocationRequest("Parque", "Av. Patricias", 100, -34.6, -58.4));
 
-        AnimalPostResponse response = animalPostService.create(request);
+        AnimalPostResponse response = animalPostService.create(request, null);
 
         ArgumentCaptor<AnimalPost> captor = ArgumentCaptor.forClass(AnimalPost.class);
         Mockito.verify(animalPostRepository).save(captor.capture());
@@ -75,7 +75,7 @@ class AnimalPostServiceTest {
                         null, null, null, null, null),
                 new LocationRequest("Plaza San Martín", "Rivadavia", 500, -34.6, -58.4));
 
-        var response = animalPostService.create(request);
+        var response = animalPostService.create(request, null);
 
         ArgumentCaptor<AnimalPost> captor = ArgumentCaptor.forClass(AnimalPost.class);
         Mockito.verify(animalPostRepository).save(captor.capture());
@@ -97,7 +97,7 @@ class AnimalPostServiceTest {
                         null, null, null, null, null),
                 new LocationRequest("Refugio", "Calle Falsa", 123, -34.5, -58.5));
 
-        AnimalPostResponse response = animalPostService.create(request);
+        AnimalPostResponse response = animalPostService.create(request, null);
 
         ArgumentCaptor<AnimalPost> captor = ArgumentCaptor.forClass(AnimalPost.class);
         Mockito.verify(animalPostRepository).save(captor.capture());

@@ -13,6 +13,7 @@ import com.nexo.manada_solidaria_backend.animal_post.data.models.LostPostStatusH
 import com.nexo.manada_solidaria_backend.animal_post.data.repositories.AnimalPostRepository;
 import com.nexo.manada_solidaria_backend.animal_post.services.interfaces.AnimalPostService;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
+import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,14 +29,13 @@ public class AnimalPostServiceImpl implements AnimalPostService {
 
     @Override
     @Transactional
-    public AnimalPostResponse create(CreateAnimalPostRequest request) {
+    public AnimalPostResponse create(CreateAnimalPostRequest request, User owner) {
         Animal animal = buildAnimal(request.animal());
         Location location = buildLocation(request.location());
 
-        // TODO owner queda null hasta que se haga la autenticacion
         AnimalPost post = switch (request.type()) {
-            case LOST -> buildLostPost(request, animal, location);
-            case ADOPTION -> buildAdoptionPost(request, animal, location);
+            case LOST -> buildLostPost(request, animal, location, owner);
+            case ADOPTION -> buildAdoptionPost(request, animal, location, owner);
         };
 
         AnimalPost saved = animalPostRepository.save(post);
@@ -69,14 +69,14 @@ public class AnimalPostServiceImpl implements AnimalPostService {
         return location;
     }
 
-    private LostPost buildLostPost(CreateAnimalPostRequest request, Animal animal, Location location) {
+    private LostPost buildLostPost(CreateAnimalPostRequest request, Animal animal, Location location, User owner) {
         LostPost post = new LostPost(
                 request.title(),
                 request.description(),
                 request.imageId(),
                 null,
                 request.hasOwner(),
-                null,
+                owner,
                 location,
                 animal
         );
@@ -86,13 +86,13 @@ public class AnimalPostServiceImpl implements AnimalPostService {
         return post;
     }
 
-    private AdoptionPost buildAdoptionPost(CreateAnimalPostRequest request, Animal animal, Location location) {
+    private AdoptionPost buildAdoptionPost(CreateAnimalPostRequest request, Animal animal, Location location, User owner) {
         AdoptionPost post = new AdoptionPost(
                 request.title(),
                 request.description(),
                 request.imageId(),
                 null,
-                null,
+                owner,
                 animal,
                 location
         );

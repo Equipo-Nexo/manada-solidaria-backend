@@ -4,6 +4,7 @@ import com.nexo.manada_solidaria_backend.animal_post.controllers.interfaces.Anim
 import com.nexo.manada_solidaria_backend.animal_post.controllers.requests.CreateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_post.controllers.responses.AnimalPostResponse;
 import com.nexo.manada_solidaria_backend.animal_post.services.interfaces.AnimalPostService;
+import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,9 +21,10 @@ public class AnimalPostControllerImpl implements AnimalPostController {
     @Override
     public ResponseEntity<AnimalPostResponse> create(
             CreateAnimalPostRequest request,
+            User owner,
             UriComponentsBuilder uriBuilder
     ) {
-        AnimalPostResponse response = animalPostService.create(request);
+        AnimalPostResponse response = animalPostService.create(request, owner);
         URI location = uriBuilder.path("/animal-post/{id}").buildAndExpand(response.id()).toUri();
         return ResponseEntity.created(location).body(response);
     }
