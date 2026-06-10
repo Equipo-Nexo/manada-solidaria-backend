@@ -5,10 +5,15 @@ import com.nexo.manada_solidaria_backend.users.data.models.User;
 import com.nexo.manada_solidaria_backend.users.services.interfaces.UserService;
 import lombok.AllArgsConstructor;
 import org.jspecify.annotations.Nullable;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Optional;
+import java.util.UUID;
 
 @Component
 @AllArgsConstructor
@@ -18,7 +23,7 @@ public class BearerAuthenticationProvider implements AuthenticationProvider {
 
     @Override
     public @Nullable Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        User user = (User) userService.loadUserByUsername(getUsername(authentication));
+        User user = (User) userService.getUserById(getUserId(authentication));
         return BearerTokenAuthentication.authenticated(
                 authentication.getPrincipal(),
                 authentication.getCredentials(),
@@ -28,11 +33,16 @@ public class BearerAuthenticationProvider implements AuthenticationProvider {
 
     @Override
     public boolean supports(Class<?> authentication) {
-        return false;
+        return BearerTokenAuthentication.class.isAssignableFrom(authentication);
     }
 
-    private String getUsername(Authentication authentication) {
-        return authentication.getPrincipal().toString();
+    private UUID getUserId(Authentication authentication) {
+        return Optional.ofNullable(
+                        authentication.getPrincipal()
+                ).map(Object::toString)
+                .map(UUID::fromString)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Access token is invalid")
+                );
     }
 
 }
