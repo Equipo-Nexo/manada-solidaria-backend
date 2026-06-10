@@ -25,7 +25,7 @@ public class BearerAuthenticationProvider implements AuthenticationProvider {
     public @Nullable Authentication authenticate(Authentication authentication) throws AuthenticationException {
         User user = (User) userService.getUserById(getUserId(authentication));
         return BearerTokenAuthentication.authenticated(
-                authentication.getPrincipal(),
+                user,
                 authentication.getCredentials(),
                 user.getAuthorities()
         );
