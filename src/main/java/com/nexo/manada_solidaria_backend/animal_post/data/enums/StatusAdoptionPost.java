@@ -1,8 +1,0 @@
-package com.nexo.manada_solidaria_backend.animal_post.data.enums;
-
-public enum StatusAdoptionPost {
-    CREATED,
-    SEARCHING_ADOPT_AND_TRANSIT,
-    SEARCHING_ADOPT,
-    ADOPTED
-}
