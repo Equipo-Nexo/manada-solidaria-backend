@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.animal_post.services;
 
+import com.nexo.manada_solidaria_backend.animal_post.controllers.requests.AnimalPostFilter;
 import com.nexo.manada_solidaria_backend.animal_post.controllers.requests.AnimalPostType;
 import com.nexo.manada_solidaria_backend.animal_post.controllers.requests.CreateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_post.controllers.requests.CreateAnimalPostRequest.AnimalRequest;
@@ -8,13 +9,16 @@ import com.nexo.manada_solidaria_backend.animal_post.controllers.responses.Anima
 import com.nexo.manada_solidaria_backend.animal_post.data.enums.AnimalGender;
 import com.nexo.manada_solidaria_backend.animal_post.data.enums.AnimalSize;
 import com.nexo.manada_solidaria_backend.animal_post.data.enums.AnimalType;
+import com.nexo.manada_solidaria_backend.animal_post.data.enums.StatusAdoptionPost;
 import com.nexo.manada_solidaria_backend.animal_post.data.enums.StatusLostPost;
 import com.nexo.manada_solidaria_backend.animal_post.data.models.AdoptionPost;
 import com.nexo.manada_solidaria_backend.animal_post.data.models.Animal;
 import com.nexo.manada_solidaria_backend.animal_post.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.animal_post.data.models.LostPost;
 import com.nexo.manada_solidaria_backend.animal_post.data.models.LostPostStatusHistory;
+import com.nexo.manada_solidaria_backend.animal_post.data.repositories.AdoptionPostRepository;
 import com.nexo.manada_solidaria_backend.animal_post.data.repositories.AnimalPostRepository;
+import com.nexo.manada_solidaria_backend.animal_post.data.repositories.LostPostRepository;
 import com.nexo.manada_solidaria_backend.animal_post.services.implementations.AnimalPostServiceImpl;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import org.junit.jupiter.api.DisplayName;
@@ -44,6 +48,12 @@ class AnimalPostServiceTest {
 
     @Mock
     private AnimalPostRepository animalPostRepository;
+
+    @Mock
+    private LostPostRepository lostPostRepository;
+
+    @Mock
+    private AdoptionPostRepository adoptionPostRepository;
 
     @InjectMocks
     private AnimalPostServiceImpl animalPostService;
@@ -116,26 +126,62 @@ class AnimalPostServiceTest {
     }
 
     @Test
-    @DisplayName("findAll con type LOST filtra por la subclase LostPost")
+    @DisplayName("findAll con type LOST usa el repo de LostPost (todos los estados)")
     void shouldFilterByLostSubclass() {
-        given(animalPostRepository.findAllByType(any(), any()))
+        given(lostPostRepository.findAll(any(Pageable.class)))
                 .willReturn(Page.empty(PageRequest.of(0, 10)));
 
-        animalPostService.findAll(AnimalPostType.LOST, PageRequest.of(0, 10));
+        animalPostService.findAll(AnimalPostFilter.LOST, PageRequest.of(0, 10));
 
-        Mockito.verify(animalPostRepository).findAllByType(eq(LostPost.class), any());
+        Mockito.verify(lostPostRepository).findAll(any(Pageable.class));
         Mockito.verify(animalPostRepository, Mockito.never()).findAll(any(Pageable.class));
     }
 
     @Test
-    @DisplayName("findAll con type ADOPTION filtra por la subclase AdoptionPost")
+    @DisplayName("findAll con type ADOPTION usa el repo de AdoptionPost (todos los estados)")
     void shouldFilterByAdoptionSubclass() {
-        given(animalPostRepository.findAllByType(any(), any()))
+        given(adoptionPostRepository.findAll(any(Pageable.class)))
                 .willReturn(Page.empty(PageRequest.of(0, 10)));
 
-        animalPostService.findAll(AnimalPostType.ADOPTION, PageRequest.of(0, 10));
+        animalPostService.findAll(AnimalPostFilter.ADOPTION, PageRequest.of(0, 10));
 
-        Mockito.verify(animalPostRepository).findAllByType(eq(AdoptionPost.class), any());
+        Mockito.verify(adoptionPostRepository).findAll(any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("findAll con type SEARCHING filtra LostPost por estado actual SEARCHING")
+    void shouldFilterLostByCurrentStatus() {
+        given(lostPostRepository.findAllByCurrentStatus(any(), any()))
+                .willReturn(Page.empty(PageRequest.of(0, 10)));
+
+        animalPostService.findAll(AnimalPostFilter.SEARCHING, PageRequest.of(0, 10));
+
+        Mockito.verify(lostPostRepository).findAllByCurrentStatus(eq(StatusLostPost.SEARCHING), any());
+        Mockito.verifyNoInteractions(adoptionPostRepository);
+    }
+
+    @Test
+    @DisplayName("findAll con type ADOPTED filtra AdoptionPost por estado actual ADOPTED")
+    void shouldFilterAdoptionByCurrentStatus() {
+        given(adoptionPostRepository.findAllByCurrentStatus(any(), any()))
+                .willReturn(Page.empty(PageRequest.of(0, 10)));
+
+        animalPostService.findAll(AnimalPostFilter.ADOPTED, PageRequest.of(0, 10));
+
+        Mockito.verify(adoptionPostRepository).findAllByCurrentStatus(eq(StatusAdoptionPost.ADOPTED), any());
+        Mockito.verifyNoInteractions(lostPostRepository);
+    }
+
+    @Test
+    @DisplayName("findAll con type CREATED filtra solo adopciones (resolución de la colisión de nombres)")
+    void shouldMapCreatedFilterToAdoption() {
+        given(adoptionPostRepository.findAllByCurrentStatus(any(), any()))
+                .willReturn(Page.empty(PageRequest.of(0, 10)));
+
+        animalPostService.findAll(AnimalPostFilter.CREATED, PageRequest.of(0, 10));
+
+        Mockito.verify(adoptionPostRepository).findAllByCurrentStatus(eq(StatusAdoptionPost.CREATED), any());
+        Mockito.verifyNoInteractions(lostPostRepository);
     }
 
     @Test

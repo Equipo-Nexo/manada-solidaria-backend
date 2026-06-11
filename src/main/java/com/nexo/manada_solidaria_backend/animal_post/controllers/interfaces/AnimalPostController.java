@@ -1,6 +1,6 @@
 package com.nexo.manada_solidaria_backend.animal_post.controllers.interfaces;
 
-import com.nexo.manada_solidaria_backend.animal_post.controllers.requests.AnimalPostType;
+import com.nexo.manada_solidaria_backend.animal_post.controllers.requests.AnimalPostFilter;
 import com.nexo.manada_solidaria_backend.animal_post.controllers.requests.CreateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_post.controllers.responses.AnimalPostResponse;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -27,7 +27,7 @@ public interface AnimalPostController {
 
     @GetMapping("/animal-posts")
     ResponseEntity<PagedModel<AnimalPostResponse>> findAll(
-            @RequestParam(required = false) AnimalPostType type,
+            @RequestParam(required = false) AnimalPostFilter type,
             @ParameterObject Pageable pageable
     );
 }

@@ -36,6 +36,12 @@ class AnimalPostRepositoryTest {
     private AnimalPostRepository animalPostRepository;
 
     @Autowired
+    private LostPostRepository lostPostRepository;
+
+    @Autowired
+    private AdoptionPostRepository adoptionPostRepository;
+
+    @Autowired
     private TestEntityManager entityManager;
 
     @Test
@@ -82,31 +88,62 @@ class AnimalPostRepositoryTest {
     }
 
     @Test
-    @DisplayName("findAllByType devuelve solo los posts del subtipo pedido, ordenados")
-    void shouldFilterByType() throws InterruptedException {
-        persistLostPost("Perdido 1");
+    @DisplayName("LostPostRepository.findAll devuelve solo lost posts (polimorfismo nativo), ordenados")
+    void shouldFindOnlyLostPostsNatively() throws InterruptedException {
+        persistLostPost("Perdido 1", StatusLostPost.CREATED);
         Thread.sleep(2);
-        persistLostPost("Perdido 2");
+        persistLostPost("Perdido 2", StatusLostPost.CREATED);
         Thread.sleep(2);
-        persistAdoptionPost("Adopción 1");
+        persistAdoptionPost("Adopción 1", StatusAdoptionPost.CREATED);
 
         var sorted = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<AnimalPost> lostPage = animalPostRepository.findAllByType(LostPost.class, sorted);
+        Page<LostPost> lostPage = lostPostRepository.findAll(sorted);
 
         assertThat(lostPage.getTotalElements()).isEqualTo(2);
-        assertThat(lostPage.getContent()).allMatch(LostPost.class::isInstance);
         assertThat(lostPage.getContent()).extracting(AnimalPost::getTitle)
                 .containsExactly("Perdido 2", "Perdido 1");
     }
 
     @Test
+    @DisplayName("findAllByCurrentStatus de lost discrimina por el estado abierto del historial")
+    void shouldFilterLostByCurrentStatus() {
+        persistLostPost("En búsqueda", StatusLostPost.SEARCHING);
+        persistLostPost("Encontrado", StatusLostPost.FOUND);
+        persistLostPost("Recién creado", StatusLostPost.CREATED);
+        persistAdoptionPost("Adopción buscando", StatusAdoptionPost.SEARCHING_ADOPT);
+
+        var sorted = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<LostPost> searching = lostPostRepository.findAllByCurrentStatus(StatusLostPost.SEARCHING, sorted);
+        Page<LostPost> found = lostPostRepository.findAllByCurrentStatus(StatusLostPost.FOUND, sorted);
+
+        assertThat(searching.getContent()).extracting(AnimalPost::getTitle).containsExactly("En búsqueda");
+        assertThat(found.getContent()).extracting(AnimalPost::getTitle).containsExactly("Encontrado");
+    }
+
+    @Test
+    @DisplayName("findAllByCurrentStatus de adoption discrimina por estado y no mezcla con lost")
+    void shouldFilterAdoptionByCurrentStatus() {
+        persistAdoptionPost("Adoptado", StatusAdoptionPost.ADOPTED);
+        persistAdoptionPost("Adopción nueva", StatusAdoptionPost.CREATED);
+        persistLostPost("Perdido nuevo", StatusLostPost.CREATED);
+
+        var sorted = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<AdoptionPost> adopted = adoptionPostRepository.findAllByCurrentStatus(StatusAdoptionPost.ADOPTED, sorted);
+        Page<AdoptionPost> created = adoptionPostRepository.findAllByCurrentStatus(StatusAdoptionPost.CREATED, sorted);
+
+        assertThat(adopted.getContent()).extracting(AnimalPost::getTitle).containsExactly("Adoptado");
+        // CREATED existe también en StatusLostPost: el repo por subtipo garantiza que solo vengan adopciones.
+        assertThat(created.getContent()).extracting(AnimalPost::getTitle).containsExactly("Adopción nueva");
+    }
+
+    @Test
     @DisplayName("findAll pagina y ordena por createdAt descendente (más nuevo primero)")
     void shouldPaginateSortedByCreatedAtDesc() throws InterruptedException {
-        persistLostPost("Primero");
+        persistLostPost("Primero", StatusLostPost.CREATED);
         Thread.sleep(2);
-        persistAdoptionPost("Segundo");
+        persistAdoptionPost("Segundo", StatusAdoptionPost.CREATED);
         Thread.sleep(2);
-        persistLostPost("Tercero");
+        persistLostPost("Tercero", StatusLostPost.CREATED);
 
         var sorted = PageRequest.of(0, 2, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<AnimalPost> page = animalPostRepository.findAll(sorted);
@@ -117,17 +154,17 @@ class AnimalPostRepositoryTest {
                 .containsExactly("Tercero", "Segundo");
     }
 
-    private void persistLostPost(String title) {
+    private void persistLostPost(String title, StatusLostPost currentStatus) {
         var post = new LostPost(title, "Descripción", "cf-img", null, true, null, buildLocation(), buildAnimal());
-        var status = new LostPostStatusHistory(StatusLostPost.CREATED);
+        var status = new LostPostStatusHistory(currentStatus);
         status.setPost(post);
         post.setStatusHistory(new ArrayList<>(List.of(status)));
         animalPostRepository.save(post);
     }
 
-    private void persistAdoptionPost(String title) {
+    private void persistAdoptionPost(String title, StatusAdoptionPost currentStatus) {
         var post = new AdoptionPost(title, "Descripción", "cf-img", null, null, buildAnimal(), buildLocation());
-        var status = new AdoptionPostStatusHistory(StatusAdoptionPost.CREATED);
+        var status = new AdoptionPostStatusHistory(currentStatus);
         status.setPost(post);
         post.setStatusHistory(new ArrayList<>(List.of(status)));
         animalPostRepository.save(post);

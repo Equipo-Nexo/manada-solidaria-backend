@@ -90,6 +90,30 @@ class AnimalPostIntegrationTest {
     }
 
     @Test
+    @DisplayName("GET /animal-posts?type=CREATED devuelve solo adopciones recién creadas")
+    void shouldFilterByAdoptionCreatedStatus() {
+        postLost("Caso perdido");
+        postAdoption("Caso adopción");
+
+        var result = mvc.get().uri("/animal-posts").param("type", "CREATED").exchange();
+
+        assertThat(result).hasStatus(HttpStatus.OK)
+                .bodyJson().extractingPath("$.page.totalElements").isEqualTo(1);
+        assertThat(result).bodyJson().extractingPath("$.content[0].type").isEqualTo("ADOPTION");
+    }
+
+    @Test
+    @DisplayName("GET /animal-posts?type=SEARCHING devuelve vacío si no hay perdidos en búsqueda")
+    void shouldReturnEmptyForStatusWithoutPosts() {
+        postLost("Caso perdido");
+
+        var result = mvc.get().uri("/animal-posts").param("type", "SEARCHING").exchange();
+
+        assertThat(result).hasStatus(HttpStatus.OK)
+                .bodyJson().extractingPath("$.page.totalElements").isEqualTo(0);
+    }
+
+    @Test
     @DisplayName("GET /animal-posts sin publicaciones devuelve 200 con página vacía")
     void shouldReturnEmptyPageWhenNoPosts() {
         var result = mvc.get().uri("/animal-posts").exchange();

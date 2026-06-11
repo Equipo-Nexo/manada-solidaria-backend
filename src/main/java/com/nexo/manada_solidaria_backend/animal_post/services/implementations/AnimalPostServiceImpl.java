@@ -1,6 +1,6 @@
 package com.nexo.manada_solidaria_backend.animal_post.services.implementations;
 
-import com.nexo.manada_solidaria_backend.animal_post.controllers.requests.AnimalPostType;
+import com.nexo.manada_solidaria_backend.animal_post.controllers.requests.AnimalPostFilter;
 import com.nexo.manada_solidaria_backend.animal_post.controllers.requests.CreateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_post.controllers.responses.AnimalPostResponse;
 import com.nexo.manada_solidaria_backend.animal_post.data.enums.StatusAdoptionPost;
@@ -11,7 +11,9 @@ import com.nexo.manada_solidaria_backend.animal_post.data.models.Animal;
 import com.nexo.manada_solidaria_backend.animal_post.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.animal_post.data.models.LostPost;
 import com.nexo.manada_solidaria_backend.animal_post.data.models.LostPostStatusHistory;
+import com.nexo.manada_solidaria_backend.animal_post.data.repositories.AdoptionPostRepository;
 import com.nexo.manada_solidaria_backend.animal_post.data.repositories.AnimalPostRepository;
+import com.nexo.manada_solidaria_backend.animal_post.data.repositories.LostPostRepository;
 import com.nexo.manada_solidaria_backend.animal_post.services.interfaces.AnimalPostService;
 import com.nexo.manada_solidaria_backend.common.data.models.StatusHistory;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
@@ -33,6 +35,8 @@ import java.util.List;
 public class AnimalPostServiceImpl implements AnimalPostService {
 
     private final AnimalPostRepository animalPostRepository;
+    private final LostPostRepository lostPostRepository;
+    private final AdoptionPostRepository adoptionPostRepository;
 
     @Override
     @Transactional
@@ -55,20 +59,26 @@ public class AnimalPostServiceImpl implements AnimalPostService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<AnimalPostResponse> findAll(AnimalPostType type, Pageable pageable) {
+    public Page<AnimalPostResponse> findAll(AnimalPostFilter type, Pageable pageable) {
         Pageable sorted = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
                 Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<AnimalPost> posts = type == null
+        // Cada valor del filtro mapea a un unico subtipo:
+        // los estados de lost solo consultan a LostPost y los de adoption solo AdoptionPost
+        Page<? extends AnimalPost> posts = type == null
                 ? animalPostRepository.findAll(sorted)
-                : animalPostRepository.findAllByType(toEntityClass(type), sorted);
+                : switch (type) {
+                    case LOST -> lostPostRepository.findAll(sorted);
+                    case SEARCHING -> lostPostRepository.findAllByCurrentStatus(StatusLostPost.SEARCHING, sorted);
+                    case FOUND -> lostPostRepository.findAllByCurrentStatus(StatusLostPost.FOUND, sorted);
+                    case ADOPTION -> adoptionPostRepository.findAll(sorted);
+                    case CREATED -> adoptionPostRepository.findAllByCurrentStatus(StatusAdoptionPost.CREATED, sorted);
+                    case SEARCHING_ADOPT_AND_TRANSIT ->
+                            adoptionPostRepository.findAllByCurrentStatus(StatusAdoptionPost.SEARCHING_ADOPT_AND_TRANSIT, sorted);
+                    case SEARCHING_ADOPT ->
+                            adoptionPostRepository.findAllByCurrentStatus(StatusAdoptionPost.SEARCHING_ADOPT, sorted);
+                    case ADOPTED -> adoptionPostRepository.findAllByCurrentStatus(StatusAdoptionPost.ADOPTED, sorted);
+                };
         return posts.map(post -> AnimalPostResponse.from(post, resolveCurrentStatus(post)));
-    }
-
-    private Class<? extends AnimalPost> toEntityClass(AnimalPostType type) {
-        return switch (type) {
-            case LOST -> LostPost.class;
-            case ADOPTION -> AdoptionPost.class;
-        };
     }
 
     private String resolveCurrentStatus(AnimalPost post) {

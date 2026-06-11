@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.animal_post.controllers;
 
 import com.nexo.manada_solidaria_backend.animal_post.controllers.implementations.AnimalPostControllerImpl;
+import com.nexo.manada_solidaria_backend.animal_post.controllers.requests.AnimalPostFilter;
 import com.nexo.manada_solidaria_backend.animal_post.controllers.requests.AnimalPostType;
 import com.nexo.manada_solidaria_backend.animal_post.controllers.responses.AnimalPostResponse;
 import com.nexo.manada_solidaria_backend.animal_post.data.enums.AnimalGender;
@@ -306,7 +307,19 @@ class AnimalPostControllerTest {
         assertThat(mvc.get().uri("/animal-posts").param("type", "LOST"))
                 .hasStatus(HttpStatus.OK);
 
-        Mockito.verify(animalPostService).findAll(eq(AnimalPostType.LOST), any());
+        Mockito.verify(animalPostService).findAll(eq(AnimalPostFilter.LOST), any());
+    }
+
+    @Test
+    @DisplayName("GET /animal-posts?type=ADOPTED pasa el filtro de estado al service")
+    void shouldForwardStatusFilter() {
+        given(animalPostService.findAll(any(), any()))
+                .willReturn(Page.empty(PageRequest.of(0, 20)));
+
+        assertThat(mvc.get().uri("/animal-posts").param("type", "ADOPTED"))
+                .hasStatus(HttpStatus.OK);
+
+        Mockito.verify(animalPostService).findAll(eq(AnimalPostFilter.ADOPTED), any());
     }
 
     @Test
