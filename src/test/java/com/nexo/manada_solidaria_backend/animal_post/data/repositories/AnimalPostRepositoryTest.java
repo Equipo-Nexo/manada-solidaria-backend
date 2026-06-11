@@ -17,6 +17,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -76,6 +79,58 @@ class AnimalPostRepositoryTest {
         assertThat(saved.getAnimal().getId()).isNotNull();
         assertThat(saved.getLocation().getId()).isNotNull();
         assertThat(saved.getStatusHistory()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("findAllByType devuelve solo los posts del subtipo pedido, ordenados")
+    void shouldFilterByType() throws InterruptedException {
+        persistLostPost("Perdido 1");
+        Thread.sleep(2);
+        persistLostPost("Perdido 2");
+        Thread.sleep(2);
+        persistAdoptionPost("Adopción 1");
+
+        var sorted = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<AnimalPost> lostPage = animalPostRepository.findAllByType(LostPost.class, sorted);
+
+        assertThat(lostPage.getTotalElements()).isEqualTo(2);
+        assertThat(lostPage.getContent()).allMatch(LostPost.class::isInstance);
+        assertThat(lostPage.getContent()).extracting(AnimalPost::getTitle)
+                .containsExactly("Perdido 2", "Perdido 1");
+    }
+
+    @Test
+    @DisplayName("findAll pagina y ordena por createdAt descendente (más nuevo primero)")
+    void shouldPaginateSortedByCreatedAtDesc() throws InterruptedException {
+        persistLostPost("Primero");
+        Thread.sleep(2);
+        persistAdoptionPost("Segundo");
+        Thread.sleep(2);
+        persistLostPost("Tercero");
+
+        var sorted = PageRequest.of(0, 2, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<AnimalPost> page = animalPostRepository.findAll(sorted);
+
+        assertThat(page.getTotalElements()).isEqualTo(3);
+        assertThat(page.getTotalPages()).isEqualTo(2);
+        assertThat(page.getContent()).extracting(AnimalPost::getTitle)
+                .containsExactly("Tercero", "Segundo");
+    }
+
+    private void persistLostPost(String title) {
+        var post = new LostPost(title, "Descripción", "cf-img", null, true, null, buildLocation(), buildAnimal());
+        var status = new LostPostStatusHistory(StatusLostPost.CREATED);
+        status.setPost(post);
+        post.setStatusHistory(new ArrayList<>(List.of(status)));
+        animalPostRepository.save(post);
+    }
+
+    private void persistAdoptionPost(String title) {
+        var post = new AdoptionPost(title, "Descripción", "cf-img", null, null, buildAnimal(), buildLocation());
+        var status = new AdoptionPostStatusHistory(StatusAdoptionPost.CREATED);
+        status.setPost(post);
+        post.setStatusHistory(new ArrayList<>(List.of(status)));
+        animalPostRepository.save(post);
     }
 
     private Animal buildAnimal() {

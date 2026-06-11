@@ -60,6 +60,80 @@ class AnimalPostIntegrationTest {
     }
 
     @Test
+    @DisplayName("GET /animal-posts devuelve los casos paginados, el más nuevo primero")
+    void shouldListPostsPaginatedNewestFirst() throws InterruptedException {
+        postLost("Caso perdido");
+        Thread.sleep(2);
+        postAdoption("Caso adopción");
+
+        var result = mvc.get().uri("/animal-posts").exchange();
+
+        assertThat(result).hasStatus(HttpStatus.OK)
+                .bodyJson().extractingPath("$.page.totalElements").isEqualTo(2);
+        assertThat(result).bodyJson().extractingPath("$.content[0].title").isEqualTo("Caso adopción");
+        assertThat(result).bodyJson().extractingPath("$.content[1].title").isEqualTo("Caso perdido");
+        assertThat(result).bodyJson().extractingPath("$.content[0].status").isEqualTo("CREATED");
+    }
+
+    @Test
+    @DisplayName("GET /animal-posts?type=LOST devuelve solo los casos de perdidos")
+    void shouldFilterPostsByType() throws InterruptedException {
+        postLost("Caso perdido");
+        Thread.sleep(2);
+        postAdoption("Caso adopción");
+
+        var result = mvc.get().uri("/animal-posts").param("type", "LOST").exchange();
+
+        assertThat(result).hasStatus(HttpStatus.OK)
+                .bodyJson().extractingPath("$.page.totalElements").isEqualTo(1);
+        assertThat(result).bodyJson().extractingPath("$.content[0].type").isEqualTo("LOST");
+    }
+
+    @Test
+    @DisplayName("GET /animal-posts sin publicaciones devuelve 200 con página vacía")
+    void shouldReturnEmptyPageWhenNoPosts() {
+        var result = mvc.get().uri("/animal-posts").exchange();
+
+        assertThat(result).hasStatus(HttpStatus.OK)
+                .bodyJson().extractingPath("$.page.totalElements").isEqualTo(0);
+    }
+
+    private void postLost(String title) {
+        var json = """
+                {
+                  "type": "LOST",
+                  "title": "%s",
+                  "description": "Se escapó en el parque",
+                  "imageId": "cf-img-integ-lost",
+                  "hasOwner": true,
+                  "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE" },
+                  "location": { "name": "Parque Centenario", "address": "Av. Patricias Argentinas", "number": 100, "latitude": -34.606, "longitude": -58.435 }
+                }
+                """.formatted(title);
+        assertThat(mvc.post().uri("/animal-post")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .hasStatus(HttpStatus.CREATED);
+    }
+
+    private void postAdoption(String title) {
+        var json = """
+                {
+                  "type": "ADOPTION",
+                  "title": "%s",
+                  "description": "Rescatada de la calle",
+                  "imageId": "cf-img-integ-adoption",
+                  "animal": { "type": "CAT", "size": "SMALL", "gender": "FEMALE" },
+                  "location": { "name": "Refugio Norte", "address": "Calle Falsa", "number": 123, "latitude": -34.5, "longitude": -58.5 }
+                }
+                """.formatted(title);
+        assertThat(mvc.post().uri("/animal-post")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .hasStatus(HttpStatus.CREATED);
+    }
+
+    @Test
     @DisplayName("POST /animal-post ADOPTION persiste en MySQL y se puede recuperar por ID")
     void shouldPersistAdoptionPostToMySQL() {
         var json = """

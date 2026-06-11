@@ -11,9 +11,15 @@ import com.nexo.manada_solidaria_backend.auth.components.BearerTokenConverter;
 import com.nexo.manada_solidaria_backend.users.services.interfaces.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,10 +28,13 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 
 @WebMvcTest(AnimalPostControllerImpl.class)
@@ -260,6 +269,66 @@ class AnimalPostControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .hasStatus(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    @DisplayName("GET /animal-posts devuelve 200 con la página de publicaciones")
+    void shouldListPostsPaged() {
+        given(animalPostService.findAll(any(), any()))
+                .willReturn(new PageImpl<>(List.of(sampleResponse(AnimalPostType.LOST, true)), PageRequest.of(0, 20), 1));
+
+        var result = mvc.get().uri("/animal-posts").exchange();
+
+        assertThat(result).hasStatus(HttpStatus.OK)
+                .bodyJson().extractingPath("$.content[0].id").isEqualTo(POST_ID.toString());
+        assertThat(result).bodyJson().extractingPath("$.page.totalElements").isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("GET /animal-posts sin publicaciones devuelve 200 con página vacía")
+    void shouldListEmptyPage() {
+        given(animalPostService.findAll(any(), any()))
+                .willReturn(Page.empty(PageRequest.of(0, 20)));
+
+        var result = mvc.get().uri("/animal-posts").exchange();
+
+        assertThat(result).hasStatus(HttpStatus.OK)
+                .bodyJson().extractingPath("$.content").isEqualTo(List.of());
+        assertThat(result).bodyJson().extractingPath("$.page.totalElements").isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("GET /animal-posts?type=LOST pasa el filtro al service")
+    void shouldForwardTypeFilter() {
+        given(animalPostService.findAll(any(), any()))
+                .willReturn(Page.empty(PageRequest.of(0, 20)));
+
+        assertThat(mvc.get().uri("/animal-posts").param("type", "LOST"))
+                .hasStatus(HttpStatus.OK);
+
+        Mockito.verify(animalPostService).findAll(eq(AnimalPostType.LOST), any());
+    }
+
+    @Test
+    @DisplayName("GET /animal-posts?type=INVALIDO devuelve 400")
+    void shouldRejectInvalidType() {
+        assertThat(mvc.get().uri("/animal-posts").param("type", "INVALIDO"))
+                .hasStatus(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    @DisplayName("GET /animal-posts?page=1&size=5 arma el Pageable pedido")
+    void shouldForwardPagination() {
+        given(animalPostService.findAll(any(), any()))
+                .willReturn(Page.empty(PageRequest.of(1, 5)));
+
+        assertThat(mvc.get().uri("/animal-posts").param("page", "1").param("size", "5"))
+                .hasStatus(HttpStatus.OK);
+
+        ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+        Mockito.verify(animalPostService).findAll(isNull(), captor.capture());
+        assertThat(captor.getValue().getPageNumber()).isEqualTo(1);
+        assertThat(captor.getValue().getPageSize()).isEqualTo(5);
     }
 
     private AnimalPostResponse sampleResponse(AnimalPostType type, Boolean hasOwner) {

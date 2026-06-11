@@ -8,11 +8,15 @@ import com.nexo.manada_solidaria_backend.animal_post.controllers.responses.Anima
 import com.nexo.manada_solidaria_backend.animal_post.data.enums.AnimalGender;
 import com.nexo.manada_solidaria_backend.animal_post.data.enums.AnimalSize;
 import com.nexo.manada_solidaria_backend.animal_post.data.enums.AnimalType;
+import com.nexo.manada_solidaria_backend.animal_post.data.enums.StatusLostPost;
 import com.nexo.manada_solidaria_backend.animal_post.data.models.AdoptionPost;
+import com.nexo.manada_solidaria_backend.animal_post.data.models.Animal;
 import com.nexo.manada_solidaria_backend.animal_post.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.animal_post.data.models.LostPost;
+import com.nexo.manada_solidaria_backend.animal_post.data.models.LostPostStatusHistory;
 import com.nexo.manada_solidaria_backend.animal_post.data.repositories.AnimalPostRepository;
 import com.nexo.manada_solidaria_backend.animal_post.services.implementations.AnimalPostServiceImpl;
+import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,9 +25,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
@@ -85,6 +98,89 @@ class AnimalPostServiceTest {
         assertThat(lost.getStatusHistory()).hasSize(1);
         assertThat(response.type()).isEqualTo(AnimalPostType.LOST);
         assertThat(response.hasOwner()).isFalse();
+    }
+
+    @Test
+    @DisplayName("findAll sin type consulta todos los posts forzando orden createdAt DESC")
+    void shouldQueryAllSortedByCreatedAtDesc() {
+        given(animalPostRepository.findAll(any(Pageable.class)))
+                .willReturn(Page.empty(PageRequest.of(0, 10)));
+
+        animalPostService.findAll(null, PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "title")));
+
+        ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+        Mockito.verify(animalPostRepository).findAll(captor.capture());
+        var order = captor.getValue().getSort().getOrderFor("createdAt");
+        assertThat(order).isNotNull();
+        assertThat(order.getDirection()).isEqualTo(Sort.Direction.DESC);
+    }
+
+    @Test
+    @DisplayName("findAll con type LOST filtra por la subclase LostPost")
+    void shouldFilterByLostSubclass() {
+        given(animalPostRepository.findAllByType(any(), any()))
+                .willReturn(Page.empty(PageRequest.of(0, 10)));
+
+        animalPostService.findAll(AnimalPostType.LOST, PageRequest.of(0, 10));
+
+        Mockito.verify(animalPostRepository).findAllByType(eq(LostPost.class), any());
+        Mockito.verify(animalPostRepository, Mockito.never()).findAll(any(Pageable.class));
+    }
+
+    @Test
+    @DisplayName("findAll con type ADOPTION filtra por la subclase AdoptionPost")
+    void shouldFilterByAdoptionSubclass() {
+        given(animalPostRepository.findAllByType(any(), any()))
+                .willReturn(Page.empty(PageRequest.of(0, 10)));
+
+        animalPostService.findAll(AnimalPostType.ADOPTION, PageRequest.of(0, 10));
+
+        Mockito.verify(animalPostRepository).findAllByType(eq(AdoptionPost.class), any());
+    }
+
+    @Test
+    @DisplayName("findAll mapea cada post con el estado de la entrada más reciente del historial")
+    void shouldMapCurrentStatusFromLatestHistoryEntry() throws InterruptedException {
+        var post = new LostPost("Perdí a mi perro", "Se escapó", "cf-img-001",
+                null, true, null, buildLocation(), buildAnimal());
+        var created = new LostPostStatusHistory(StatusLostPost.CREATED);
+        Thread.sleep(2); // createdAt es final = now(): la pausa garantiza orden estricto entre entradas
+        var searching = new LostPostStatusHistory(StatusLostPost.SEARCHING);
+        post.setStatusHistory(new ArrayList<>(List.of(searching, created)));
+        given(animalPostRepository.findAll(any(Pageable.class)))
+                .willReturn(new PageImpl<>(List.of(post), PageRequest.of(0, 10), 1));
+
+        Page<AnimalPostResponse> result = animalPostService.findAll(null, PageRequest.of(0, 10));
+
+        assertThat(result.getContent()).hasSize(1);
+        AnimalPostResponse response = result.getContent().getFirst();
+        assertThat(response.status()).isEqualTo("SEARCHING");
+        assertThat(response.type()).isEqualTo(AnimalPostType.LOST);
+        assertThat(response.hasOwner()).isTrue();
+    }
+
+    @Test
+    @DisplayName("findAll sin publicaciones devuelve página vacía")
+    void shouldReturnEmptyPageWhenNoPosts() {
+        given(animalPostRepository.findAll(any(Pageable.class)))
+                .willReturn(Page.empty(PageRequest.of(0, 10)));
+
+        Page<AnimalPostResponse> result = animalPostService.findAll(null, PageRequest.of(0, 10));
+
+        assertThat(result.getTotalElements()).isZero();
+        assertThat(result.getContent()).isEmpty();
+    }
+
+    private Animal buildAnimal() {
+        var animal = new Animal();
+        animal.setType(AnimalType.DOG);
+        animal.setSize(AnimalSize.MEDIUM);
+        animal.setGender(AnimalGender.MALE);
+        return animal;
+    }
+
+    private Location buildLocation() {
+        return new Location("Parque", "Av. Patricias", 100, -34.6, -58.4);
     }
 
     @Test

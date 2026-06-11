@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.animal_post.services.implementations;
 
+import com.nexo.manada_solidaria_backend.animal_post.controllers.requests.AnimalPostType;
 import com.nexo.manada_solidaria_backend.animal_post.controllers.requests.CreateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_post.controllers.responses.AnimalPostResponse;
 import com.nexo.manada_solidaria_backend.animal_post.data.enums.StatusAdoptionPost;
@@ -12,13 +13,19 @@ import com.nexo.manada_solidaria_backend.animal_post.data.models.LostPost;
 import com.nexo.manada_solidaria_backend.animal_post.data.models.LostPostStatusHistory;
 import com.nexo.manada_solidaria_backend.animal_post.data.repositories.AnimalPostRepository;
 import com.nexo.manada_solidaria_backend.animal_post.services.interfaces.AnimalPostService;
+import com.nexo.manada_solidaria_backend.common.data.models.StatusHistory;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -44,6 +51,39 @@ public class AnimalPostServiceImpl implements AnimalPostService {
             case ADOPTION -> StatusAdoptionPost.CREATED.name();
         };
         return AnimalPostResponse.from(saved, initialStatus);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<AnimalPostResponse> findAll(AnimalPostType type, Pageable pageable) {
+        Pageable sorted = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<AnimalPost> posts = type == null
+                ? animalPostRepository.findAll(sorted)
+                : animalPostRepository.findAllByType(toEntityClass(type), sorted);
+        return posts.map(post -> AnimalPostResponse.from(post, resolveCurrentStatus(post)));
+    }
+
+    private Class<? extends AnimalPost> toEntityClass(AnimalPostType type) {
+        return switch (type) {
+            case LOST -> LostPost.class;
+            case ADOPTION -> AdoptionPost.class;
+        };
+    }
+
+    private String resolveCurrentStatus(AnimalPost post) {
+        List<? extends StatusHistory<?>> history = switch (post) {
+            case LostPost lost -> lost.getStatusHistory();
+            case AdoptionPost adoption -> adoption.getStatusHistory();
+            default -> List.of();
+        };
+        if (history == null) {
+            return null;
+        }
+        return history.stream()
+                .max(Comparator.comparing(StatusHistory::getCreatedAt))
+                .map(entry -> entry.getStatus().name())
+                .orElse(null);
     }
 
     private Animal buildAnimal(CreateAnimalPostRequest.AnimalRequest req) {
