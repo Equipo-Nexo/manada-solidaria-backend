@@ -23,7 +23,7 @@ public class BearerAuthenticationProvider implements AuthenticationProvider {
 
     @Override
     public @Nullable Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        User user = (User) userService.getUserById(getUserId(authentication));
+        User user = getAuthenticatedUser(authentication);
         return BearerTokenAuthentication.authenticated(
                 user,
                 authentication.getCredentials(),
@@ -36,10 +36,12 @@ public class BearerAuthenticationProvider implements AuthenticationProvider {
         return BearerTokenAuthentication.class.isAssignableFrom(authentication);
     }
 
+    private User getAuthenticatedUser(Authentication authentication) {
+        return userService.getUserById(getUserId(authentication));
+    }
+
     private UUID getUserId(Authentication authentication) {
-        return Optional.ofNullable(
-                        authentication.getPrincipal()
-                ).map(Object::toString)
+        return Optional.ofNullable(authentication.getPrincipal()).map(Object::toString)
                 .map(UUID::fromString)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Access token is invalid")
                 );

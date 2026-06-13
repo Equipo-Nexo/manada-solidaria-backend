@@ -11,11 +11,4 @@ public class WhitelistUtils {
             "/v3/api-docs/**",
             "/actuator/info"
     };
-
-    public static String[] AUTHENTICATION_WHITELIST = {
-            "/auth/sign-up",
-            "/auth/restore-password",
-            "/auth/restore-password/confirm",
-            "/auth/restore-password/token/validate"
-    };
 }

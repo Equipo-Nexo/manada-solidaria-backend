@@ -25,10 +25,8 @@ public class BearerTokenConverter implements AuthenticationConverter {
     public Authentication convert(HttpServletRequest request) {
         String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-        try {
-            if (authorizationHeaderIsInvalid(authorizationHeader)) return null;
-        } catch (Exception e) {
-            throw new InvalidJwtException("pepe");
+        if (authorizationHeaderIsInvalid(authorizationHeader)) {
+            throw new InvalidJwtException("Session is not valid");
         }
 
         return BearerTokenAuthentication.unauthenticated(getSubject(getJwtValue(authorizationHeader)), authorizationHeader);
