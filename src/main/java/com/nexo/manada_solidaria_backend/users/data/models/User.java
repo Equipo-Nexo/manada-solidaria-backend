@@ -16,6 +16,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Getter
 @Setter
+@Table(name = "users")
 public class User implements UserDetails {
     @Column(nullable = false)
     private String username;

@@ -67,7 +67,7 @@ public class SecurityConfig {
             HttpSecurity httpSecurity,
             OncePerRequestFilter bearerTokenFilter,
             AuthenticationEntryPoint customBasicAuthenticationEntryPoint
-    ) throws Exception {
+    ) {
         return httpSecurity
                 .authorizeHttpRequests((authorizationManager) ->
                         authorizationManager
