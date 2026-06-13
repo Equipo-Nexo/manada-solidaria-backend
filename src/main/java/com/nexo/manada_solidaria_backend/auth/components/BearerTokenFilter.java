@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextHolderStrategy;
@@ -27,7 +28,6 @@ public class BearerTokenFilter extends OncePerRequestFilter {
 
     public BearerTokenFilter(AuthenticationManager authenticationManager, BearerTokenConverter bearerTokenConverter) {
         this.securityContextHolderStrategy = SecurityContextHolder.getContextHolderStrategy();
-        ;
         this.authenticationManager = authenticationManager;
         this.bearerTokenConverter = bearerTokenConverter;
     }
@@ -48,6 +48,9 @@ public class BearerTokenFilter extends OncePerRequestFilter {
             securityContextRepository.saveContext(context, request, response);
         } catch (ExpiredJwtException e) {
             logger.info("Session is expired");
+            this.securityContextHolderStrategy.clearContext();
+        } catch (AuthenticationException e) {
+            logger.info("Error in login, token is invalid", e);
             this.securityContextHolderStrategy.clearContext();
         }
         filterChain.doFilter(request, response);

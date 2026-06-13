@@ -16,7 +16,6 @@ public class WhitelistUtils {
             "/auth/sign-up",
             "/auth/restore-password",
             "/auth/restore-password/confirm",
-            "/auth/restore-password/token/validate",
-            "/ping"
+            "/auth/restore-password/token/validate"
     };
 }
