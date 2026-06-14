@@ -9,6 +9,7 @@ public class WhitelistUtils {
             "/docs",
             "/swagger-ui/**",
             "/v3/api-docs/**",
-            "/actuator/info"
+            "/actuator/info",
+            "/auth/signup"
     };
 }

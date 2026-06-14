@@ -17,6 +17,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
+
+import static com.nexo.manada_solidaria_backend.auth.utils.WhitelistUtils.ENDPOINTS_WHITELIST;
 
 @Component
 public class BearerTokenFilter extends OncePerRequestFilter {
@@ -54,5 +57,12 @@ public class BearerTokenFilter extends OncePerRequestFilter {
             this.securityContextHolderStrategy.clearContext();
         }
         filterChain.doFilter(request, response);
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+        return Arrays.stream(ENDPOINTS_WHITELIST)
+                .anyMatch(path::contains);
     }
 }

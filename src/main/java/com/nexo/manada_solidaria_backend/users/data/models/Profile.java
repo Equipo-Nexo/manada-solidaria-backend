@@ -30,4 +30,9 @@ public class Profile {
     @Id
     private UUID id = UUID.randomUUID();
 
+    public Profile(String email, String phoneNumber, List<Rol> roles) {
+        this.email = email;
+        this.phoneNumber = phoneNumber;
+        this.roles = roles;
+    }
 }
