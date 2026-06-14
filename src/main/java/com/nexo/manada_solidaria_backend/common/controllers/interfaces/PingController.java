@@ -1,4 +1,4 @@
-package com.nexo.manada_solidaria_backend.campaigns.controllers.interfaces;
+package com.nexo.manada_solidaria_backend.common.controllers.interfaces;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

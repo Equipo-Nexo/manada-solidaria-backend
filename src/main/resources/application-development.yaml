@@ -1,0 +1,3 @@
+security:
+  cors:
+    allowed-origins: http://manada-solidaria-dev.duckdns.org, https://manada-solidaria-dev.duckdns.org, http://localhost:5173
