@@ -25,7 +25,7 @@ public class AuthServiceImpl implements AuthService {
         User user = userService.loadUserByUsername(username);
         return new LoginResponse(
                 jsonWebTokenService.getAccessToken(getUserId(user), getCustomClaims(user)),
-                jsonWebTokenService.getRefreshToken(user.getId().toString(), Collections.emptyMap())
+                jsonWebTokenService.getRefreshToken(getUserId(user), Collections.emptyMap())
         );
     }
 

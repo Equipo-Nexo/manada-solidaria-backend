@@ -23,7 +23,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.util.List;
 
-import static com.nexo.manada_solidaria_backend.auth.utils.WhitelistUtils.AUTHENTICATION_WHITELIST;
 import static com.nexo.manada_solidaria_backend.auth.utils.WhitelistUtils.ENDPOINTS_WHITELIST;
 
 @Configuration
@@ -67,11 +66,10 @@ public class SecurityConfig {
             HttpSecurity httpSecurity,
             OncePerRequestFilter bearerTokenFilter,
             AuthenticationEntryPoint customBasicAuthenticationEntryPoint
-    ) throws Exception {
+    ) {
         return httpSecurity
-                .authorizeHttpRequests((authorizationManager) ->
+                .authorizeHttpRequests(authorizationManager ->
                         authorizationManager
-                                .requestMatchers(AUTHENTICATION_WHITELIST).permitAll()
                                 .requestMatchers(ENDPOINTS_WHITELIST).permitAll()
                                 .anyRequest().authenticated()
                 )

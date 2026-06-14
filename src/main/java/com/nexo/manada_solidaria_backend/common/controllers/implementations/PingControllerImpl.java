@@ -1,7 +1,7 @@
-package com.nexo.manada_solidaria_backend.campaigns.controllers.implementations;
+package com.nexo.manada_solidaria_backend.common.controllers.implementations;
 
-import com.nexo.manada_solidaria_backend.campaigns.controllers.interfaces.PingController;
 import com.nexo.manada_solidaria_backend.campaigns.services.interfaces.PingService;
+import com.nexo.manada_solidaria_backend.common.controllers.interfaces.PingController;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.RestController;
 
