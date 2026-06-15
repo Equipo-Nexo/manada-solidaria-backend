@@ -2,12 +2,10 @@ package com.nexo.manada_solidaria_backend.auth.integrations;
 
 import com.nexo.manada_solidaria_backend.auth.controllers.requests.CreateUserRequest;
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseIntegrationTest;
-import com.nexo.manada_solidaria_backend.users.data.repositories.UserRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
@@ -15,9 +13,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class AuthControllerTest extends BaseIntegrationTest {
-
-    @Autowired
-    private UserRepository userRepository;
 
     @DisplayName("Login tests")
     @ParameterizedTest(name = "{index} - {0}")

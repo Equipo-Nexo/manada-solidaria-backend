@@ -2,7 +2,7 @@ package com.nexo.manada_solidaria_backend.common.integrations.base;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
@@ -20,10 +20,10 @@ public abstract class BaseIntegrationTest {
     @Autowired
     protected ObjectMapper mapper;
 
-    @BeforeEach
-    void setup(@Autowired WebApplicationContext context) {
+    @BeforeAll
+    public static void setup(WebApplicationContext webApplicationContext) {
         mockMvc = MockMvcBuilders
-                .webAppContextSetup(context)
+                .webAppContextSetup(webApplicationContext)
                 .apply(springSecurity())
                 .build();
     }

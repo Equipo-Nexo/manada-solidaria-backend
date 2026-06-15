@@ -1,12 +1,8 @@
 package com.nexo.manada_solidaria_backend.auth.controllers.requests;
 
-import com.nexo.manada_solidaria_backend.auth.validations.annotations.ContactMethodRequired;
 import com.nexo.manada_solidaria_backend.auth.validations.annotations.PasswordMatches;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,7 +13,6 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 @PasswordMatches
-@ContactMethodRequired
 public class CreateUserRequest {
     @NotBlank(message = "Debe ingresar un nombre de usuario")
     @Size(min = 4, message = "El nombre de usuario debe tener minimo 4 caracteres")
@@ -29,6 +24,7 @@ public class CreateUserRequest {
     private String repeatedPassword;
     private List<Rol> roles;
     @Email
+    @NotNull(message = "Debe ingresar un correo electrónico")
     private String email;
     @Pattern(
             regexp = "^\\+?[1-9]\\d{7,14}$",

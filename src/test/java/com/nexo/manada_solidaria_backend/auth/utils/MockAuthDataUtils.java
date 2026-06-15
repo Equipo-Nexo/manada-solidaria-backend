@@ -50,7 +50,7 @@ public class MockAuthDataUtils {
                         HttpStatus.BAD_REQUEST
                 ),
                 Arguments.of(
-                        "contact information is not sent, return error",
+                        "email is not sent, return error",
                         CreateUserRequest.builder().username(NON_EXISTENT_USER).password(VERY_STRONG_PASSWORD).repeatedPassword(VERY_STRONG_PASSWORD).build(),
                         HttpStatus.BAD_REQUEST
                 )
