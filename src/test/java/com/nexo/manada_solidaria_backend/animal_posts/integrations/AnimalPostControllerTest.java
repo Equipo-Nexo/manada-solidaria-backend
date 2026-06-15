@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -71,7 +72,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     @Test
-    @DisplayName("POST /animal-post válido: el post, refleja el input y queda con el owner")
+    @DisplayName("POST /animal-post válido: persiste, refleja el input y queda con el owner del JWT")
     void create_persistsPostWithAuthenticatedOwnerAndInputData() throws Exception {
         UUID adminId = userRepository.findByUsername("admin").orElseThrow().getId();
 
@@ -94,8 +95,10 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.location.name").value("Parque Centenario"))
                 .andExpect(jsonPath("$.location.address").value("Av. Patricias"))
                 .andExpect(jsonPath("$.location.number").value(100))
+                // El owner NO viene en el payload: se resuelve del JWT autenticado.
                 .andExpect(jsonPath("$.ownerId").value(adminId.toString()));
 
+        // Y realmente quedó en la BBDD: se recupera por el GET con los mismos datos y dueño.
         mockMvc.perform(
                         get("/animal-posts").header("Authorization", "Bearer " + accessToken)
                 )
@@ -107,7 +110,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     @Test
-    @DisplayName("POST /animal-post LOST sin hasOwner, con el mensaje del validator")
+    @DisplayName("POST /animal-post LOST sin hasOwner: 400 con el mensaje del validator @RequiredIfTypeIsLost")
     void create_lostWithoutHasOwner_returnsValidatorMessage() throws Exception {
         mockMvc.perform(
                         post("/animal-post")
@@ -116,8 +119,8 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                                 .content(MockAnimalPostDataUtils.LOST_WITHOUT_HAS_OWNER)
                 )
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errors",
-                        hasItem("El parámetro hasOwner es obligatorio cuando el tipo de publicación es LOST")));
+                // Substring ASCII: robusto ante la normalización de tildes del repo al commitear.
+                .andExpect(jsonPath("$.errors", hasItem(containsString("hasOwner es obligatorio"))));
     }
 
     @Test
@@ -144,7 +147,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     @Test
-    @DisplayName("GET /animal-posts devuelve los casos del mas nuevo al ma viejo")
+    @DisplayName("GET /animal-posts devuelve los casos del más nuevo al más viejo")
     void list_returnsNewestFirst() throws Exception {
         saveLostPost("Caso perdido", StatusLostPost.CREATED);
         Thread.sleep(2);
@@ -181,7 +184,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     @Test
-    @DisplayName("GET /animal-posts?type=SEARCHING devuelve solo peridos en ese estado")
+    @DisplayName("GET /animal-posts?type=SEARCHING devuelve solo perdidos en ese estado")
     void filterByStatus_returnsOnlyMatchingStatusAndSubtype() throws Exception {
         saveLostPost("En búsqueda", StatusLostPost.SEARCHING);
         saveLostPost("Recién creado", StatusLostPost.CREATED);
@@ -200,7 +203,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     @Test
-    @DisplayName("GET /animal-posts pagination")
+    @DisplayName("GET /animal-posts respeta el tamaño de página y expone la metadata de paginación")
     void list_paginates() throws Exception {
         saveLostPost("Uno", StatusLostPost.CREATED);
         saveLostPost("Dos", StatusLostPost.CREATED);
