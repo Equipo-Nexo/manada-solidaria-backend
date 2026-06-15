@@ -55,7 +55,7 @@ public class BearerTokenConverter implements AuthenticationConverter {
             return !jsonWebTokenService.isValid(getJwtValue(authorizationHeader));
         } catch (Exception e) {
             log.error("Error checking if JWT is valid", e);
-            return false;
+            return true;
         }
     }
 
