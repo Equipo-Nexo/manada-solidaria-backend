@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.users.services.implementations;
 
 import com.nexo.manada_solidaria_backend.auth.controllers.requests.CreateUserRequest;
+import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.Profile;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import com.nexo.manada_solidaria_backend.users.data.repositories.UserRepository;
@@ -13,6 +14,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.*;
@@ -57,7 +60,9 @@ public class UserServiceImpl implements UserService {
                 new Profile(
                         createUserRequest.getEmail(),
                         createUserRequest.getPhoneNumber(),
-                        createUserRequest.getRoles()
+                        Optional.ofNullable(createUserRequest.getRoles())
+                                .orElse(List.of(Rol.COMMUNITY))
+
                 )
         );
     }

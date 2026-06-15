@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,7 +27,7 @@ public class Profile {
     private String email;
     private String phoneNumber;
     @Enumerated(EnumType.STRING)
-    private List<Rol> roles;
+    private List<Rol> roles = new ArrayList<>();
     @Id
     private UUID id = UUID.randomUUID();
 

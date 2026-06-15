@@ -10,12 +10,10 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @PasswordMatches
@@ -29,7 +27,7 @@ public class CreateUserRequest {
     private String password;
     @NotBlank(message = "Debe repetir la contraseña")
     private String repeatedPassword;
-    private List<Rol> roles = List.of(Rol.COMMUNITY);
+    private List<Rol> roles;
     @Email
     private String email;
     @Pattern(
