@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = RequiredIfTypeIsLostValidator.class)
 public @interface RequiredIfTypeIsLost {
-    String message() default "Tiene dueño es obligatorio cuando el tipo de publicación es LOST";
+    String message() default "El parámetro hasOwner es obligatorio cuando el tipo de publicación es LOST";
 
     Class<?>[] groups() default {};
 

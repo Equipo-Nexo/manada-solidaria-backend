@@ -8,8 +8,10 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.models.Animal;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
+import com.nexo.manada_solidaria_backend.users.data.models.User;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 
@@ -26,19 +28,25 @@ public record AnimalPostResponse(
         UUID ownerId
 ) {
 
-    public static AnimalPostResponse from(AnimalPost post, String status) {
+    public static AnimalPostResponse from(AnimalPost post) {
         return new AnimalPostResponse(
                 post.getId(),
-                post instanceof LostPost ? AnimalPostType.LOST : AnimalPostType.ADOPTION,
+                isLostPost(post) ? AnimalPostType.LOST : AnimalPostType.ADOPTION,
                 post.getTitle(),
                 post.getDescription(),
                 post.getImageUrl(),
                 AnimalResponse.from(post.getAnimal()),
                 LocationResponse.from(post.getLocation()),
-                status,
+                post.getCurrentStatus().getStatus().name(),
                 post.getCreatedAt(),
-                post.getOwner() == null ? null : post.getOwner().getId()
+                Optional.ofNullable(post.getOwner())
+                        .map(User::getId)
+                        .orElse(null)
         );
+    }
+
+    private static boolean isLostPost(AnimalPost post) {
+        return post instanceof LostPost;
     }
 
     public record AnimalResponse(
