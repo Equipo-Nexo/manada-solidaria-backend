@@ -6,14 +6,11 @@ import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.Creat
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AnimalPostResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusAdoptionPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusLostPost;
-import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
-import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AdoptionPostRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.LostPostRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
-import com.nexo.manada_solidaria_backend.common.data.models.StatusHistory;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,9 +19,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Comparator;
-import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -40,7 +34,7 @@ public class AnimalPostServiceImpl implements AnimalPostService {
         AnimalPost saved = animalPostRepository.save(
                 animalPostFactory.buildAnimalPost(request, owner)
         );
-        return AnimalPostResponse.from(saved, resolveCurrentStatus(saved));
+        return AnimalPostResponse.from(saved);
     }
 
     @Override
@@ -64,21 +58,6 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                             adoptionPostRepository.findAllByCurrentStatus(StatusAdoptionPost.SEARCHING_ADOPT, sorted);
                     case ADOPTED -> adoptionPostRepository.findAllByCurrentStatus(StatusAdoptionPost.ADOPTED, sorted);
                 };
-        return posts.map(post -> AnimalPostResponse.from(post, resolveCurrentStatus(post)));
-    }
-
-    private String resolveCurrentStatus(AnimalPost post) {
-        List<? extends StatusHistory<?>> history = switch (post) {
-            case LostPost lost -> lost.getStatusHistory();
-            case AdoptionPost adoption -> adoption.getStatusHistory();
-            default -> List.of();
-        };
-        if (history == null) {
-            return null;
-        }
-        return history.stream()
-                .max(Comparator.comparing(StatusHistory::getCreatedAt))
-                .map(entry -> entry.getStatus().name())
-                .orElse(null);
+        return posts.map(AnimalPostResponse::from);
     }
 }

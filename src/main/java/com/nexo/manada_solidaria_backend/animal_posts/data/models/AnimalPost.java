@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.animal_posts.data.models;
 
+import com.nexo.manada_solidaria_backend.common.data.models.StatusHistory;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import jakarta.persistence.*;
@@ -14,22 +15,26 @@ import java.util.UUID;
 
 @Getter
 @Setter
-@NoArgsConstructor(force = true)
+@NoArgsConstructor
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class AnimalPost {
+public abstract class AnimalPost<T extends StatusHistory> {
     private String title;
     private String description;
     private String imageUrl;
     private String sharePostUrl;
     private LocalDateTime updatedAt = null;
-    private final LocalDateTime createdAt = LocalDateTime.now();
+    @Column(updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
     @ManyToOne(cascade = CascadeType.ALL)
-    private final Location location;
+    @JoinColumn(updatable = false)
+    private Location location;
     @ManyToOne
-    private final User owner;
+    @JoinColumn(updatable = false)
+    private User owner;
     @OneToOne(cascade = CascadeType.ALL)
-    private final Animal animal;
+    @JoinColumn(updatable = false)
+    private Animal animal;
     @OneToMany(
             mappedBy = "post",
             cascade = CascadeType.ALL,
@@ -43,7 +48,7 @@ public abstract class AnimalPost {
     )
     private List<Reaction> reactions = new ArrayList<>();
     @Id
-    private final UUID id = UUID.randomUUID();
+    private UUID id = UUID.randomUUID();
 
     public AnimalPost(String title, String description, String imageUrl, String sharePostUrl, User owner, Animal animal, Location location) {
         this.title = title;
@@ -54,4 +59,6 @@ public abstract class AnimalPost {
         this.animal = animal;
         this.location = location;
     }
+
+    public abstract T getCurrentStatus();
 }

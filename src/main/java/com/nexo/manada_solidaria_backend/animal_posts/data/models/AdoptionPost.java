@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.animal_posts.data.models;
 
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusAdoptionPost;
+import com.nexo.manada_solidaria_backend.common.utils.StatusHistoryUtils;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import jakarta.persistence.CascadeType;
@@ -17,7 +18,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class AdoptionPost extends AnimalPost {
+public class AdoptionPost extends AnimalPost<AdoptionPostStatusHistory> {
     @OneToMany(
             mappedBy = "post",
             cascade = CascadeType.ALL,
@@ -29,5 +30,10 @@ public class AdoptionPost extends AnimalPost {
 
     public AdoptionPost(String title, String description, String imageUrl, String sharePostUrl, User owner, Animal animal, Location location) {
         super(title, description, imageUrl, sharePostUrl, owner, animal, location);
+    }
+
+    @Override
+    public AdoptionPostStatusHistory getCurrentStatus() {
+        return StatusHistoryUtils.getCurrentStatus(this.statusHistory);
     }
 }
