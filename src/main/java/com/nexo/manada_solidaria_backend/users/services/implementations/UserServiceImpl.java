@@ -10,7 +10,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.UUID;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Service
 @AllArgsConstructor
@@ -21,12 +21,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public User loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResponseStatusException(BAD_REQUEST, "Credenciales ingresadas incorrectas"));
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "User with that username was not found"));
     }
 
     @Override
     public User getUserById(UUID userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(BAD_REQUEST, "User was not found"));
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "User was not found"));
     }
 }

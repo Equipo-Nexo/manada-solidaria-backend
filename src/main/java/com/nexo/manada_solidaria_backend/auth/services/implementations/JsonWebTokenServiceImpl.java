@@ -1,13 +1,18 @@
 package com.nexo.manada_solidaria_backend.auth.services.implementations;
 
 import com.nexo.manada_solidaria_backend.auth.services.interfaces.JsonWebTokenService;
+import com.nexo.manada_solidaria_backend.common.exceptions.custom_exceptions.InvalidJwtException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.crypto.SecretKey;
 import java.time.Instant;
@@ -17,6 +22,7 @@ import java.util.Map;
 
 @Component
 @NoArgsConstructor
+@Slf4j
 public class JsonWebTokenServiceImpl implements JsonWebTokenService {
 
     @Value("${security.access-token-expiration}")
@@ -74,11 +80,18 @@ public class JsonWebTokenServiceImpl implements JsonWebTokenService {
     }
 
     private Claims getClaims(String jwt) {
-        return Jwts
-                .parser()
-                .verifyWith(getSecretKey())
-                .build()
-                .parseSignedClaims(jwt)
-                .getPayload();
+        try {
+            return Jwts
+                    .parser()
+                    .verifyWith(getSecretKey())
+                    .build()
+                    .parseSignedClaims(jwt)
+                    .getPayload();
+        } catch (SignatureException e) {
+            throw new InvalidJwtException("Token is not valid");
+        } catch (Exception e) {
+            log.error("Error decoding token {}", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error decoding token");
+        }
     }
 }
