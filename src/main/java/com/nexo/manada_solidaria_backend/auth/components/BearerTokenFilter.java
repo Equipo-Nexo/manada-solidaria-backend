@@ -61,7 +61,7 @@ public class BearerTokenFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getServletPath();
+        String path = request.getRequestURI();
         return Arrays.stream(ENDPOINTS_WHITELIST)
                 .anyMatch(path::contains);
     }

@@ -1,16 +1,23 @@
 package com.nexo.manada_solidaria_backend.auth.integrations;
 
+import com.nexo.manada_solidaria_backend.auth.controllers.requests.CreateUserRequest;
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseIntegrationTest;
+import com.nexo.manada_solidaria_backend.users.data.repositories.UserRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class AuthControllerTest extends BaseIntegrationTest {
+
+    @Autowired
+    private UserRepository userRepository;
 
     @DisplayName("Login tests")
     @ParameterizedTest(name = "{index} - {0}")
@@ -34,6 +41,24 @@ class AuthControllerTest extends BaseIntegrationTest {
                         Assertions.assertTrue(responseContent.contains("accessToken"));
                     }
                 });
+    }
+
+    @DisplayName("Signup tests")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource("com.nexo.manada_solidaria_backend.auth.utils.MockAuthDataUtils#provideSignupTestCases")
+    void signupTests(
+            String testName,
+            CreateUserRequest request,
+            HttpStatus expectedResponse
+    ) throws Exception {
+        mockMvc
+                .perform(
+                        post("/auth/signup")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(toJson(request))
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().is(expectedResponse.value()));
     }
 
 
