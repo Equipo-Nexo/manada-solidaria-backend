@@ -22,4 +22,8 @@ public abstract class StatusHistory<S extends Enum<S>> {
     public StatusHistory(S status) {
         this.status = status;
     }
+
+    public void finish() {
+        this.finishedAt = LocalDateTime.now();
+    }
 }

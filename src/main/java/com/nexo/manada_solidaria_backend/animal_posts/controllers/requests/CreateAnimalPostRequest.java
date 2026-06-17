@@ -3,13 +3,20 @@ package com.nexo.manada_solidaria_backend.animal_posts.controllers.requests;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalGender;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalSize;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.validations.RequiredIfTypeIsAdoption;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.validations.RequiredIfTypeIsLost;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.validations.RewardOnlyForLost;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
+
+import java.math.BigDecimal;
 
 
 @RequiredIfTypeIsLost
+@RequiredIfTypeIsAdoption
+@RewardOnlyForLost
 public record CreateAnimalPostRequest(
         @NotNull(message = "El tipo de publicación es obligatorio (LOST o ADOPTION)")
         AnimalPostType type,
@@ -23,8 +30,15 @@ public record CreateAnimalPostRequest(
         @NotBlank(message = "El ID de imagen de Cloudflare es obligatorio")
         String imageId,
 
-        // Obligatorio solo cuando type=LOST .
+        @NotBlank(message = "El número de teléfono es obligatorio")
+        String phoneNumber,
+
         Boolean hasOwner,
+
+        Boolean inTransit,
+
+        @PositiveOrZero(message = "La recompensa no puede ser negativa")
+        BigDecimal reward,
 
         @NotNull(message = "Los datos del animal son obligatorios")
         @Valid
@@ -48,6 +62,7 @@ public record CreateAnimalPostRequest(
             String color,
             String breed,
             String fur,
+            @NotBlank(message = "La edad del animal es obligatoria")
             String age,
             String description
     ) {

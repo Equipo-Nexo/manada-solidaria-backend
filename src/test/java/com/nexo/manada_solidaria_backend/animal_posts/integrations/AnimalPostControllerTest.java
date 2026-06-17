@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.animal_posts.integrations;
 
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.utils.MockAnimalPostDataUtils;
@@ -80,6 +81,8 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.location.name").value("Parque Centenario"))
                 .andExpect(jsonPath("$.location.address").value("Av. Patricias"))
                 .andExpect(jsonPath("$.location.number").value(100))
+                .andExpect(jsonPath("$.phoneNumber").value("1122334455"))
+                .andExpect(jsonPath("$.reward").value(5000))
                 // El owner NO viene en el payload: se resuelve del JWT autenticado.
                 .andExpect(jsonPath("$.ownerId").value(adminId.toString()))
                 .andReturn().getResponse().getContentAsString();
@@ -124,5 +127,26 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                                 .content(MockAnimalPostDataUtils.LOST_VALID)
                 )
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("POST /animal-post ADOPTION inTransit=true crea CREATED + SEARCHING_ADOPT_AND_TRANSIT (dos filas trazables)")
+    void create_adoptionInTransit_createsTwoTraceableStates() throws Exception {
+        String responseBody = mockMvc.perform(
+                        post("/animal-post")
+                                .header("Authorization", "Bearer " + accessToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(MockAnimalPostDataUtils.ADOPTION_IN_TRANSIT)
+                )
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.type").value("ADOPTION"))
+                .andExpect(jsonPath("$.status").value("SEARCHING_ADOPT_AND_TRANSIT"))
+                .andReturn().getResponse().getContentAsString();
+
+        UUID id = UUID.fromString(mapper.readTree(responseBody).get("id").asText());
+        AdoptionPost saved = (AdoptionPost) animalPostRepository.findById(id).orElseThrow();
+        assertThat(saved.getStatusHistory()).hasSize(2);
+        long open = saved.getStatusHistory().stream().filter(s -> s.getFinishedAt() == null).count();
+        assertThat(open).isEqualTo(1L);
     }
 }

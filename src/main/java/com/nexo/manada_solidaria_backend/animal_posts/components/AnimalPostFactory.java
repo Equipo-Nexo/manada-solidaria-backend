@@ -50,10 +50,12 @@ public class AnimalPostFactory {
                 request.description(),
                 request.imageId(),
                 null, //TODO definir una nueva card en jira nos limitamos al post en ms-30
+                request.phoneNumber(),
                 request.hasOwner(),
                 owner,
                 location,
-                animal
+                animal,
+                request.reward()
         );
     }
 
@@ -63,9 +65,11 @@ public class AnimalPostFactory {
                 request.description(),
                 request.imageId(),
                 null, //TODO definir una nueva card en jira nos limitamos al post en ms-30
+                request.phoneNumber(),
                 owner,
                 animal,
-                location
+                location,
+                Boolean.TRUE.equals(request.inTransit())
         );
     }
 }
