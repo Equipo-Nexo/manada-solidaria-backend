@@ -1,11 +1,15 @@
 package com.nexo.manada_solidaria_backend.common.data.models;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Getter
 @MappedSuperclass
+@NoArgsConstructor
 public abstract class StatusHistory<S extends Enum<S>> {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
