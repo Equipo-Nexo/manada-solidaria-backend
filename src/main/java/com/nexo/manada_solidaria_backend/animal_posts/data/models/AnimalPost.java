@@ -23,6 +23,7 @@ public abstract class AnimalPost<T extends StatusHistory> {
     private String description;
     private String imageUrl;
     private String sharePostUrl;
+    private String phoneNumber;
     private LocalDateTime updatedAt = null;
     @Column(updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -50,11 +51,12 @@ public abstract class AnimalPost<T extends StatusHistory> {
     @Id
     private UUID id = UUID.randomUUID();
 
-    public AnimalPost(String title, String description, String imageUrl, String sharePostUrl, User owner, Animal animal, Location location) {
+    public AnimalPost(String title, String description, String imageUrl, String sharePostUrl, String phoneNumber, User owner, Animal animal, Location location) {
         this.title = title;
         this.description = description;
         this.imageUrl = imageUrl;
         this.sharePostUrl = sharePostUrl;
+        this.phoneNumber = phoneNumber;
         this.owner = owner;
         this.animal = animal;
         this.location = location;

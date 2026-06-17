@@ -8,9 +8,11 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusLostPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPostStatusHistory;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.Animal;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPostStatusHistory;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AdoptionPostRepository;
+import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.LostPostRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.utils.MockAnimalPostDataUtils;
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthenticatedIntegrationTest;
@@ -31,6 +33,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -45,6 +48,8 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     private LostPostRepository lostPostRepository;
     @Autowired
     private AdoptionPostRepository adoptionPostRepository;
+    @Autowired
+    private AnimalPostRepository animalPostRepository;
     @Autowired
     private UserRepository userRepository;
 
@@ -95,6 +100,8 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.location.name").value("Parque Centenario"))
                 .andExpect(jsonPath("$.location.address").value("Av. Patricias"))
                 .andExpect(jsonPath("$.location.number").value(100))
+                .andExpect(jsonPath("$.phoneNumber").value("1122334455"))
+                .andExpect(jsonPath("$.reward").value(5000))
                 // El owner NO viene en el payload: se resuelve del JWT autenticado.
                 .andExpect(jsonPath("$.ownerId").value(adminId.toString()));
 
@@ -144,6 +151,27 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                                 .content(MockAnimalPostDataUtils.LOST_VALID)
                 )
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("POST /animal-post ADOPTION inTransit=true crea CREATED + SEARCHING_ADOPT_AND_TRANSIT (dos filas trazables)")
+    void create_adoptionInTransit_createsTwoTraceableStates() throws Exception {
+        String responseBody = mockMvc.perform(
+                        post("/animal-post")
+                                .header("Authorization", "Bearer " + accessToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(MockAnimalPostDataUtils.ADOPTION_IN_TRANSIT)
+                )
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.type").value("ADOPTION"))
+                .andExpect(jsonPath("$.status").value("SEARCHING_ADOPT_AND_TRANSIT"))
+                .andReturn().getResponse().getContentAsString();
+
+        UUID id = UUID.fromString(mapper.readTree(responseBody).get("id").asText());
+        AdoptionPost saved = (AdoptionPost) animalPostRepository.findById(id).orElseThrow();
+        assertThat(saved.getStatusHistory()).hasSize(2);
+        long open = saved.getStatusHistory().stream().filter(s -> s.getFinishedAt() == null).count();
+        assertThat(open).isEqualTo(1L);
     }
 
     @Test
@@ -252,13 +280,13 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     private void saveLostPost(String title, StatusLostPost status) {
-        LostPost post = new LostPost(title, "Descripción", "cf-img", null, true, null, location(), animal());
+        LostPost post = new LostPost(title, "Descripción", "cf-img", null, null, true, null, location(), animal(), null);
         post.setStatusHistory(new ArrayList<>(List.of(new LostPostStatusHistory(status, post))));
         lostPostRepository.save(post);
     }
 
     private void saveAdoptionPost(String title, StatusAdoptionPost status) {
-        AdoptionPost post = new AdoptionPost(title, "Descripción", "cf-img", null, null, animal(), location());
+        AdoptionPost post = new AdoptionPost(title, "Descripción", "cf-img", null, null, null, animal(), location(), false);
         post.setStatusHistory(new ArrayList<>(List.of(new AdoptionPostStatusHistory(status, post))));
         adoptionPostRepository.save(post);
     }

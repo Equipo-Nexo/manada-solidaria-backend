@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +23,8 @@ import java.util.List;
 public class LostPost extends AnimalPost<LostPostStatusHistory> {
     @Column(nullable = false, updatable = false)
     private boolean hasOwner;
+    @Column(precision = 12, scale = 2)
+    private BigDecimal reward;
     @OneToMany(
             mappedBy = "post",
             cascade = CascadeType.ALL,
@@ -31,9 +34,10 @@ public class LostPost extends AnimalPost<LostPostStatusHistory> {
             List.of(new LostPostStatusHistory(StatusLostPost.CREATED, this))
     );
 
-    public LostPost(String title, String description, String imageUrl, String sharePostUrl, boolean hasOwner, User owner, Location location, Animal animal) {
-        super(title, description, imageUrl, sharePostUrl, owner, animal, location);
+    public LostPost(String title, String description, String imageUrl, String sharePostUrl, String phoneNumber, boolean hasOwner, User owner, Location location, Animal animal, BigDecimal reward) {
+        super(title, description, imageUrl, sharePostUrl, phoneNumber, owner, animal, location);
         this.hasOwner = hasOwner;
+        this.reward = reward;
     }
 
     @Override
