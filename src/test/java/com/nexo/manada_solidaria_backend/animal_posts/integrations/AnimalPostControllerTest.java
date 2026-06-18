@@ -70,9 +70,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         ).andExpect(status().is(expectedStatus.value()));
 
         if (expectedStatus.is2xxSuccessful()) {
-            result
-                    .andExpect(jsonPath("$.type").value(expectedType))
-                    .andExpect(jsonPath("$.status").value("CREATED"));
+            result.andExpect(jsonPath("$.type").value(expectedType));
         }
     }
 
@@ -97,6 +95,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.animal.type").value("DOG"))
                 .andExpect(jsonPath("$.animal.size").value("MEDIUM"))
                 .andExpect(jsonPath("$.animal.gender").value("MALE"))
+                .andExpect(jsonPath("$.animal.age").value("ADULT"))
                 .andExpect(jsonPath("$.location.name").value("Parque Centenario"))
                 .andExpect(jsonPath("$.location.address").value("Av. Patricias"))
                 .andExpect(jsonPath("$.location.number").value(100))
@@ -117,7 +116,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     @Test
-    @DisplayName("POST /animal-post LOST sin hasOwner: 400 con el mensaje del validator @RequiredIfTypeIsLost")
+    @DisplayName("POST /animal-post LOST sin hasOwner: 400 con el mensaje del validator @RequiredFieldsByType")
     void create_lostWithoutHasOwner_returnsValidatorMessage() throws Exception {
         mockMvc.perform(
                         post("/animal-post")
@@ -153,25 +152,36 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
-    @Test
-    @DisplayName("POST /animal-post ADOPTION inTransit=true crea CREATED + SEARCHING_ADOPT_AND_TRANSIT (dos filas trazables)")
-    void create_adoptionInTransit_createsTwoTraceableStates() throws Exception {
+    @DisplayName("POST /animal-post ADOPTION: inTransit define el estado vigente y cierra el CREATED inicial")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource("com.nexo.manada_solidaria_backend.animal_posts.utils.MockAnimalPostDataUtils#provideInTransitCases")
+    void create_adoption_transitionsByInTransit(String testName, String body, String expectedStatus) throws Exception {
         String responseBody = mockMvc.perform(
                         post("/animal-post")
                                 .header("Authorization", "Bearer " + accessToken)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(MockAnimalPostDataUtils.ADOPTION_IN_TRANSIT)
+                                .content(body)
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.type").value("ADOPTION"))
-                .andExpect(jsonPath("$.status").value("SEARCHING_ADOPT_AND_TRANSIT"))
+                .andExpect(jsonPath("$.status").value(expectedStatus))
                 .andReturn().getResponse().getContentAsString();
 
         UUID id = UUID.fromString(mapper.readTree(responseBody).get("id").asText());
         AdoptionPost saved = (AdoptionPost) animalPostRepository.findById(id).orElseThrow();
-        assertThat(saved.getStatusHistory()).hasSize(2);
-        long open = saved.getStatusHistory().stream().filter(s -> s.getFinishedAt() == null).count();
-        assertThat(open).isEqualTo(1L);
+
+        // Las dos filas son exactamente CREATED + el estado esperado (descarta el falso positivo "dos CREATED").
+        assertThat(saved.getStatusHistory())
+                .extracting(h -> h.getStatus().name())
+                .containsExactlyInAnyOrder("CREATED", expectedStatus);
+        // El CREATED inicial quedó cerrado.
+        assertThat(saved.getStatusHistory())
+                .filteredOn(h -> h.getStatus() == StatusAdoptionPost.CREATED)
+                .singleElement()
+                .satisfies(h -> assertThat(h.getFinishedAt()).isNotNull());
+        // El estado vigente (abierto) es el esperado.
+        assertThat(saved.getCurrentStatus().getStatus().name()).isEqualTo(expectedStatus);
+        assertThat(saved.getCurrentStatus().getFinishedAt()).isNull();
     }
 
     @Test
@@ -179,7 +189,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     void list_returnsNewestFirst() throws Exception {
         saveLostPost("Caso perdido", StatusLostPost.CREATED);
         Thread.sleep(2);
-        saveAdoptionPost("Caso adopción", StatusAdoptionPost.CREATED);
+        saveAdoptionPost("Caso adopción", StatusAdoptionPost.SEARCHING_ADOPT_AND_TRANSIT);
 
         mockMvc.perform(
                         get("/animal-posts").header("Authorization", "Bearer " + accessToken)
@@ -188,7 +198,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.page.totalElements").value(2))
                 .andExpect(jsonPath("$.content[0].title").value("Caso adopción"))
                 .andExpect(jsonPath("$.content[1].title").value("Caso perdido"))
-                .andExpect(jsonPath("$.content[0].status").value("CREATED"));
+                .andExpect(jsonPath("$.content[0].status").value("SEARCHING_ADOPT_AND_TRANSIT"));
     }
 
     @DisplayName("GET /animal-posts?type= filtra por tipo y estado")
@@ -197,7 +207,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     void filterTests(String testName, String type, int expectedCount) throws Exception {
         saveLostPost("Lost creado", StatusLostPost.CREATED);
         saveLostPost("Lost buscando", StatusLostPost.SEARCHING);
-        saveAdoptionPost("Adopción creada", StatusAdoptionPost.CREATED);
+        saveAdoptionPost("Adopción en búsqueda y tránsito", StatusAdoptionPost.SEARCHING_ADOPT_AND_TRANSIT);
         saveAdoptionPost("Adopción adoptada", StatusAdoptionPost.ADOPTED);
 
         MockHttpServletRequestBuilder request = get("/animal-posts")
@@ -235,7 +245,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     void list_paginates() throws Exception {
         saveLostPost("Uno", StatusLostPost.CREATED);
         saveLostPost("Dos", StatusLostPost.CREATED);
-        saveAdoptionPost("Tres", StatusAdoptionPost.CREATED);
+        saveAdoptionPost("Tres", StatusAdoptionPost.SEARCHING_ADOPT_AND_TRANSIT);
 
         mockMvc.perform(
                         get("/animal-posts")

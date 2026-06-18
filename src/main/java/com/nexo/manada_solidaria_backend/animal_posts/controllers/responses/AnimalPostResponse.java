@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.animal_posts.controllers.responses;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostType;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalAge;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalGender;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalSize;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
@@ -62,7 +63,7 @@ public record AnimalPostResponse(
             String color,
             String breed,
             String fur,
-            String age,
+            AnimalAge age,
             String description
     ) {
         static AnimalResponse from(Animal animal) {
