@@ -1,10 +1,10 @@
 package com.nexo.manada_solidaria_backend.animal_posts.controllers.requests;
 
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalAge;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalGender;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalSize;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.validations.RequiredIfTypeIsAdoption;
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.validations.RequiredIfTypeIsLost;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.validations.RequiredFieldsByType;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.validations.RewardOnlyForLost;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -14,8 +14,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 
 
-@RequiredIfTypeIsLost
-@RequiredIfTypeIsAdoption
+@RequiredFieldsByType
 @RewardOnlyForLost
 public record CreateAnimalPostRequest(
         @NotNull(message = "El tipo de publicación es obligatorio (LOST o ADOPTION)")
@@ -62,8 +61,8 @@ public record CreateAnimalPostRequest(
             String color,
             String breed,
             String fur,
-            @NotBlank(message = "La edad del animal es obligatoria")
-            String age,
+            @NotNull(message = "La edad del animal es obligatoria")
+            AnimalAge age,
             String description
     ) {
     }

@@ -30,14 +30,14 @@ public class AdoptionPost extends AnimalPost<AdoptionPostStatusHistory> {
 
     public AdoptionPost(String title, String description, String imageUrl, String sharePostUrl, String phoneNumber, User owner, Animal animal, Location location, boolean inTransit) {
         super(title, description, imageUrl, sharePostUrl, phoneNumber, owner, animal, location);
-        if (inTransit) {
-            markInTransit();
-        }
+        startSearching(inTransit);
     }
-
-    private void markInTransit() {
+    private void startSearching(boolean inTransit) {
         getCurrentStatus().finish();
-        this.statusHistory.add(new AdoptionPostStatusHistory(StatusAdoptionPost.SEARCHING_ADOPT_AND_TRANSIT, this));
+        StatusAdoptionPost next = inTransit
+                ? StatusAdoptionPost.SEARCHING_ADOPT
+                : StatusAdoptionPost.SEARCHING_ADOPT_AND_TRANSIT;
+        this.statusHistory.add(new AdoptionPostStatusHistory(next, this));
     }
 
     @Override

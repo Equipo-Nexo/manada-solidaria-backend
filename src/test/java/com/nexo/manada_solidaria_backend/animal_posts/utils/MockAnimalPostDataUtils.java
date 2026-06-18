@@ -16,7 +16,7 @@ public class MockAnimalPostDataUtils {
               "phoneNumber": "1122334455",
               "hasOwner": true,
               "reward": 5000,
-              "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE", "age": "2 años" },
+              "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE", "age": "ADULT" },
               "location": { "name": "Parque Centenario", "address": "Av. Patricias", "number": 100, "latitude": -34.6, "longitude": -58.4 }
             }
             """;
@@ -29,7 +29,7 @@ public class MockAnimalPostDataUtils {
               "imageId": "cf-image-456",
               "phoneNumber": "1122334455",
               "inTransit": false,
-              "animal": { "type": "CAT", "size": "SMALL", "gender": "FEMALE", "age": "1 año" },
+              "animal": { "type": "CAT", "size": "SMALL", "gender": "FEMALE", "age": "PUPPY" },
               "location": { "name": "Refugio Norte", "address": "Calle Falsa", "number": 123, "latitude": -34.5, "longitude": -58.5 }
             }
             """;
@@ -42,7 +42,7 @@ public class MockAnimalPostDataUtils {
               "imageId": "cf-image-555",
               "phoneNumber": "1122334455",
               "inTransit": true,
-              "animal": { "type": "CAT", "size": "SMALL", "gender": "FEMALE", "age": "1 año" },
+              "animal": { "type": "CAT", "size": "SMALL", "gender": "FEMALE", "age": "PUPPY" },
               "location": { "name": "Refugio", "address": "Calle", "number": 1, "latitude": -34.5, "longitude": -58.5 }
             }
             """;
@@ -138,7 +138,7 @@ public class MockAnimalPostDataUtils {
               "description": "Falta el teléfono",
               "imageId": "cf-image-777",
               "hasOwner": true,
-              "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE", "age": "2 años" },
+              "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE", "age": "ADULT" },
               "location": { "name": "Plaza", "address": "Corrientes", "number": 1, "latitude": -34.6, "longitude": -58.4 }
             }
             """;
@@ -150,7 +150,7 @@ public class MockAnimalPostDataUtils {
               "description": "Falta inTransit",
               "imageId": "cf-image-888",
               "phoneNumber": "1122334455",
-              "animal": { "type": "CAT", "size": "SMALL", "gender": "FEMALE", "age": "1 año" },
+              "animal": { "type": "CAT", "size": "SMALL", "gender": "FEMALE", "age": "PUPPY" },
               "location": { "name": "Refugio", "address": "Calle", "number": 1, "latitude": -34.5, "longitude": -58.5 }
             }
             """;
@@ -164,26 +164,39 @@ public class MockAnimalPostDataUtils {
               "phoneNumber": "1122334455",
               "inTransit": false,
               "reward": 5000,
-              "animal": { "type": "CAT", "size": "SMALL", "gender": "FEMALE", "age": "1 año" },
+              "animal": { "type": "CAT", "size": "SMALL", "gender": "FEMALE", "age": "PUPPY" },
               "location": { "name": "Refugio", "address": "Calle", "number": 1, "latitude": -34.5, "longitude": -58.5 }
             }
             """;
 
     private static Stream<Arguments> provideCreateCases() {
         return Stream.of(
+                // Camino feliz: el post se crea de verdad y responde el tipo correcto.
                 Arguments.of("LOST válido devuelve 201", LOST_VALID, HttpStatus.CREATED, "LOST"),
                 Arguments.of("ADOPTION válido devuelve 201", ADOPTION_VALID, HttpStatus.CREATED, "ADOPTION"),
-                Arguments.of("LOST sin hasOwner devuelve 400", LOST_WITHOUT_HAS_OWNER, HttpStatus.BAD_REQUEST, null),
+
+                // Nuestra lógica: validators cross-field propios (lo que de verdad vale probar acá).
+                Arguments.of("LOST sin hasOwner devuelve 400 (@RequiredFieldsByType)", LOST_WITHOUT_HAS_OWNER, HttpStatus.BAD_REQUEST, null),
+                Arguments.of("ADOPTION sin inTransit devuelve 400 (@RequiredFieldsByType)", ADOPTION_WITHOUT_IN_TRANSIT, HttpStatus.BAD_REQUEST, null),
+                Arguments.of("ADOPTION con reward devuelve 400 (@RewardOnlyForLost)", ADOPTION_WITH_REWARD, HttpStatus.BAD_REQUEST, null),
+
+                // Contrato de campos requeridos (Bean Validation estándar @NotNull/@NotBlank): smoke del endpoint.
+                Arguments.of("sin type devuelve 400", WITHOUT_TYPE, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("sin title devuelve 400", WITHOUT_TITLE, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("sin description devuelve 400", WITHOUT_DESCRIPTION, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("sin imageId devuelve 400", WITHOUT_IMAGE_ID, HttpStatus.BAD_REQUEST, null),
-                Arguments.of("sin animal devuelve 400", WITHOUT_ANIMAL, HttpStatus.BAD_REQUEST, null),
-                Arguments.of("sin location devuelve 400", WITHOUT_LOCATION, HttpStatus.BAD_REQUEST, null),
-                Arguments.of("sin type devuelve 400", WITHOUT_TYPE, HttpStatus.BAD_REQUEST, null),
-                Arguments.of("sin age devuelve 400", WITHOUT_AGE, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("sin phoneNumber devuelve 400", WITHOUT_PHONE, HttpStatus.BAD_REQUEST, null),
-                Arguments.of("ADOPTION sin inTransit devuelve 400", ADOPTION_WITHOUT_IN_TRANSIT, HttpStatus.BAD_REQUEST, null),
-                Arguments.of("ADOPTION con reward devuelve 400", ADOPTION_WITH_REWARD, HttpStatus.BAD_REQUEST, null)
+                Arguments.of("sin age devuelve 400", WITHOUT_AGE, HttpStatus.BAD_REQUEST, null),
+                Arguments.of("sin animal devuelve 400", WITHOUT_ANIMAL, HttpStatus.BAD_REQUEST, null),
+                Arguments.of("sin location devuelve 400", WITHOUT_LOCATION, HttpStatus.BAD_REQUEST, null)
+        );
+    }
+
+    // inTransit define el estado vigente de la adopción: true = tránsito resuelto (solo adopción).
+    private static Stream<Arguments> provideInTransitCases() {
+        return Stream.of(
+                Arguments.of("inTransit=true queda SEARCHING_ADOPT", ADOPTION_IN_TRANSIT, "SEARCHING_ADOPT"),
+                Arguments.of("inTransit=false queda SEARCHING_ADOPT_AND_TRANSIT", ADOPTION_VALID, "SEARCHING_ADOPT_AND_TRANSIT")
         );
     }
 }

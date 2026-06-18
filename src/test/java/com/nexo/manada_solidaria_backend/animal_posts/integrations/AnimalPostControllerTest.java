@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.animal_posts.integrations;
 
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusAdoptionPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
@@ -51,9 +52,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         ).andExpect(status().is(expectedStatus.value()));
 
         if (expectedStatus.is2xxSuccessful()) {
-            result
-                    .andExpect(jsonPath("$.type").value(expectedType))
-                    .andExpect(jsonPath("$.status").value("CREATED"));
+            result.andExpect(jsonPath("$.type").value(expectedType));
         }
     }
 
@@ -78,6 +77,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.animal.type").value("DOG"))
                 .andExpect(jsonPath("$.animal.size").value("MEDIUM"))
                 .andExpect(jsonPath("$.animal.gender").value("MALE"))
+                .andExpect(jsonPath("$.animal.age").value("ADULT"))
                 .andExpect(jsonPath("$.location.name").value("Parque Centenario"))
                 .andExpect(jsonPath("$.location.address").value("Av. Patricias"))
                 .andExpect(jsonPath("$.location.number").value(100))
@@ -94,7 +94,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     @Test
-    @DisplayName("POST /animal-post LOST sin hasOwner: 400 con el mensaje del validator @RequiredIfTypeIsLost")
+    @DisplayName("POST /animal-post LOST sin hasOwner: 400 con el mensaje del validator @RequiredFieldsByType")
     void create_lostWithoutHasOwner_returnsValidatorMessage() throws Exception {
         mockMvc.perform(
                         post("/animal-post")
@@ -129,24 +129,35 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
-    @Test
-    @DisplayName("POST /animal-post ADOPTION inTransit=true crea CREATED + SEARCHING_ADOPT_AND_TRANSIT (dos filas trazables)")
-    void create_adoptionInTransit_createsTwoTraceableStates() throws Exception {
+    @DisplayName("POST /animal-post ADOPTION: inTransit define el estado vigente y cierra el CREATED inicial")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource("com.nexo.manada_solidaria_backend.animal_posts.utils.MockAnimalPostDataUtils#provideInTransitCases")
+    void create_adoption_transitionsByInTransit(String testName, String body, String expectedStatus) throws Exception {
         String responseBody = mockMvc.perform(
                         post("/animal-post")
                                 .header("Authorization", "Bearer " + accessToken)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(MockAnimalPostDataUtils.ADOPTION_IN_TRANSIT)
+                                .content(body)
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.type").value("ADOPTION"))
-                .andExpect(jsonPath("$.status").value("SEARCHING_ADOPT_AND_TRANSIT"))
+                .andExpect(jsonPath("$.status").value(expectedStatus))
                 .andReturn().getResponse().getContentAsString();
 
         UUID id = UUID.fromString(mapper.readTree(responseBody).get("id").asText());
         AdoptionPost saved = (AdoptionPost) animalPostRepository.findById(id).orElseThrow();
-        assertThat(saved.getStatusHistory()).hasSize(2);
-        long open = saved.getStatusHistory().stream().filter(s -> s.getFinishedAt() == null).count();
-        assertThat(open).isEqualTo(1L);
+
+        // Las dos filas son exactamente CREATED + el estado esperado (descarta el falso positivo "dos CREATED").
+        assertThat(saved.getStatusHistory())
+                .extracting(h -> h.getStatus().name())
+                .containsExactlyInAnyOrder("CREATED", expectedStatus);
+        // El CREATED inicial quedó cerrado.
+        assertThat(saved.getStatusHistory())
+                .filteredOn(h -> h.getStatus() == StatusAdoptionPost.CREATED)
+                .singleElement()
+                .satisfies(h -> assertThat(h.getFinishedAt()).isNotNull());
+        // El estado vigente (abierto) es el esperado.
+        assertThat(saved.getCurrentStatus().getStatus().name()).isEqualTo(expectedStatus);
+        assertThat(saved.getCurrentStatus().getFinishedAt()).isNull();
     }
 }
