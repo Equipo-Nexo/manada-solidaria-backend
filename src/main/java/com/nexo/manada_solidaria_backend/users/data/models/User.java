@@ -1,9 +1,6 @@
 package com.nexo.manada_solidaria_backend.users.data.models;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,12 +16,13 @@ import java.util.UUID;
 @AllArgsConstructor
 @Getter
 @Setter
+@Table(name = "users")
 public class User implements UserDetails {
     @Column(nullable = false)
     private String username;
     @Column(nullable = false)
     private String password;
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     private Profile profile;
     @Id
     private final UUID id = UUID.randomUUID();

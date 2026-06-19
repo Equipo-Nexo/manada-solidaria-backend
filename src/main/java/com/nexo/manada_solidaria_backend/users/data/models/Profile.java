@@ -2,6 +2,8 @@ package com.nexo.manada_solidaria_backend.users.data.models;
 
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,6 +25,7 @@ public class Profile {
     private String profileImageURL;
     private String email;
     private String phoneNumber;
+    @Enumerated(EnumType.STRING)
     private List<Rol> roles;
     @Id
     private UUID id = UUID.randomUUID();
