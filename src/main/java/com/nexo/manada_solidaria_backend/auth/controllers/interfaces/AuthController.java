@@ -13,6 +13,9 @@ import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import static org.springframework.http.HttpStatus.CREATED;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 @Tag(name = "Authentication")
 @RequestMapping("/auth")
