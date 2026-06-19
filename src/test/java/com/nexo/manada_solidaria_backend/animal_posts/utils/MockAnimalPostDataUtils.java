@@ -194,18 +194,17 @@ public class MockAnimalPostDataUtils {
         );
     }
 
-    // Dataset de filterTests: Lost(CREATED), Lost(SEARCHING), Adoption(SEARCHING_ADOPT_AND_TRANSIT), Adoption(ADOPTED).
     private static Stream<Arguments> provideFilterCases() {
         return Stream.of(
-                Arguments.of("sin filtro trae todos", null, 4),
-                Arguments.of("LOST trae los perdidos", "LOST", 2),
-                Arguments.of("ADOPTION trae las adopciones", "ADOPTION", 2),
-                Arguments.of("CREATED trae perdidos recién creados", "CREATED", 1),
-                Arguments.of("SEARCHING trae perdidos en búsqueda", "SEARCHING", 1),
-                Arguments.of("FOUND sin resultados", "FOUND", 0),
-                Arguments.of("SEARCHING_ADOPT_AND_TRANSIT trae adopciones con tránsito", "SEARCHING_ADOPT_AND_TRANSIT", 1),
-                Arguments.of("SEARCHING_ADOPT sin resultados", "SEARCHING_ADOPT", 0),
-                Arguments.of("ADOPTED trae adoptados", "ADOPTED", 1)
+                Arguments.of("Sin filtro devuelve todos los posts", null, 4),
+                Arguments.of("Filtrando por LOST devuelve solo los posts perdidos", "LOST", 2),
+                Arguments.of("Filtrando por ADOPTION devuelve solo los posts de adopcion", "ADOPTION", 2),
+                Arguments.of("Filtrando por CREATED devuelve solo los perdidos recien creados", "CREATED", 1),
+                Arguments.of("Filtrando por SEARCHING devuelve solo los perdidos en busqueda", "SEARCHING", 1),
+                Arguments.of("Filtrando por FOUND no devuelve resultados", "FOUND", 0),
+                Arguments.of("Filtrando por SEARCHING_ADOPT_AND_TRANSIT devuelve las adopciones que buscan transito", "SEARCHING_ADOPT_AND_TRANSIT", 1),
+                Arguments.of("Filtrando por SEARCHING_ADOPT no devuelve resultados", "SEARCHING_ADOPT", 0),
+                Arguments.of("Filtrando por ADOPTED devuelve las adopciones concretadas", "ADOPTED", 1)
         );
     }
 }
