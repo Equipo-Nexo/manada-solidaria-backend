@@ -116,7 +116,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     @Test
-    @DisplayName("POST /animal-post LOST sin hasOwner: 400 con el mensaje del validator @RequiredFieldsByType")
+    @DisplayName("POST /animal-post LOST sin hasOwner: 400 con el mensaje del validator @ConditionalField")
     void create_lostWithoutHasOwner_returnsValidatorMessage() throws Exception {
         mockMvc.perform(
                         post("/animal-post")

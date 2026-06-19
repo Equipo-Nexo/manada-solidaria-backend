@@ -171,32 +171,26 @@ public class MockAnimalPostDataUtils {
 
     private static Stream<Arguments> provideCreateCases() {
         return Stream.of(
-                // Camino feliz: el post se crea de verdad y responde el tipo correcto.
-                Arguments.of("LOST válido devuelve 201", LOST_VALID, HttpStatus.CREATED, "LOST"),
-                Arguments.of("ADOPTION válido devuelve 201", ADOPTION_VALID, HttpStatus.CREATED, "ADOPTION"),
-
-                // Nuestra lógica: validators cross-field propios (lo que de verdad vale probar acá).
-                Arguments.of("LOST sin hasOwner devuelve 400 (@RequiredFieldsByType)", LOST_WITHOUT_HAS_OWNER, HttpStatus.BAD_REQUEST, null),
-                Arguments.of("ADOPTION sin inTransit devuelve 400 (@RequiredFieldsByType)", ADOPTION_WITHOUT_IN_TRANSIT, HttpStatus.BAD_REQUEST, null),
-                Arguments.of("ADOPTION con reward devuelve 400 (@RewardOnlyForLost)", ADOPTION_WITH_REWARD, HttpStatus.BAD_REQUEST, null),
-
-                // Contrato de campos requeridos (Bean Validation estándar @NotNull/@NotBlank): smoke del endpoint.
-                Arguments.of("sin type devuelve 400", WITHOUT_TYPE, HttpStatus.BAD_REQUEST, null),
-                Arguments.of("sin title devuelve 400", WITHOUT_TITLE, HttpStatus.BAD_REQUEST, null),
-                Arguments.of("sin description devuelve 400", WITHOUT_DESCRIPTION, HttpStatus.BAD_REQUEST, null),
-                Arguments.of("sin imageId devuelve 400", WITHOUT_IMAGE_ID, HttpStatus.BAD_REQUEST, null),
-                Arguments.of("sin phoneNumber devuelve 400", WITHOUT_PHONE, HttpStatus.BAD_REQUEST, null),
-                Arguments.of("sin age devuelve 400", WITHOUT_AGE, HttpStatus.BAD_REQUEST, null),
-                Arguments.of("sin animal devuelve 400", WITHOUT_ANIMAL, HttpStatus.BAD_REQUEST, null),
-                Arguments.of("sin location devuelve 400", WITHOUT_LOCATION, HttpStatus.BAD_REQUEST, null)
+                Arguments.of("Una request LOST valida crea el post y responde el status code correcto", LOST_VALID, HttpStatus.CREATED, "LOST"),
+                Arguments.of("Una request ADOPTION valida crea el post y responde el status code correcto", ADOPTION_VALID, HttpStatus.CREATED, "ADOPTION"),
+                Arguments.of("Se envia una request del tipo LOST sin el parametro hasOwner, devuelve BAD_REQUEST", LOST_WITHOUT_HAS_OWNER, HttpStatus.BAD_REQUEST, null),
+                Arguments.of("Se envia una request del tipo ADOPTION sin el parametro inTransit, devuelve BAD_REQUEST", ADOPTION_WITHOUT_IN_TRANSIT, HttpStatus.BAD_REQUEST, null),
+                Arguments.of("Se envia una request del tipo ADOPTION con reward, devuelve BAD_REQUEST", ADOPTION_WITH_REWARD, HttpStatus.BAD_REQUEST, null),
+                Arguments.of("Se envia una request sin type, devuelve BAD_REQUEST", WITHOUT_TYPE, HttpStatus.BAD_REQUEST, null),
+                Arguments.of("Se envia una request sin title, devuelve BAD_REQUEST", WITHOUT_TITLE, HttpStatus.BAD_REQUEST, null),
+                Arguments.of("Se envia una request sin description, devuelve BAD_REQUEST", WITHOUT_DESCRIPTION, HttpStatus.BAD_REQUEST, null),
+                Arguments.of("Se envia una request sin imageId, devuelve BAD_REQUEST", WITHOUT_IMAGE_ID, HttpStatus.BAD_REQUEST, null),
+                Arguments.of("Se envia una request sin phoneNumber, devuelve BAD_REQUEST", WITHOUT_PHONE, HttpStatus.BAD_REQUEST, null),
+                Arguments.of("Se envia una request sin age, devuelve BAD_REQUEST", WITHOUT_AGE, HttpStatus.BAD_REQUEST, null),
+                Arguments.of("Se envia una request sin animal, devuelve BAD_REQUEST", WITHOUT_ANIMAL, HttpStatus.BAD_REQUEST, null),
+                Arguments.of("Se envia una request sin location, devuelve BAD_REQUEST", WITHOUT_LOCATION, HttpStatus.BAD_REQUEST, null)
         );
     }
 
-    // inTransit define el estado vigente de la adopción: true = tránsito resuelto (solo adopción).
     private static Stream<Arguments> provideInTransitCases() {
         return Stream.of(
-                Arguments.of("inTransit=true queda SEARCHING_ADOPT", ADOPTION_IN_TRANSIT, "SEARCHING_ADOPT"),
-                Arguments.of("inTransit=false queda SEARCHING_ADOPT_AND_TRANSIT", ADOPTION_VALID, "SEARCHING_ADOPT_AND_TRANSIT")
+                Arguments.of("Una adopcion con inTransit=true (transito ya resuelto) queda en SEARCHING_ADOPT", ADOPTION_IN_TRANSIT, "SEARCHING_ADOPT"),
+                Arguments.of("Una adopcion con inTransit=false (sin transito) queda en SEARCHING_ADOPT_AND_TRANSIT", ADOPTION_VALID, "SEARCHING_ADOPT_AND_TRANSIT")
         );
     }
 

@@ -4,8 +4,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalAge;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalGender;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalSize;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.validations.RequiredFieldsByType;
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.validations.RewardOnlyForLost;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.validations.ConditionalField;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -14,8 +13,25 @@ import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 
 
-@RequiredFieldsByType
-@RewardOnlyForLost
+@ConditionalField(
+        field = "hasOwner",
+        dependsOn = "type",
+        expectedValue = "LOST",
+        message = "El parámetro hasOwner es obligatorio cuando el tipo de publicación es LOST"
+)
+@ConditionalField(
+        field = "inTransit",
+        dependsOn = "type",
+        expectedValue = "ADOPTION",
+        message = "El parámetro inTransit es obligatorio cuando el tipo de publicación es ADOPTION"
+)
+@ConditionalField(
+        field = "reward",
+        dependsOn = "type",
+        expectedValue = "LOST",
+        rule = ConditionalField.Rule.ONLY_ALLOWED,
+        message = "La recompensa solo aplica a publicaciones de tipo LOST"
+)
 public record CreateAnimalPostRequest(
         @NotNull(message = "El tipo de publicación es obligatorio (LOST o ADOPTION)")
         AnimalPostType type,
