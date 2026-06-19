@@ -72,9 +72,9 @@ public record CampaignResponse(
             UUID id,
             String name,
             String address,
-            int number,
-            double latitude,
-            double longitude
+            Integer number,
+            Double latitude,
+            Double longitude
     ) {
 
         static LocationResponse from(Location location) {

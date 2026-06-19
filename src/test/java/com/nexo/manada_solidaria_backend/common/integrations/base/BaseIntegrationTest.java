@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.common.integrations.base;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,6 +13,7 @@ import java.util.Base64;
 
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 
+@Slf4j
 @SpringBootTest
 public abstract class BaseIntegrationTest {
     protected static MockMvc mockMvc;
@@ -24,6 +26,15 @@ public abstract class BaseIntegrationTest {
                 .webAppContextSetup(webApplicationContext)
                 .apply(springSecurity())
                 .build();
+    }
+
+    protected String toJson(Object object) {
+        try {
+            return this.mapper.writeValueAsString(object);
+        } catch (Exception e) {
+            log.error("Error decoding object as String", e);
+            return null;
+        }
     }
 
     protected static String getCredentials(String username, String password) {

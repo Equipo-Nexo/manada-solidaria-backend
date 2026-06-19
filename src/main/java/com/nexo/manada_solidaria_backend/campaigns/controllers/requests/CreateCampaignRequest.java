@@ -2,9 +2,7 @@ package com.nexo.manada_solidaria_backend.campaigns.controllers.requests;
 
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.validations.CampaignTypeValidation;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
 
@@ -28,8 +26,10 @@ public record CreateCampaignRequest(
         @Valid
         LocationRequest location,
 
+        @Positive(message = "El monto a recaudar debe ser mayor a 0")
         Long amountToBeCollected,
 
+        @FutureOrPresent(message = "La fecha de finalización debe ser posterior o igual al día de hoy")
         LocalDate campaignEndDate
 
 ) {

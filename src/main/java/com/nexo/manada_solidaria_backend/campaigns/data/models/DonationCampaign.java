@@ -20,7 +20,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DonationCampaign extends Campaign<DonationCampaignStatusHistory> {
-    private long amountToBeCollected;
+    private Long amountToBeCollected;
     private long amountCollected;
     private LocalDate endDate;
     @OneToMany(
@@ -42,7 +42,7 @@ public class DonationCampaign extends Campaign<DonationCampaignStatusHistory> {
             String shareCampaignUrl,
             Location location,
             User owner,
-            long amountToBeCollected,
+            Long amountToBeCollected,
             long amountCollected,
             LocalDate campaignEndDate,
             List<DonationCampaignStatusHistory> statusHistory
