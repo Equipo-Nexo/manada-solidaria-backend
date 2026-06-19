@@ -200,15 +200,17 @@ public class MockAnimalPostDataUtils {
         );
     }
 
-    // El dataset sembrado en filterTests: 2 lost (CREATED, SEARCHING) + 2 adoption (CREATED, ADOPTED).
+    // Dataset de filterTests: Lost(CREATED), Lost(SEARCHING), Adoption(SEARCHING_ADOPT_AND_TRANSIT), Adoption(ADOPTED).
     private static Stream<Arguments> provideFilterCases() {
         return Stream.of(
                 Arguments.of("sin filtro trae todos", null, 4),
                 Arguments.of("LOST trae los perdidos", "LOST", 2),
                 Arguments.of("ADOPTION trae las adopciones", "ADOPTION", 2),
+                Arguments.of("CREATED trae perdidos recién creados", "CREATED", 1),
                 Arguments.of("SEARCHING trae perdidos en búsqueda", "SEARCHING", 1),
                 Arguments.of("FOUND sin resultados", "FOUND", 0),
-                Arguments.of("CREATED trae solo adopciones", "CREATED", 1),
+                Arguments.of("SEARCHING_ADOPT_AND_TRANSIT trae adopciones con tránsito", "SEARCHING_ADOPT_AND_TRANSIT", 1),
+                Arguments.of("SEARCHING_ADOPT sin resultados", "SEARCHING_ADOPT", 0),
                 Arguments.of("ADOPTED trae adoptados", "ADOPTED", 1)
         );
     }

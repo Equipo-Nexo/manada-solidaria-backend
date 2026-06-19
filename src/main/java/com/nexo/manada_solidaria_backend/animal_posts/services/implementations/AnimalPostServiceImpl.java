@@ -51,7 +51,8 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                     case SEARCHING -> lostPostRepository.findAllByCurrentStatus(StatusLostPost.SEARCHING, sorted);
                     case FOUND -> lostPostRepository.findAllByCurrentStatus(StatusLostPost.FOUND, sorted);
                     case ADOPTION -> adoptionPostRepository.findAll(sorted);
-                    case CREATED -> adoptionPostRepository.findAllByCurrentStatus(StatusAdoptionPost.CREATED, sorted);
+                    // CREATED solo es alcanzable en LostPost: las adopciones transicionan apenas se crean.
+                    case CREATED -> lostPostRepository.findAllByCurrentStatus(StatusLostPost.CREATED, sorted);
                     case SEARCHING_ADOPT_AND_TRANSIT ->
                             adoptionPostRepository.findAllByCurrentStatus(StatusAdoptionPost.SEARCHING_ADOPT_AND_TRANSIT, sorted);
                     case SEARCHING_ADOPT ->
