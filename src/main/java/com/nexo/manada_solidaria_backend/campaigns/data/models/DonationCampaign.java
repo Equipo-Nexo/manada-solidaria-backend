@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -30,11 +31,6 @@ public class DonationCampaign extends Campaign<DonationCampaignStatusHistory> {
     )
     private List<DonationCampaignStatusHistory> statusHistory;
 
-    @Override
-    public DonationCampaignStatusHistory getCurrentStatus() {
-        return StatusHistoryUtils.getCurrentStatus(statusHistory);
-    }
-
     public DonationCampaign(
             String title,
             String description,
@@ -43,22 +39,18 @@ public class DonationCampaign extends Campaign<DonationCampaignStatusHistory> {
             Location location,
             User owner,
             Long amountToBeCollected,
-            long amountCollected,
-            LocalDate campaignEndDate,
-            List<DonationCampaignStatusHistory> statusHistory
+            LocalDate campaignEndDate
     ) {
-        super(
-                title,
-                description,
-                imageId,
-                shareCampaignUrl,
-                location,
-                owner
-        );
+        super(title, description, imageId, shareCampaignUrl, location, owner);
 
         this.amountToBeCollected = amountToBeCollected;
-        this.amountCollected = amountCollected;
+        this.amountCollected = 0L;
         this.endDate = campaignEndDate;
-        this.statusHistory = statusHistory;
+        this.statusHistory = new ArrayList<>();
+    }
+
+    @Override
+    public DonationCampaignStatusHistory getCurrentStatus() {
+        return StatusHistoryUtils.getCurrentStatus(statusHistory);
     }
 }

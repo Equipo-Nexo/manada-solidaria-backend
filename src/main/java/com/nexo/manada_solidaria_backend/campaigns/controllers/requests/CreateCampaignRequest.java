@@ -1,12 +1,26 @@
 package com.nexo.manada_solidaria_backend.campaigns.controllers.requests;
 
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.validations.CampaignTypeValidation;
+import com.nexo.manada_solidaria_backend.common.controllers.validations.ConditionalField;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
 
-@CampaignTypeValidation
+@ConditionalField(
+        field = "amountToBeCollected",
+        dependsOn = "type",
+        expectedValue = "DONATION",
+        rule = ConditionalField.Rule.ONLY_ALLOWED,
+        message = "El monto a recaudar solo aplica para campañas de tipo DONATION"
+)
+@ConditionalField(
+        field = "campaignEndDate",
+        dependsOn = "type",
+        expectedValue = "DONATION",
+        rule = ConditionalField.Rule.ONLY_ALLOWED,
+        message = "La fecha de finalización solo aplica para campañas de tipo DONATION"
+)
 public record CreateCampaignRequest(
 
         @NotNull(message = "El tipo de campaña es obligatorio")

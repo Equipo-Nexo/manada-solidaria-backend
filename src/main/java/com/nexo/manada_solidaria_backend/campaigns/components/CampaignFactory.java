@@ -57,19 +57,20 @@ public class CampaignFactory {
                         location,
                         owner,
                         request.amountToBeCollected(),
-                        0,
-                        request.campaignEndDate(),
-                        new ArrayList<>()
+                        request.campaignEndDate()
                 );
 
-        DonationCampaignStatusHistory status =
-                new DonationCampaignStatusHistory(
-                        DonationCampaignStatus.CREATED,
-                        campaign
-                );
-        campaign.getStatusHistory().add(status);
+        addInitialStatus(campaign);
 
         return campaign;
+    }
+
+    private void addInitialStatus(DonationCampaign campaign) {
+        DonationCampaignStatusHistory status = new DonationCampaignStatusHistory(
+                DonationCampaignStatus.CREATED,
+                campaign
+        );
+        campaign.getStatusHistory().add(status);
     }
 
     private NewsCampaign buildNewsCampaign(CreateCampaignRequest request, Location location, User owner) {
@@ -80,8 +81,7 @@ public class CampaignFactory {
                         request.imageId(),
                         null,
                         location,
-                        owner,
-                        new ArrayList<>()
+                        owner
                 );
 
         NewsCampaignStatusHistory status =

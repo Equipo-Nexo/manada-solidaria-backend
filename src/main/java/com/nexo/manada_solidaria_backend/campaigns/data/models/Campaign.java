@@ -32,7 +32,6 @@ public abstract class Campaign<T extends StatusHistory<?>> {
     private User owner;
     @Id
     private final UUID id = UUID.randomUUID();
-    public abstract T getCurrentStatus();
 
     protected Campaign(
             String title,
@@ -49,4 +48,6 @@ public abstract class Campaign<T extends StatusHistory<?>> {
         this.location = location;
         this.owner = owner;
     }
+
+    public abstract T getCurrentStatus();
 }

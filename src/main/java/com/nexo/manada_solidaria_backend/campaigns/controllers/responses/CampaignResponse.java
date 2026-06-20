@@ -3,6 +3,7 @@ package com.nexo.manada_solidaria_backend.campaigns.controllers.responses;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CampaignType;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.Campaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationCampaign;
+import com.nexo.manada_solidaria_backend.campaigns.data.models.NewsCampaign;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 
@@ -12,41 +13,32 @@ import java.util.Optional;
 import java.util.UUID;
 
 public record CampaignResponse(
-
         UUID id,
-
         CampaignType type,
-
         String title,
-
         String description,
-
         String imageId,
-
         LocationResponse location,
-
         String status,
-
         LocalDateTime createdAt,
-
         UUID ownerId,
-
         Long amountToBeCollected,
-
         Long amountCollected,
-
         LocalDate campaignEndDate
-
 ) {
 
     public static CampaignResponse from(Campaign campaign) {
-        DonationCampaign donation = campaign instanceof DonationCampaign
-                ? (DonationCampaign) campaign
-                : null;
+        return switch (campaign) {
+            case DonationCampaign donation -> buildDonationCampaignResponse(donation);
+            case NewsCampaign news -> buildNewsCampaignResponse(news);
+            default -> throw new IllegalArgumentException("Unsupported campaign type");
+        };
+    }
 
+    private static CampaignResponse buildDonationCampaignResponse(DonationCampaign campaign) {
         return new CampaignResponse(
                 campaign.getId(),
-                getType(campaign),
+                CampaignType.DONATION,
                 campaign.getTitle(),
                 campaign.getDescription(),
                 campaign.getImageId(),
@@ -56,16 +48,29 @@ public record CampaignResponse(
                 Optional.ofNullable(campaign.getOwner())
                         .map(User::getId)
                         .orElse(null),
-                donation != null ? donation.getAmountToBeCollected() : null,
-                donation != null ? donation.getAmountCollected() : null,
-                donation != null ? donation.getEndDate() : null
+                campaign.getAmountToBeCollected(),
+                campaign.getAmountCollected(),
+                campaign.getEndDate()
         );
     }
 
-    private static CampaignType getType(Campaign campaign) {
-        return campaign instanceof DonationCampaign
-                ? CampaignType.DONATION
-                : CampaignType.NEWS;
+    private static CampaignResponse buildNewsCampaignResponse(NewsCampaign campaign) {
+        return new CampaignResponse(
+                campaign.getId(),
+                CampaignType.NEWS,
+                campaign.getTitle(),
+                campaign.getDescription(),
+                campaign.getImageId(),
+                LocationResponse.from(campaign.getLocation()),
+                campaign.getCurrentStatus().getStatus().name(),
+                campaign.getCreatedAt(),
+                Optional.ofNullable(campaign.getOwner())
+                        .map(User::getId)
+                        .orElse(null),
+                null,
+                null,
+                null
+        );
     }
 
     public record LocationResponse(

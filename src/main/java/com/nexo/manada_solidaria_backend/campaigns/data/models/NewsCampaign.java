@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -27,10 +28,6 @@ public class NewsCampaign extends Campaign<NewsCampaignStatusHistory> {
             orphanRemoval = true
     )
     private List<NewsCampaignStatusHistory> statusHistory;
-    @Override
-    public NewsCampaignStatusHistory getCurrentStatus() {
-        return StatusHistoryUtils.getCurrentStatus(statusHistory);
-    }
 
     public NewsCampaign(
             String title,
@@ -38,18 +35,15 @@ public class NewsCampaign extends Campaign<NewsCampaignStatusHistory> {
             String imageId,
             String shareCampaignUrl,
             Location location,
-            User owner,
-            List<NewsCampaignStatusHistory> statusHistory
+            User owner
     ) {
-        super(
-                title,
-                description,
-                imageId,
-                shareCampaignUrl,
-                location,
-                owner
-        );
+        super(title, description, imageId, shareCampaignUrl, location, owner);
 
-        this.statusHistory = statusHistory;
+        this.statusHistory = new ArrayList<>();
+    }
+
+    @Override
+    public NewsCampaignStatusHistory getCurrentStatus() {
+        return StatusHistoryUtils.getCurrentStatus(statusHistory);
     }
 }
