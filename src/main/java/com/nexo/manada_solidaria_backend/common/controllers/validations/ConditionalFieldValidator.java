@@ -1,4 +1,4 @@
-package com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.validations;
+package com.nexo.manada_solidaria_backend.common.controllers.validations;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
