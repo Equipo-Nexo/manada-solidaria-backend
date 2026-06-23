@@ -1,11 +1,18 @@
 package com.nexo.manada_solidaria_backend.campaigns.controllers.implementations;
 
 import com.nexo.manada_solidaria_backend.campaigns.controllers.interfaces.CampaignController;
+import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CampaignType;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.responses.CampaignResponse;
 import com.nexo.manada_solidaria_backend.campaigns.services.interfaces.CampaignService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -23,5 +30,10 @@ public class CampaignControllerImpl implements CampaignController {
                 request,
                 owner
         );
+    }
+
+    @Override
+    public Page<CampaignResponse> getAllCampaigns(String type, Pageable pageable) {
+        return campaignService.getAll(type, pageable);
     }
 }
