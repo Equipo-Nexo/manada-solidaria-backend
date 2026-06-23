@@ -48,49 +48,26 @@ public class CampaignFactory {
     }
 
     private DonationCampaign buildDonationCampaign(CreateCampaignRequest request, Location location, User owner) {
-        DonationCampaign campaign =
-                new DonationCampaign(
-                        request.title(),
-                        request.description(),
-                        request.imageId(),
-                        null,
-                        location,
-                        owner,
-                        request.amountToBeCollected(),
-                        request.campaignEndDate()
-                );
-
-        addInitialStatus(campaign);
-
-        return campaign;
-    }
-
-    private void addInitialStatus(DonationCampaign campaign) {
-        DonationCampaignStatusHistory status = new DonationCampaignStatusHistory(
-                DonationCampaignStatus.CREATED,
-                campaign
+        return new DonationCampaign(
+                request.title(),
+                request.description(),
+                request.imageId(),
+                null,
+                location,
+                owner,
+                request.amountToBeCollected(),
+                request.campaignEndDate()
         );
-        campaign.getStatusHistory().add(status);
     }
 
     private NewsCampaign buildNewsCampaign(CreateCampaignRequest request, Location location, User owner) {
-        NewsCampaign campaign =
-                new NewsCampaign(
-                        request.title(),
-                        request.description(),
-                        request.imageId(),
-                        null,
-                        location,
-                        owner
-                );
-
-        NewsCampaignStatusHistory status =
-                new NewsCampaignStatusHistory(
-                        NewsCampaginStatus.CREATED,
-                        campaign
-                );
-        campaign.getStatusHistory().add(status);
-
-        return campaign;
+        return new NewsCampaign(
+                request.title(),
+                request.description(),
+                request.imageId(),
+                null,
+                location,
+                owner
+        );
     }
 }
