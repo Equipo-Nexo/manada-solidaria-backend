@@ -8,9 +8,10 @@ import java.util.List;
 
 public class StatusHistoryUtils {
 
-    public static <T extends StatusHistory<?>> T getCurrentStatus(
-            List<T> statusHistory
-    ) {
+    private StatusHistoryUtils() {
+    }
+
+    public static <T extends StatusHistory> T getCurrentStatus(List<T> statusHistory) {
         return statusHistory.stream()
                 .filter(status -> status.getFinishedAt() == null)
                 .findFirst()
