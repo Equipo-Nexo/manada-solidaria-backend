@@ -27,7 +27,7 @@ public record CreateCampaignRequest(
         CampaignType type,
 
         @NotBlank(message = "El título es obligatorio")
-        @Size(max = 100)
+        @Size(max = 50)
         String title,
 
         @NotBlank(message = "La descripción es obligatoria")

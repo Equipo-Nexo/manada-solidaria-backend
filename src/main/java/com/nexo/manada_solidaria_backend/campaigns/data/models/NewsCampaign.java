@@ -39,7 +39,9 @@ public class NewsCampaign extends Campaign<NewsCampaignStatusHistory> {
     ) {
         super(title, description, imageId, shareCampaignUrl, location, owner);
 
-        this.statusHistory = new ArrayList<>();
+        this.statusHistory = new ArrayList<>(
+                List.of(new NewsCampaignStatusHistory(NewsCampaginStatus.CREATED, this))
+        );
     }
 
     @Override
