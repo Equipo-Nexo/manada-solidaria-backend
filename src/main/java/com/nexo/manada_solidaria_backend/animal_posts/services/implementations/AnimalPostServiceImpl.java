@@ -33,7 +33,11 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     @Transactional(readOnly = true)
     public Page<AnimalPostResponse> getAnimalPosts(AnimalPostType type, String status, Pageable pageable) {
         return animalPostRepository
-                .findAllFiltered(type != null ? type.name() : null, status, pageable)
+                .findAllFiltered(getSafeTypeValue(type), status, pageable)
                 .map(AnimalPostResponse::from);
+    }
+
+    private String getSafeTypeValue(AnimalPostType type) {
+        return type != null ? type.name() : null;
     }
 }
