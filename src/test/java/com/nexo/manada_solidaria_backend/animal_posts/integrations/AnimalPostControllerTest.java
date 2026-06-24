@@ -11,9 +11,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.models.Animal;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPostStatusHistory;
-import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AdoptionPostRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
-import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.LostPostRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.utils.MockAnimalPostDataUtils;
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthenticatedIntegrationTest;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
@@ -45,10 +43,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
 
     @Autowired
-    private LostPostRepository lostPostRepository;
-    @Autowired
-    private AdoptionPostRepository adoptionPostRepository;
-    @Autowired
     private AnimalPostRepository animalPostRepository;
     @Autowired
     private UserRepository userRepository;
@@ -63,7 +57,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
             String expectedType
     ) throws Exception {
         var result = mockMvc.perform(
-                post("/animal-post")
+                post("/animal-posts")
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body)
@@ -80,7 +74,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         UUID adminId = userRepository.findByUsername("admin").orElseThrow().getId();
 
         mockMvc.perform(
-                        post("/animal-post")
+                        post("/animal-posts")
                                 .header("Authorization", "Bearer " + accessToken)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(MockAnimalPostDataUtils.LOST_VALID)
@@ -109,7 +103,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                         get("/animal-posts").header("Authorization", "Bearer " + accessToken)
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.page.totalElements").value(1))
+                .andExpect(jsonPath("$.totalElements").value(1))
                 .andExpect(jsonPath("$.content[0].title").value("Perdí a mi perro"))
                 .andExpect(jsonPath("$.content[0].ownerId").value(adminId.toString()))
                 .andExpect(jsonPath("$.content[0].status").value("CREATED"));
@@ -119,7 +113,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     @DisplayName("POST /animal-post LOST sin hasOwner: 400 con el mensaje del validator @ConditionalField")
     void create_lostWithoutHasOwner_returnsValidatorMessage() throws Exception {
         mockMvc.perform(
-                        post("/animal-post")
+                        post("/animal-posts")
                                 .header("Authorization", "Bearer " + accessToken)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(MockAnimalPostDataUtils.LOST_WITHOUT_HAS_OWNER)
@@ -133,7 +127,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     @DisplayName("POST /animal-post sin token devuelve 401")
     void create_withoutToken_returnsUnauthorized() throws Exception {
         mockMvc.perform(
-                        post("/animal-post")
+                        post("/animal-posts")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(MockAnimalPostDataUtils.LOST_VALID)
                 )
@@ -144,7 +138,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     @DisplayName("POST /animal-post con token inválido devuelve 401")
     void create_withInvalidToken_returnsUnauthorized() throws Exception {
         mockMvc.perform(
-                        post("/animal-post")
+                        post("/animal-posts")
                                 .header("Authorization", "Bearer " + INVALID_ACCESS_TOKEN)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(MockAnimalPostDataUtils.LOST_VALID)
@@ -157,7 +151,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     @MethodSource("com.nexo.manada_solidaria_backend.animal_posts.utils.MockAnimalPostDataUtils#provideInTransitCases")
     void create_adoption_transitionsByInTransit(String testName, String body, String expectedStatus) throws Exception {
         String responseBody = mockMvc.perform(
-                        post("/animal-post")
+                        post("/animal-posts")
                                 .header("Authorization", "Bearer " + accessToken)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(body)
@@ -195,16 +189,16 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                         get("/animal-posts").header("Authorization", "Bearer " + accessToken)
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.page.totalElements").value(2))
+                .andExpect(jsonPath("$.totalElements").value(2))
                 .andExpect(jsonPath("$.content[0].title").value("Caso adopción"))
                 .andExpect(jsonPath("$.content[1].title").value("Caso perdido"))
                 .andExpect(jsonPath("$.content[0].status").value("SEARCHING_ADOPT_AND_TRANSIT"));
     }
 
-    @DisplayName("GET /animal-posts?type= filtra por tipo y estado")
+    @DisplayName("GET /animal-posts filtra por type y/o status")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource("com.nexo.manada_solidaria_backend.animal_posts.utils.MockAnimalPostDataUtils#provideFilterCases")
-    void filterTests(String testName, String type, int expectedCount) throws Exception {
+    void filterTests(String testName, String type, String status, int expectedCount) throws Exception {
         saveLostPost("Lost creado", StatusLostPost.CREATED);
         saveLostPost("Lost buscando", StatusLostPost.SEARCHING);
         saveAdoptionPost("Adopción en búsqueda y tránsito", StatusAdoptionPost.SEARCHING_ADOPT_AND_TRANSIT);
@@ -215,14 +209,17 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         if (type != null) {
             request = request.param("type", type);
         }
+        if (status != null) {
+            request = request.param("status", status);
+        }
 
         mockMvc.perform(request)
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.page.totalElements").value(expectedCount));
+                .andExpect(jsonPath("$.totalElements").value(expectedCount));
     }
 
     @Test
-    @DisplayName("GET /animal-posts?type=SEARCHING devuelve solo perdidos en ese estado")
+    @DisplayName("GET /animal-posts?status=SEARCHING devuelve solo perdidos en ese estado")
     void filterByStatus_returnsOnlyMatchingStatusAndSubtype() throws Exception {
         saveLostPost("En búsqueda", StatusLostPost.SEARCHING);
         saveLostPost("Recién creado", StatusLostPost.CREATED);
@@ -230,11 +227,11 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
 
         mockMvc.perform(
                         get("/animal-posts")
-                                .param("type", "SEARCHING")
+                                .param("status", "SEARCHING")
                                 .header("Authorization", "Bearer " + accessToken)
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.page.totalElements").value(1))
+                .andExpect(jsonPath("$.totalElements").value(1))
                 .andExpect(jsonPath("$.content[0].title").value("En búsqueda"))
                 .andExpect(jsonPath("$.content[0].type").value("LOST"))
                 .andExpect(jsonPath("$.content[0].status").value("SEARCHING"));
@@ -255,10 +252,10 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(2))
-                .andExpect(jsonPath("$.page.size").value(2))
-                .andExpect(jsonPath("$.page.number").value(0))
-                .andExpect(jsonPath("$.page.totalElements").value(3))
-                .andExpect(jsonPath("$.page.totalPages").value(2));
+                .andExpect(jsonPath("$.size").value(2))
+                .andExpect(jsonPath("$.number").value(0))
+                .andExpect(jsonPath("$.totalElements").value(3))
+                .andExpect(jsonPath("$.totalPages").value(2));
     }
 
     @Test
@@ -268,7 +265,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                         get("/animal-posts").header("Authorization", "Bearer " + accessToken)
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.page.totalElements").value(0));
+                .andExpect(jsonPath("$.totalElements").value(0));
     }
 
     @Test
@@ -292,13 +289,13 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     private void saveLostPost(String title, StatusLostPost status) {
         LostPost post = new LostPost(title, "Descripción", "cf-img", null, null, true, null, location(), animal(), null);
         post.setStatusHistory(new ArrayList<>(List.of(new LostPostStatusHistory(status, post))));
-        lostPostRepository.save(post);
+        animalPostRepository.save(post);
     }
 
     private void saveAdoptionPost(String title, StatusAdoptionPost status) {
         AdoptionPost post = new AdoptionPost(title, "Descripción", "cf-img", null, null, null, animal(), location(), false);
         post.setStatusHistory(new ArrayList<>(List.of(new AdoptionPostStatusHistory(status, post))));
-        adoptionPostRepository.save(post);
+        animalPostRepository.save(post);
     }
 
     private Animal animal() {

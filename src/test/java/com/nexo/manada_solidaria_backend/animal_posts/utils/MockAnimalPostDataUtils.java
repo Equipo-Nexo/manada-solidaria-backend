@@ -196,15 +196,17 @@ public class MockAnimalPostDataUtils {
 
     private static Stream<Arguments> provideFilterCases() {
         return Stream.of(
-                Arguments.of("Sin filtro devuelve todos los posts", null, 4),
-                Arguments.of("Filtrando por LOST devuelve solo los posts perdidos", "LOST", 2),
-                Arguments.of("Filtrando por ADOPTION devuelve solo los posts de adopcion", "ADOPTION", 2),
-                Arguments.of("Filtrando por CREATED devuelve solo los perdidos recien creados", "CREATED", 1),
-                Arguments.of("Filtrando por SEARCHING devuelve solo los perdidos en busqueda", "SEARCHING", 1),
-                Arguments.of("Filtrando por FOUND no devuelve resultados", "FOUND", 0),
-                Arguments.of("Filtrando por SEARCHING_ADOPT_AND_TRANSIT devuelve las adopciones que buscan transito", "SEARCHING_ADOPT_AND_TRANSIT", 1),
-                Arguments.of("Filtrando por SEARCHING_ADOPT no devuelve resultados", "SEARCHING_ADOPT", 0),
-                Arguments.of("Filtrando por ADOPTED devuelve las adopciones concretadas", "ADOPTED", 1)
+                Arguments.of("Sin filtros devuelve todos los posts", null, null, 4),
+                Arguments.of("type=LOST devuelve solo los posts perdidos", "LOST", null, 2),
+                Arguments.of("type=ADOPTION devuelve solo las adopciones", "ADOPTION", null, 2),
+                Arguments.of("status=CREATED devuelve solo los perdidos recien creados", null, "CREATED", 1),
+                Arguments.of("status=SEARCHING devuelve solo los perdidos en busqueda", null, "SEARCHING", 1),
+                Arguments.of("status=FOUND no devuelve resultados", null, "FOUND", 0),
+                Arguments.of("status=SEARCHING_ADOPT_AND_TRANSIT devuelve las adopciones con transito", null, "SEARCHING_ADOPT_AND_TRANSIT", 1),
+                Arguments.of("status=SEARCHING_ADOPT no devuelve resultados", null, "SEARCHING_ADOPT", 0),
+                Arguments.of("status=ADOPTED devuelve las adopciones concretadas", null, "ADOPTED", 1),
+                Arguments.of("type=ADOPTION y status=ADOPTED devuelve las adopciones adoptadas", "ADOPTION", "ADOPTED", 1),
+                Arguments.of("type=LOST y status=ADOPTED no devuelve resultados", "LOST", "ADOPTED", 0)
         );
     }
 }
