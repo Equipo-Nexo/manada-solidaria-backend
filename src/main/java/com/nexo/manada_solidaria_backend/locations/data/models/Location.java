@@ -17,9 +17,9 @@ import java.util.UUID;
 public class Location {
     private String name;
     private String address;
-    private int number;
-    private double latitude;
-    private double longitude;
+    private Integer number;
+    private Double latitude;
+    private Double longitude;
     @Id
     private final UUID id = UUID.randomUUID();
 }
