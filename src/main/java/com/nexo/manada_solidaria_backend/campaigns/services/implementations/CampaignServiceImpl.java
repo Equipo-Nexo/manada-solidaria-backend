@@ -31,9 +31,11 @@ public class CampaignServiceImpl implements CampaignService {
     @Override
     @Transactional(readOnly = true)
     public Page<CampaignResponse> getCampaigns(CampaignType type, Pageable pageable) {
-        String typeString = (type != null) ? type.name() : null;
-        Page<Campaign<?>> campaignsPage = campaignRepository.findAllFiltered(typeString, pageable);
+        return campaignRepository.findAllFiltered(getSafeValue(type), pageable)
+                .map(CampaignResponse::from);
+    }
 
-        return campaignsPage.map(CampaignResponse::from);
+    private String getSafeValue(CampaignType type) {
+        return (type != null) ? type.name() : null;
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
@@ -55,9 +56,9 @@ public class GlobalExceptionHandler {
                 );
     }
 
-    @ExceptionHandler(org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class)
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     ResponseEntity<ApiError> handleTypeMismatchException(
-            org.springframework.web.method.annotation.MethodArgumentTypeMismatchException ex,
+            MethodArgumentTypeMismatchException ex,
             HttpServletRequest request) {
 
         String mensaje = "El valor '" + ex.getValue() + "' no es válido. ";
