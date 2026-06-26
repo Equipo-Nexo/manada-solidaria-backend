@@ -155,4 +155,28 @@ public class MockCampaignDataUtils {
                 )
         );
     }
+
+    public static com.nexo.manada_solidaria_backend.campaigns.data.models.NewsCampaign buildNewsModel(com.nexo.manada_solidaria_backend.users.data.models.User owner) {
+        com.nexo.manada_solidaria_backend.locations.data.models.Location location =
+                new com.nexo.manada_solidaria_backend.locations.data.models.Location();
+        location.setName("Villa María");
+        location.setLatitude(-32.41);
+        location.setLongitude(-63.24);
+
+        return new com.nexo.manada_solidaria_backend.campaigns.data.models.NewsCampaign(
+                "Título Noticia Test", "Descripción Noticia", "img-1", "url-1", location, owner
+        );
+    }
+
+    public static com.nexo.manada_solidaria_backend.campaigns.data.models.DonationCampaign buildDonationModel(com.nexo.manada_solidaria_backend.users.data.models.User owner) {
+        com.nexo.manada_solidaria_backend.locations.data.models.Location location =
+                new com.nexo.manada_solidaria_backend.locations.data.models.Location();
+        location.setName("Córdoba");
+        location.setLatitude(-32.42);
+        location.setLongitude(-63.25);
+
+        return new com.nexo.manada_solidaria_backend.campaigns.data.models.DonationCampaign(
+                "Título Donación Test", "Descripción Donación", "img-2", "url-2", location, owner, 50000L, LocalDate.now().plusDays(10)
+        );
+    }
 }

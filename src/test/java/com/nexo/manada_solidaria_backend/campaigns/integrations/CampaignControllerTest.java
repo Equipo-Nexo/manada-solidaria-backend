@@ -7,6 +7,7 @@ import com.nexo.manada_solidaria_backend.campaigns.data.repositories.CampaignRep
 import com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils;
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthenticatedIntegrationTest;
 import com.nexo.manada_solidaria_backend.users.data.repositories.UserRepository;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -92,5 +93,46 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(toJson(MockCampaignDataUtils.NEWS_VALID)))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("GET /campaigns — Trae todas las campañas paginadas por defecto")
+    void getAll_returnsAllCampaignsWithDefaultPagination() throws Exception {
+        Campaign news = MockCampaignDataUtils.buildNewsModel(userRepository.findByUsername("admin").orElseThrow());
+        Campaign donation = MockCampaignDataUtils.buildDonationModel(userRepository.findByUsername("admin").orElseThrow());
+        campaignRepository.save(news);
+        campaignRepository.save(donation);
+
+        mockMvc.perform(get("/campaigns")
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content.length()").value(2)) // Valida que trajo ambas
+                .andExpect(jsonPath("$.totalElements").value(2));
+    }
+
+    @Test
+    @DisplayName("GET /campaigns?type=DONATION — Filtra trayendo solo donaciones")
+    void getAll_withTypeDonation_returnsOnlyDonations() throws Exception {
+        Campaign news = MockCampaignDataUtils.buildNewsModel(userRepository.findByUsername("admin").orElseThrow());
+        Campaign donation = MockCampaignDataUtils.buildDonationModel(userRepository.findByUsername("admin").orElseThrow());
+        campaignRepository.save(news);
+        campaignRepository.save(donation);
+
+        mockMvc.perform(get("/campaigns")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .param("type", "DONATION"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].type").value("DONATION"));
+    }
+
+    @Test
+    @DisplayName("GET /campaigns?type=HOLA — Devuelve 400 Bad Request por tipo inválido")
+    void getAll_withInvalidType_returnsBadRequest() throws Exception {
+        mockMvc.perform(get("/campaigns")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .param("type", "HOLA"))
+                .andExpect(status().isBadRequest());
     }
 }
