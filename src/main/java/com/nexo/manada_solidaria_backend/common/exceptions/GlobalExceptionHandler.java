@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
@@ -49,6 +50,31 @@ public class GlobalExceptionHandler {
                         .errors(
                                 Stream.concat(errores, globalErrores).toList()
                         )
+                        .path(request.getRequestURI())
+                        .timestamp(LocalDateTime.now())
+                        .build()
+                );
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    ResponseEntity<ApiError> handleTypeMismatchException(
+            MethodArgumentTypeMismatchException ex,
+            HttpServletRequest request) {
+
+        String mensaje = "El valor '" + ex.getValue() + "' no es válido. ";
+
+        if (ex.getRequiredType() != null && ex.getRequiredType().isEnum()) {
+            Object[] enumConstants = ex.getRequiredType().getEnumConstants();
+            mensaje += "Los tipos permitidos son: " + java.util.Arrays.toString(enumConstants);
+        } else {
+            mensaje += "El parámetro debe ser del tipo correcto.";
+        }
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiError.builder()
+                        .status(HttpStatus.BAD_REQUEST.value())
+                        .errors(List.of(mensaje))
                         .path(request.getRequestURI())
                         .timestamp(LocalDateTime.now())
                         .build()
