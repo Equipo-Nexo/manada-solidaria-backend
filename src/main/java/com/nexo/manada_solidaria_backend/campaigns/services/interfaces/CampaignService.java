@@ -11,5 +11,5 @@ public interface CampaignService {
 
     CampaignResponse create(CreateCampaignRequest request, User owner);
 
-    Page<CampaignResponse> getAll(String type, Pageable pageable);
+    Page<CampaignResponse> getCampaigns(CampaignType type, Pageable pageable);
 }

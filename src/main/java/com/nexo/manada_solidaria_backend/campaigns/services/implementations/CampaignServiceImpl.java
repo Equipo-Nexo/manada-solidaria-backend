@@ -30,19 +30,9 @@ public class CampaignServiceImpl implements CampaignService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<CampaignResponse> getAll(String type, Pageable pageable) {
-        if (type != null) {
-            try {
-                CampaignType.valueOf(type);
-            } catch (IllegalArgumentException e) {
-                throw new org.springframework.web.server.ResponseStatusException(
-                        org.springframework.http.HttpStatus.BAD_REQUEST,
-                        "El tipo de campaña '" + type + "' no es válido. Los tipos permitidos son: DONATION, NEWS"
-                );
-            }
-        }
-
-        Page<Campaign<?>> campaignsPage = campaignRepository.findAllFiltered(type, pageable);
+    public Page<CampaignResponse> getCampaigns(CampaignType type, Pageable pageable) {
+        String typeString = (type != null) ? type.name() : null;
+        Page<Campaign<?>> campaignsPage = campaignRepository.findAllFiltered(typeString, pageable);
 
         return campaignsPage.map(CampaignResponse::from);
     }

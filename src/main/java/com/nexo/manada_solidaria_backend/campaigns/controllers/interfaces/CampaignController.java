@@ -24,9 +24,8 @@ public interface CampaignController {
     );
 
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
-    Page<CampaignResponse> getAllCampaigns(
-            @RequestParam(value = "type", required = false) String type,
+    Page<CampaignResponse> getCampaigns(
+            @RequestParam(value = "type", required = false) CampaignType type,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     );
 }
