@@ -9,6 +9,16 @@ public class WhitelistUtils {
             "/docs",
             "/swagger-ui/**",
             "/v3/api-docs/**",
-            "/actuator/info"
+            "/actuator/info",
+            "/auth/signup"
+    };
+
+    public static String[] BEARER_TOKEN_FILTER_WHITELIST = {
+            "/docs",
+            "/swagger-ui/**",
+            "/v3/api-docs/**",
+            "/actuator/info",
+            "/auth/signup",
+            "/auth/login"
     };
 }

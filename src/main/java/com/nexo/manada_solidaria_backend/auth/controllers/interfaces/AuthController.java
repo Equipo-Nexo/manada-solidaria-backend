@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.auth.controllers.interfaces;
 
+import com.nexo.manada_solidaria_backend.auth.controllers.requests.CreateUserRequest;
 import com.nexo.manada_solidaria_backend.auth.controllers.responses.LoginResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -8,6 +9,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.*;
+
+import static org.springframework.http.HttpStatus.CREATED;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,5 +36,9 @@ public interface AuthController {
     })
     @PostMapping("/login")
     LoginResponse login(@RequestHeader("Authorization") String credentials);
+
+    @PostMapping("/signup")
+    @ResponseStatus(value = CREATED)
+    void signup(@RequestBody @Valid CreateUserRequest createUserRequest);
 
 }
