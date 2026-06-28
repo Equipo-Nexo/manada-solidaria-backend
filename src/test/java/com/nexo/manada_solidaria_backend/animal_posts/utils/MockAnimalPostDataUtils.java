@@ -193,4 +193,20 @@ public class MockAnimalPostDataUtils {
                 Arguments.of("Una adopcion con inTransit=false (sin transito) queda en SEARCHING_ADOPT_AND_TRANSIT", ADOPTION_VALID, "SEARCHING_ADOPT_AND_TRANSIT")
         );
     }
+
+    private static Stream<Arguments> provideFilterCases() {
+        return Stream.of(
+                Arguments.of("Sin filtros devuelve todos los posts", null, null, 4),
+                Arguments.of("type=LOST devuelve solo los posts perdidos", "LOST", null, 2),
+                Arguments.of("type=ADOPTION devuelve solo las adopciones", "ADOPTION", null, 2),
+                Arguments.of("status=CREATED devuelve solo los perdidos recien creados", null, "CREATED", 1),
+                Arguments.of("status=SEARCHING devuelve solo los perdidos en busqueda", null, "SEARCHING", 1),
+                Arguments.of("status=FOUND no devuelve resultados", null, "FOUND", 0),
+                Arguments.of("status=SEARCHING_ADOPT_AND_TRANSIT devuelve las adopciones con transito", null, "SEARCHING_ADOPT_AND_TRANSIT", 1),
+                Arguments.of("status=SEARCHING_ADOPT no devuelve resultados", null, "SEARCHING_ADOPT", 0),
+                Arguments.of("status=ADOPTED devuelve las adopciones concretadas", null, "ADOPTED", 1),
+                Arguments.of("type=ADOPTION y status=ADOPTED devuelve las adopciones adoptadas", "ADOPTION", "ADOPTED", 1),
+                Arguments.of("type=LOST y status=ADOPTED no devuelve resultados", "LOST", "ADOPTED", 0)
+        );
+    }
 }
