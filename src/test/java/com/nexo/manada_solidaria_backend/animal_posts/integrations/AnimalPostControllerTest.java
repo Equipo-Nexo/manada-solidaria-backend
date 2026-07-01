@@ -15,6 +15,9 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPo
 import com.nexo.manada_solidaria_backend.animal_posts.utils.MockAnimalPostDataUtils;
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthenticatedIntegrationTest;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
+import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
+import com.nexo.manada_solidaria_backend.users.data.models.Profile;
+import com.nexo.manada_solidaria_backend.users.data.models.User;
 import com.nexo.manada_solidaria_backend.users.data.repositories.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,6 +37,7 @@ import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.I
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -284,6 +288,86 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     void list_withoutToken_returnsUnauthorized() throws Exception {
         mockMvc.perform(get("/animal-posts"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("DELETE /animal-posts/{id} del owner: 204 y la publicación deja de existir")
+    void delete_asOwner_removesPost() throws Exception {
+        UUID postId = createOwnedPostReturningId();
+
+        mockMvc.perform(
+                        delete("/animal-posts/" + postId)
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(
+                        get("/animal-posts").header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(0));
+    }
+
+    @Test
+    @DisplayName("DELETE /animal-posts/{id} de un usuario que no es el owner devuelve 401 y no elimina")
+    void delete_asNonOwner_returnsUnauthorizedAndKeepsPost() throws Exception {
+        UUID postId = saveLostPostOwnedByOtherUser().getId();
+
+        mockMvc.perform(
+                        delete("/animal-posts/" + postId)
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isUnauthorized());
+
+        assertThat(animalPostRepository.findById(postId)).isPresent();
+    }
+
+    @Test
+    @DisplayName("DELETE /animal-posts/{id} inexistente devuelve 404 con mensaje")
+    void delete_nonExistentPost_returnsNotFound() throws Exception {
+        mockMvc.perform(
+                        delete("/animal-posts/" + UUID.randomUUID())
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errors", hasItem(containsString("no existe"))));
+    }
+
+    @Test
+    @DisplayName("DELETE /animal-posts/{id} sin token devuelve 401")
+    void delete_withoutToken_returnsUnauthorized() throws Exception {
+        mockMvc.perform(delete("/animal-posts/" + UUID.randomUUID()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("DELETE /animal-posts/{id} con token inválido devuelve 401")
+    void delete_withInvalidToken_returnsUnauthorized() throws Exception {
+        mockMvc.perform(
+                        delete("/animal-posts/" + UUID.randomUUID())
+                                .header("Authorization", "Bearer " + INVALID_ACCESS_TOKEN)
+                )
+                .andExpect(status().isUnauthorized());
+    }
+
+    private UUID createOwnedPostReturningId() throws Exception {
+        String responseBody = mockMvc.perform(
+                        post("/animal-posts")
+                                .header("Authorization", "Bearer " + accessToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(MockAnimalPostDataUtils.LOST_VALID)
+                )
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        return UUID.fromString(mapper.readTree(responseBody).get("id").asText());
+    }
+
+    private LostPost saveLostPostOwnedByOtherUser() {
+        User other = new User("otro-usuario", "x", new Profile("otro@mail.com", "111", List.of(Rol.COMMUNITY)));
+        userRepository.save(other);
+
+        LostPost post = new LostPost("De otro", "Descripcion", "cf-img", null, "111", true, other, location(), animal(), null);
+        return animalPostRepository.save(post);
     }
 
     private void saveLostPost(String title, StatusLostPost status) {

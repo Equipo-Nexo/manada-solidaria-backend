@@ -11,6 +11,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.UUID;
+
 @RestController
 @AllArgsConstructor
 public class AnimalPostControllerImpl implements AnimalPostController {
@@ -25,5 +27,10 @@ public class AnimalPostControllerImpl implements AnimalPostController {
     @Override
     public Page<AnimalPostResponse> getAnimalPosts(AnimalPostType type, String status, Pageable pageable) {
         return animalPostService.getAnimalPosts(type, status, pageable);
+    }
+
+    @Override
+    public void delete(UUID animalPostId, User owner) {
+        animalPostService.delete(animalPostId, owner);
     }
 }
