@@ -168,6 +168,89 @@ public class MockAnimalPostDataUtils {
               "location": { "name": "Refugio", "address": "Calle", "number": 1, "latitude": -34.5, "longitude": -58.5 }
             }
             """;
+    
+    public static final String PUT_VALID = """
+            {
+              "title": "Titulo actualizado",
+              "description": "Descripcion actualizada",
+              "imageId": "cf-image-put",
+              "phoneNumber": "1199887766",
+              "reward": 7500,
+              "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE", "age": "SENIOR", "color": "negro", "breed": "siames", "fur": "corto", "description": "gata tranquila" },
+              "location": { "name": "Refugio Nuevo", "address": "Nueva direccion 456", "number": 999, "latitude": -34.7, "longitude": -58.7 }
+            }
+            """;
+
+    // Cada uno es un PUT completo al que le falta UN campo obligatorio -> 400. (reward es opcional, se omite.)
+    private static final String PUT_WITHOUT_TITLE = """
+            {
+              "description": "d", "imageId": "i", "phoneNumber": "1122334455",
+              "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE", "age": "SENIOR" },
+              "location": { "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
+            }
+            """;
+
+    private static final String PUT_WITHOUT_DESCRIPTION = """
+            {
+              "title": "t", "imageId": "i", "phoneNumber": "1122334455",
+              "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE", "age": "SENIOR" },
+              "location": { "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
+            }
+            """;
+
+    private static final String PUT_WITHOUT_IMAGE_ID = """
+            {
+              "title": "t", "description": "d", "phoneNumber": "1122334455",
+              "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE", "age": "SENIOR" },
+              "location": { "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
+            }
+            """;
+
+    private static final String PUT_WITHOUT_PHONE = """
+            {
+              "title": "t", "description": "d", "imageId": "i",
+              "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE", "age": "SENIOR" },
+              "location": { "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
+            }
+            """;
+
+    private static final String PUT_WITHOUT_ANIMAL = """
+            {
+              "title": "t", "description": "d", "imageId": "i", "phoneNumber": "1122334455",
+              "location": { "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
+            }
+            """;
+
+    private static final String PUT_WITHOUT_LOCATION = """
+            {
+              "title": "t", "description": "d", "imageId": "i", "phoneNumber": "1122334455",
+              "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE", "age": "SENIOR" }
+            }
+            """;
+
+    private static final String PUT_ANIMAL_WITHOUT_TYPE = """
+            {
+              "title": "t", "description": "d", "imageId": "i", "phoneNumber": "1122334455",
+              "animal": { "size": "LARGE", "gender": "FEMALE", "age": "SENIOR" },
+              "location": { "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
+            }
+            """;
+
+    private static final String PUT_ANIMAL_WITHOUT_AGE = """
+            {
+              "title": "t", "description": "d", "imageId": "i", "phoneNumber": "1122334455",
+              "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE" },
+              "location": { "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
+            }
+            """;
+
+    private static final String PUT_LOCATION_WITHOUT_NAME = """
+            {
+              "title": "t", "description": "d", "imageId": "i", "phoneNumber": "1122334455",
+              "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE", "age": "SENIOR" },
+              "location": { "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
+            }
+            """;
 
     private static Stream<Arguments> provideCreateCases() {
         return Stream.of(
@@ -184,6 +267,20 @@ public class MockAnimalPostDataUtils {
                 Arguments.of("Se envia una request sin age, devuelve BAD_REQUEST", WITHOUT_AGE, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Se envia una request sin animal, devuelve BAD_REQUEST", WITHOUT_ANIMAL, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Se envia una request sin location, devuelve BAD_REQUEST", WITHOUT_LOCATION, HttpStatus.BAD_REQUEST, null)
+        );
+    }
+
+    private static Stream<Arguments> provideUpdateInvalidCases() {
+        return Stream.of(
+                Arguments.of("Sin title devuelve BAD_REQUEST", PUT_WITHOUT_TITLE),
+                Arguments.of("Sin description devuelve BAD_REQUEST", PUT_WITHOUT_DESCRIPTION),
+                Arguments.of("Sin imageId devuelve BAD_REQUEST", PUT_WITHOUT_IMAGE_ID),
+                Arguments.of("Sin phoneNumber devuelve BAD_REQUEST", PUT_WITHOUT_PHONE),
+                Arguments.of("Sin animal devuelve BAD_REQUEST", PUT_WITHOUT_ANIMAL),
+                Arguments.of("Sin location devuelve BAD_REQUEST", PUT_WITHOUT_LOCATION),
+                Arguments.of("Animal sin type devuelve BAD_REQUEST", PUT_ANIMAL_WITHOUT_TYPE),
+                Arguments.of("Animal sin age devuelve BAD_REQUEST", PUT_ANIMAL_WITHOUT_AGE),
+                Arguments.of("Location sin name devuelve BAD_REQUEST", PUT_LOCATION_WITHOUT_NAME)
         );
     }
 
