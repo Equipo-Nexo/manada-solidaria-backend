@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,6 +61,19 @@ public abstract class AnimalPost<T extends StatusHistory> {
         this.owner = owner;
         this.animal = animal;
         this.location = location;
+    }
+
+
+    public void update(String title, String description, String imageUrl, String phoneNumber, BigDecimal reward) {
+        this.title = title;
+        this.description = description;
+        this.imageUrl = imageUrl;
+        this.phoneNumber = phoneNumber;
+        this.updatedAt = LocalDateTime.now();
+        updateReward(reward);
+    }
+
+    protected void updateReward(BigDecimal reward) {
     }
 
     public abstract T getCurrentStatus();

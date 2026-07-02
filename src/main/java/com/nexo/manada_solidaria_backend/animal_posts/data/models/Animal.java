@@ -35,4 +35,16 @@ public class Animal {
     private AnimalType type;
     @Id
     private final UUID id = UUID.randomUUID();
+
+    public void update(AnimalType type, AnimalSize size, AnimalGender gender, AnimalAge age,
+                       String color, String breed, String fur, String description) {
+        this.type = type;
+        this.size = size;
+        this.gender = gender;
+        this.age = age;
+        this.color = color;
+        this.breed = breed;
+        this.fur = fur;
+        this.description = description;
+    }
 }

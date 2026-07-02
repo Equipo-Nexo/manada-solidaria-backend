@@ -345,8 +345,8 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     @Test
-    @DisplayName("PUT /animal-posts/{id} de un usuario que no es el owner devuelve 401")
-    void update_asNonOwner_returnsUnauthorized() throws Exception {
+    @DisplayName("PUT /animal-posts/{id} de un usuario que no es el owner devuelve 403")
+    void update_asNonOwner_returnsForbidden() throws Exception {
         UUID postId = saveLostPostOwnedByOtherUser().getId();
 
         mockMvc.perform(
@@ -355,7 +355,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(MockAnimalPostDataUtils.PUT_VALID)
                 )
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 
     @Test

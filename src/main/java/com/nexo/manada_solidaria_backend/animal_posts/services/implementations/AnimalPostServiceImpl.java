@@ -1,7 +1,6 @@
 package com.nexo.manada_solidaria_backend.animal_posts.services.implementations;
 
 import com.nexo.manada_solidaria_backend.animal_posts.components.AnimalPostFactory;
-import com.nexo.manada_solidaria_backend.animal_posts.components.AnimalPostUpdater;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostType;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -27,7 +25,6 @@ public class AnimalPostServiceImpl implements AnimalPostService {
 
     private final AnimalPostRepository animalPostRepository;
     private final AnimalPostFactory animalPostFactory;
-    private final AnimalPostUpdater animalPostUpdater;
 
     @Override
     public AnimalPostResponse create(CreateAnimalPostRequest request, User owner) {
@@ -50,16 +47,21 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     }
 
     @Override
-    public void update(UUID animalPostId, UpdateAnimalPostRequest request, User owner) {
+    public void update(UUID animalPostId, UpdateAnimalPostRequest request, User authenticatedUser) {
         AnimalPost post = animalPostRepository.findById(animalPostId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "La publicación no existe"));
 
-        if (!post.getOwner().getId().equals(owner.getId())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Solo el dueño puede editar la publicación");
+        if (!post.getOwner().getId().equals(authenticatedUser.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo el dueño puede editar la publicación");
         }
 
-        animalPostUpdater.applyUpdate(post, request);
-        post.setUpdatedAt(LocalDateTime.now());
+        UpdateAnimalPostRequest.AnimalUpdate animal = request.animal();
+        UpdateAnimalPostRequest.LocationUpdate location = request.location();
+        post.update(request.title(), request.description(), request.imageId(), request.phoneNumber(), request.reward());
+        post.getAnimal().update(animal.type(), animal.size(), animal.gender(), animal.age(),
+                animal.color(), animal.breed(), animal.fur(), animal.description());
+        post.getLocation().update(location.name(), location.address(), location.number(),
+                location.latitude(), location.longitude());
         animalPostRepository.save(post);
     }
 }

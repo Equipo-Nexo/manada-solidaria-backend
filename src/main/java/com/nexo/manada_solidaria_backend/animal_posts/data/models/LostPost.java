@@ -41,6 +41,11 @@ public class LostPost extends AnimalPost<LostPostStatusHistory> {
     }
 
     @Override
+    protected void updateReward(BigDecimal reward) {
+        this.reward = reward;
+    }
+
+    @Override
     public LostPostStatusHistory getCurrentStatus() {
         return StatusHistoryUtils.getCurrentStatus(this.statusHistory);
     }

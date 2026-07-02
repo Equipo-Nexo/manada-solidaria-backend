@@ -31,7 +31,7 @@ public class AnimalPostControllerImpl implements AnimalPostController {
     }
 
     @Override
-    public void update(UUID animalPostId, UpdateAnimalPostRequest request, User owner) {
-        animalPostService.update(animalPostId, request, owner);
+    public void update(UUID animalPostId, UpdateAnimalPostRequest request, User authenticatedUser) {
+        animalPostService.update(animalPostId, request, authenticatedUser);
     }
 }

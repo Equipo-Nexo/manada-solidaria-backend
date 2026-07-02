@@ -46,6 +46,6 @@ public interface AnimalPostController {
     void update(
             @PathVariable UUID animalPostId,
             @Valid @RequestBody UpdateAnimalPostRequest request,
-            @AuthenticationPrincipal User owner
+            @AuthenticationPrincipal User authenticatedUser
     );
 }
