@@ -7,7 +7,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.Anim
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
-import com.nexo.manada_solidaria_backend.common.utils.EnumNameUtils;
+import com.nexo.manada_solidaria_backend.common.utils.EnumUtils;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -34,7 +34,7 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     @Transactional(readOnly = true)
     public Page<AnimalPostResponse> getAnimalPosts(AnimalPostType type, String status, Pageable pageable) {
         return animalPostRepository
-                .findAllFiltered(EnumNameUtils.nameOrNull(type), status, pageable)
+                .findAllFiltered(EnumUtils.getNameOrNull(type), status, pageable)
                 .map(AnimalPostResponse::from);
     }
 }
