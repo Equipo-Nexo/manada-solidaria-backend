@@ -30,7 +30,7 @@ public class AnimalPostControllerImpl implements AnimalPostController {
     }
 
     @Override
-    public void delete(UUID animalPostId, User owner) {
-        animalPostService.delete(animalPostId, owner);
+    public void delete(UUID animalPostId, User authenticatedUser) {
+        animalPostService.delete(animalPostId, authenticatedUser);
     }
 }

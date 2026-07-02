@@ -309,15 +309,15 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     @Test
-    @DisplayName("DELETE /animal-posts/{id} de un usuario que no es el owner devuelve 401 y no elimina")
-    void delete_asNonOwner_returnsUnauthorizedAndKeepsPost() throws Exception {
+    @DisplayName("DELETE /animal-posts/{id} de un usuario que no es el owner devuelve 403 y no elimina")
+    void delete_asNonOwner_returnsForbiddenAndKeepsPost() throws Exception {
         UUID postId = saveLostPostOwnedByOtherUser().getId();
 
         mockMvc.perform(
                         delete("/animal-posts/" + postId)
                                 .header("Authorization", "Bearer " + accessToken)
                 )
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
 
         assertThat(animalPostRepository.findById(postId)).isPresent();
     }

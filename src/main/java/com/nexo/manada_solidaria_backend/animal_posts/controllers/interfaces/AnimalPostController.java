@@ -44,6 +44,6 @@ public interface AnimalPostController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void delete(
             @PathVariable UUID animalPostId,
-            @AuthenticationPrincipal User owner
+            @AuthenticationPrincipal User authenticatedUser
     );
 }

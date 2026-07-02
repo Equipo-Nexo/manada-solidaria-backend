@@ -14,5 +14,5 @@ public interface AnimalPostService {
 
     Page<AnimalPostResponse> getAnimalPosts(AnimalPostType type, String status, Pageable pageable);
 
-    void delete(UUID animalPostId, User owner);
+    void delete(UUID animalPostId, User authenticatedUser);
 }
