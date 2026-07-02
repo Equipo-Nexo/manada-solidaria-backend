@@ -40,13 +40,4 @@ public abstract class BaseIntegrationTest {
     protected static String getCredentials(String username, String password) {
         return "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
     }
-
-    protected String toJson(Object object) {
-        try {
-            return this.mapper.writeValueAsString(object);
-        } catch (Exception e) {
-            log.error("Error decoding object as String", e);
-            return null;
-        }
-    }
 }

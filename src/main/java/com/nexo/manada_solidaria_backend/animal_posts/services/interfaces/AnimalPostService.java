@@ -7,8 +7,12 @@ import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.UUID;
+
 public interface AnimalPostService {
     AnimalPostResponse create(CreateAnimalPostRequest request, User owner);
 
     Page<AnimalPostResponse> getAnimalPosts(AnimalPostType type, String status, Pageable pageable);
+
+    void delete(UUID animalPostId, User authenticatedUser);
 }

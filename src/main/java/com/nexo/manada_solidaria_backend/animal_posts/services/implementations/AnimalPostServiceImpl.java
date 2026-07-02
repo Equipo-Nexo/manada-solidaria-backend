@@ -11,8 +11,12 @@ import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -39,5 +43,17 @@ public class AnimalPostServiceImpl implements AnimalPostService {
 
     private String getSafeTypeValue(AnimalPostType type) {
         return type != null ? type.name() : null;
+    }
+
+    @Override
+    public void delete(UUID animalPostId, User authenticatedUser) {
+        AnimalPost post = animalPostRepository.findById(animalPostId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "La publicación no existe"));
+
+        if (!post.getOwner().getId().equals(authenticatedUser.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo el dueño puede eliminar la publicación");
+        }
+
+        animalPostRepository.delete(post);
     }
 }
