@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.animal_posts.data.models;
 
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalAge;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalGender;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalSize;
@@ -36,15 +37,14 @@ public class Animal {
     @Id
     private final UUID id = UUID.randomUUID();
 
-    public void update(AnimalType type, AnimalSize size, AnimalGender gender, AnimalAge age,
-                       String color, String breed, String fur, String description) {
-        this.type = type;
-        this.size = size;
-        this.gender = gender;
-        this.age = age;
-        this.color = color;
-        this.breed = breed;
-        this.fur = fur;
-        this.description = description;
+    public void update(UpdateAnimalPostRequest.AnimalUpdate request) {
+        this.type = request.type();
+        this.size = request.size();
+        this.gender = request.gender();
+        this.age = request.age();
+        this.color = request.color();
+        this.breed = request.breed();
+        this.fur = request.fur();
+        this.description = request.description();
     }
 }

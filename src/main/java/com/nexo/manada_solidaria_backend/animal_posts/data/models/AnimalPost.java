@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.animal_posts.data.models;
 
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.common.data.models.StatusHistory;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -8,7 +9,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,16 +64,14 @@ public abstract class AnimalPost<T extends StatusHistory> {
     }
 
 
-    public void update(String title, String description, String imageUrl, String phoneNumber, BigDecimal reward) {
-        this.title = title;
-        this.description = description;
-        this.imageUrl = imageUrl;
-        this.phoneNumber = phoneNumber;
+    public void update(UpdateAnimalPostRequest request) {
+        this.title = request.title();
+        this.description = request.description();
+        this.imageUrl = request.imageId();
+        this.phoneNumber = request.phoneNumber();
         this.updatedAt = LocalDateTime.now();
-        updateReward(reward);
-    }
-
-    protected void updateReward(BigDecimal reward) {
+        this.animal.update(request.animal());
+        this.location.update(request.location());
     }
 
     public abstract T getCurrentStatus();

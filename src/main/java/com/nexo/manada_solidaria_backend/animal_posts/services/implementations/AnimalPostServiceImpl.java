@@ -55,13 +55,7 @@ public class AnimalPostServiceImpl implements AnimalPostService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo el dueño puede editar la publicación");
         }
 
-        UpdateAnimalPostRequest.AnimalUpdate animal = request.animal();
-        UpdateAnimalPostRequest.LocationUpdate location = request.location();
-        post.update(request.title(), request.description(), request.imageId(), request.phoneNumber(), request.reward());
-        post.getAnimal().update(animal.type(), animal.size(), animal.gender(), animal.age(),
-                animal.color(), animal.breed(), animal.fur(), animal.description());
-        post.getLocation().update(location.name(), location.address(), location.number(),
-                location.latitude(), location.longitude());
+        post.update(request);
         animalPostRepository.save(post);
     }
 }
