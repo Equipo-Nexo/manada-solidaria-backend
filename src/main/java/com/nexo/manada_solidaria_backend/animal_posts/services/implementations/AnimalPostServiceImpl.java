@@ -58,4 +58,16 @@ public class AnimalPostServiceImpl implements AnimalPostService {
         post.update(request);
         animalPostRepository.save(post);
     }
+
+    @Override
+    public void delete(UUID animalPostId, User authenticatedUser) {
+        AnimalPost post = animalPostRepository.findById(animalPostId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "La publicación no existe"));
+
+        if (!post.getOwner().getId().equals(authenticatedUser.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo el dueño puede eliminar la publicación");
+        }
+
+        animalPostRepository.delete(post);
+    }
 }

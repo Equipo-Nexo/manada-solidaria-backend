@@ -37,6 +37,7 @@ import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.I
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -372,6 +373,49 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     @Test
+    @DisplayName("DELETE /animal-posts/{id} del owner: 204 y la publicación deja de existir")
+    void delete_asOwner_removesPost() throws Exception {
+        UUID postId = createOwnedPostReturningId();
+
+        mockMvc.perform(
+                        delete("/animal-posts/" + postId)
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(
+                        get("/animal-posts").header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(0));
+    }
+
+    @Test
+    @DisplayName("DELETE /animal-posts/{id} de un usuario que no es el owner devuelve 403 y no elimina")
+    void delete_asNonOwner_returnsForbiddenAndKeepsPost() throws Exception {
+        UUID postId = saveLostPostOwnedByOtherUser().getId();
+
+        mockMvc.perform(
+                        delete("/animal-posts/" + postId)
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isForbidden());
+
+        assertThat(animalPostRepository.findById(postId)).isPresent();
+    }
+
+    @Test
+    @DisplayName("DELETE /animal-posts/{id} inexistente devuelve 404 con mensaje")
+    void delete_nonExistentPost_returnsNotFound() throws Exception {
+        mockMvc.perform(
+                        delete("/animal-posts/" + UUID.randomUUID())
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errors", hasItem(containsString("no existe"))));
+    }
+
+    @Test
     @DisplayName("PUT /animal-posts/{id} sin token devuelve 401")
     void update_withoutToken_returnsUnauthorized() throws Exception {
         mockMvc.perform(
@@ -383,6 +427,13 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     @Test
+    @DisplayName("DELETE /animal-posts/{id} sin token devuelve 401")
+    void delete_withoutToken_returnsUnauthorized() throws Exception {
+        mockMvc.perform(delete("/animal-posts/" + UUID.randomUUID()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     @DisplayName("PUT /animal-posts/{id} con token inválido devuelve 401")
     void update_withInvalidToken_returnsUnauthorized() throws Exception {
         mockMvc.perform(
@@ -390,6 +441,16 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                                 .header("Authorization", "Bearer " + INVALID_ACCESS_TOKEN)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(MockAnimalPostDataUtils.PUT_VALID)
+                )
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("DELETE /animal-posts/{id} con token inválido devuelve 401")
+    void delete_withInvalidToken_returnsUnauthorized() throws Exception {
+        mockMvc.perform(
+                        delete("/animal-posts/" + UUID.randomUUID())
+                                .header("Authorization", "Bearer " + INVALID_ACCESS_TOKEN)
                 )
                 .andExpect(status().isUnauthorized());
     }
