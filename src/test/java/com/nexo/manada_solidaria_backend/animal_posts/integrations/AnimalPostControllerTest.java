@@ -40,6 +40,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -291,6 +292,87 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     @Test
+    @DisplayName("PUT /animal-posts/{id} del owner: 204, reemplaza todos los datos y preserva los no editables")
+    void update_asOwner_fullReplaceUpdatesEverythingAndKeepsNonEditable() throws Exception {
+        UUID postId = createOwnedPostReturningId();
+        AnimalPost original = animalPostRepository.findById(postId).orElseThrow();
+        UUID ownerId = original.getOwner().getId();
+        UUID animalId = original.getAnimal().getId();
+        UUID locationId = original.getLocation().getId();
+        var createdAt = original.getCreatedAt();
+
+        mockMvc.perform(
+                        put("/animal-posts/" + postId)
+                                .header("Authorization", "Bearer " + accessToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(MockAnimalPostDataUtils.PUT_VALID)
+                )
+                .andExpect(status().isNoContent());
+
+        LostPost updated = (LostPost) animalPostRepository.findById(postId).orElseThrow();
+        assertThat(updated.getTitle()).isEqualTo("Titulo actualizado");
+        assertThat(updated.getDescription()).isEqualTo("Descripcion actualizada");
+        assertThat(updated.getImageUrl()).isEqualTo("cf-image-put");
+        assertThat(updated.getPhoneNumber()).isEqualTo("1199887766");
+        assertThat(updated.getReward()).isEqualByComparingTo("7500");
+        assertThat(updated.getUpdatedAt()).isNotNull();
+        assertThat(updated.getAnimal().getType()).isEqualTo(AnimalType.CAT);
+        assertThat(updated.getAnimal().getSize()).isEqualTo(AnimalSize.LARGE);
+        assertThat(updated.getAnimal().getGender()).isEqualTo(AnimalGender.FEMALE);
+        assertThat(updated.getAnimal().getAge().name()).isEqualTo("SENIOR");
+        assertThat(updated.getAnimal().getColor()).isEqualTo("negro");
+        assertThat(updated.getLocation().getName()).isEqualTo("Refugio Nuevo");
+        assertThat(updated.getLocation().getAddress()).isEqualTo("Nueva direccion 456");
+        assertThat(updated.getLocation().getLatitude()).isEqualTo(-34.7);
+        assertThat(updated.getOwner().getId()).isEqualTo(ownerId);
+        assertThat(updated.getAnimal().getId()).isEqualTo(animalId);
+        assertThat(updated.getLocation().getId()).isEqualTo(locationId);
+        assertThat(updated.getCreatedAt()).isEqualTo(createdAt);
+    }
+
+    @DisplayName("PUT /animal-posts/{id} con payload inválido devuelve 400")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource("com.nexo.manada_solidaria_backend.animal_posts.utils.MockAnimalPostDataUtils#provideUpdateInvalidCases")
+    void update_invalidPayload_returnsBadRequest(String testName, String body) throws Exception {
+        UUID postId = createOwnedPostReturningId();
+
+        mockMvc.perform(
+                        put("/animal-posts/" + postId)
+                                .header("Authorization", "Bearer " + accessToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body)
+                )
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("PUT /animal-posts/{id} de un usuario que no es el owner devuelve 403")
+    void update_asNonOwner_returnsForbidden() throws Exception {
+        UUID postId = saveLostPostOwnedByOtherUser().getId();
+
+        mockMvc.perform(
+                        put("/animal-posts/" + postId)
+                                .header("Authorization", "Bearer " + accessToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(MockAnimalPostDataUtils.PUT_VALID)
+                )
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("PUT /animal-posts/{id} inexistente devuelve 404 con mensaje")
+    void update_nonExistentPost_returnsNotFound() throws Exception {
+        mockMvc.perform(
+                        put("/animal-posts/" + UUID.randomUUID())
+                                .header("Authorization", "Bearer " + accessToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(MockAnimalPostDataUtils.PUT_VALID)
+                )
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errors", hasItem(containsString("no existe"))));
+    }
+
+    @Test
     @DisplayName("DELETE /animal-posts/{id} del owner: 204 y la publicación deja de existir")
     void delete_asOwner_removesPost() throws Exception {
         UUID postId = createOwnedPostReturningId();
@@ -334,9 +416,32 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     @Test
+    @DisplayName("PUT /animal-posts/{id} sin token devuelve 401")
+    void update_withoutToken_returnsUnauthorized() throws Exception {
+        mockMvc.perform(
+                        put("/animal-posts/" + UUID.randomUUID())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(MockAnimalPostDataUtils.PUT_VALID)
+                )
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     @DisplayName("DELETE /animal-posts/{id} sin token devuelve 401")
     void delete_withoutToken_returnsUnauthorized() throws Exception {
         mockMvc.perform(delete("/animal-posts/" + UUID.randomUUID()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("PUT /animal-posts/{id} con token inválido devuelve 401")
+    void update_withInvalidToken_returnsUnauthorized() throws Exception {
+        mockMvc.perform(
+                        put("/animal-posts/" + UUID.randomUUID())
+                                .header("Authorization", "Bearer " + INVALID_ACCESS_TOKEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(MockAnimalPostDataUtils.PUT_VALID)
+                )
                 .andExpect(status().isUnauthorized());
     }
 

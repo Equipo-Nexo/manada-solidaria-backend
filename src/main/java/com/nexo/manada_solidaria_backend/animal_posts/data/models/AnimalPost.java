@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.animal_posts.data.models;
 
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.common.data.models.StatusHistory;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -60,6 +61,17 @@ public abstract class AnimalPost<T extends StatusHistory> {
         this.owner = owner;
         this.animal = animal;
         this.location = location;
+    }
+
+
+    public void update(UpdateAnimalPostRequest request) {
+        this.title = request.title();
+        this.description = request.description();
+        this.imageUrl = request.imageId();
+        this.phoneNumber = request.phoneNumber();
+        this.updatedAt = LocalDateTime.now();
+        this.animal.update(request.animal());
+        this.location.update(request.location());
     }
 
     public abstract T getCurrentStatus();

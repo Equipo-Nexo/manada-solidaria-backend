@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.animal_posts.data.models;
 
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusLostPost;
 import com.nexo.manada_solidaria_backend.common.utils.StatusHistoryUtils;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
@@ -38,6 +39,12 @@ public class LostPost extends AnimalPost<LostPostStatusHistory> {
         super(title, description, imageUrl, sharePostUrl, phoneNumber, owner, animal, location);
         this.hasOwner = hasOwner;
         this.reward = reward;
+    }
+
+    @Override
+    public void update(UpdateAnimalPostRequest request) {
+        super.update(request);
+        this.reward = request.reward();
     }
 
     @Override
