@@ -8,6 +8,7 @@ import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface AnimalPostService {
@@ -18,4 +19,6 @@ public interface AnimalPostService {
     void update(UUID animalPostId, UpdateAnimalPostRequest request, User authenticatedUser);
 
     void delete(UUID animalPostId, User authenticatedUser);
+
+    List<AnimalPostResponse> getUserAnimalPosts(User user);
 }

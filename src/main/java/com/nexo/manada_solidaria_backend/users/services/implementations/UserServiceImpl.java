@@ -1,6 +1,11 @@
 package com.nexo.manada_solidaria_backend.users.services.implementations;
 
+import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
 import com.nexo.manada_solidaria_backend.auth.controllers.requests.CreateUserRequest;
+import com.nexo.manada_solidaria_backend.campaigns.services.interfaces.CampaignService;
+import com.nexo.manada_solidaria_backend.users.controllers.responses.AnimalUserPostResponse;
+import com.nexo.manada_solidaria_backend.users.controllers.responses.CampaignUserPostResponse;
+import com.nexo.manada_solidaria_backend.users.controllers.responses.UserPostResponse;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.Profile;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -17,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static org.springframework.http.HttpStatus.*;
 
@@ -26,6 +32,8 @@ import static org.springframework.http.HttpStatus.*;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final CampaignService campaignService;
+    private final AnimalPostService animalPostService;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -51,6 +59,26 @@ public class UserServiceImpl implements UserService {
             log.error("Error creating user", e);
             throw new ResponseStatusException(INTERNAL_SERVER_ERROR, "Error creando el usuario");
         }
+    }
+
+    @Override
+    public List<UserPostResponse> getUserPosts(User user, String type) {
+        return Stream.concat(
+                getUserAnimalPosts(user),
+                getUserCampaigns(user)
+        ).toList();
+    }
+
+    private Stream<AnimalUserPostResponse> getUserAnimalPosts(User user) {
+        return animalPostService.getUserAnimalPosts(user)
+                .stream()
+                .map(AnimalUserPostResponse::new);
+    }
+
+    private Stream<CampaignUserPostResponse> getUserCampaigns(User user) {
+        return campaignService.getUserCampaigns(user)
+                .stream()
+                .map(CampaignUserPostResponse::new);
     }
 
     private User buildUser(CreateUserRequest createUserRequest) {
