@@ -11,7 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 
-@org.springframework.context.annotation.Profile("local | test | development")
+@org.springframework.context.annotation.Profile("local | development")
 @Configuration
 public class DatabasePopulate {
     @Bean
