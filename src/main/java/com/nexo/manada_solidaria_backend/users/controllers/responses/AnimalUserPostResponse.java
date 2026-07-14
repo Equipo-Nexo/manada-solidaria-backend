@@ -10,7 +10,7 @@ public class AnimalUserPostResponse extends UserPostResponse {
     String status;
 
     public AnimalUserPostResponse(AnimalPostResponse animalPostResponse) {
-        super(animalPostResponse.title(), animalPostResponse.createdAt());
+        super(animalPostResponse.id(), animalPostResponse.title(), animalPostResponse.createdAt());
         this.status = animalPostResponse.status();
     }
 }

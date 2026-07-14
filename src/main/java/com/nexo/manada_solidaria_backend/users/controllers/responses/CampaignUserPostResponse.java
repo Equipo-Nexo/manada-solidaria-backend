@@ -8,6 +8,6 @@ import lombok.Setter;
 @Setter
 public class CampaignUserPostResponse extends UserPostResponse {
     public CampaignUserPostResponse(CampaignResponse campaignResponse) {
-        super(campaignResponse.title(), campaignResponse.createdAt());
+        super(campaignResponse.id(), campaignResponse.title(), campaignResponse.createdAt());
     }
 }

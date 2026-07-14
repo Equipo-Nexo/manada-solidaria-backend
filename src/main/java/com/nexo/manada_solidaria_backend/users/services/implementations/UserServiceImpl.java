@@ -19,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -63,19 +64,34 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserPostResponse> getUserPosts(User user, String type) {
-        return Stream.concat(
-                getUserAnimalPosts(user),
-                getUserCampaigns(user)
-        ).toList();
+        return (requireAllPosts(type) ? getAllUserPosts(user) : getUserPostsByType(user, type))
+                .sorted(Comparator.comparingLong(UserPostResponse::getCreatedSince))
+                .toList();
     }
 
-    private Stream<AnimalUserPostResponse> getUserAnimalPosts(User user) {
+    private static boolean requireAllPosts(String type) {
+        return type == null || type.isBlank();
+    }
+
+    private Stream<UserPostResponse> getAllUserPosts(User user) {
+        return Stream.concat(getUserAnimalPosts(user), getUserCampaigns(user));
+    }
+
+    private Stream<UserPostResponse> getUserPostsByType(User user, String type) {
+        return switch (type) {
+            case "campaign" -> getUserCampaigns(user);
+            case "animal" -> getUserAnimalPosts(user);
+            default -> throw new ResponseStatusException(BAD_REQUEST, "requested type is not supported");
+        };
+    }
+
+    private Stream<UserPostResponse> getUserAnimalPosts(User user) {
         return animalPostService.getUserAnimalPosts(user)
                 .stream()
                 .map(AnimalUserPostResponse::new);
     }
 
-    private Stream<CampaignUserPostResponse> getUserCampaigns(User user) {
+    private Stream<UserPostResponse> getUserCampaigns(User user) {
         return campaignService.getUserCampaigns(user)
                 .stream()
                 .map(CampaignUserPostResponse::new);
