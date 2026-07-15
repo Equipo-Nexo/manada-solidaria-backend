@@ -56,4 +56,10 @@ public class DonationCampaign extends Campaign<DonationCampaignStatusHistory> {
     public DonationCampaignStatusHistory getCurrentStatus() {
         return StatusHistoryUtils.getCurrentStatus(statusHistory);
     }
+
+    @Override
+    public boolean isFinished() {
+        DonationCampaignStatus status = getCurrentStatus().getStatus();
+        return status == DonationCampaignStatus.FINISHED || status == DonationCampaignStatus.COMPLETED;
+    }
 }

@@ -52,14 +52,10 @@ public class CampaignServiceImpl implements CampaignService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo el dueño puede eliminar la campaña");
         }
 
-        if (isFinished(campaign)) {
+        if (campaign.isFinished()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "No se puede eliminar una campaña finalizada");
         }
 
         campaignRepository.delete(campaign);
-    }
-
-    private boolean isFinished(Campaign campaign) {
-        return campaign.getCurrentStatus().getStatus().name().equals("FINISHED");
     }
 }

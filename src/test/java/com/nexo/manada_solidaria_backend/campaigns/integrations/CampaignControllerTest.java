@@ -2,9 +2,12 @@ package com.nexo.manada_solidaria_backend.campaigns.integrations;
 
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationCampaignStatus;
+import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaginStatus;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.Campaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationCampaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationCampaignStatusHistory;
+import com.nexo.manada_solidaria_backend.campaigns.data.models.NewsCampaign;
+import com.nexo.manada_solidaria_backend.campaigns.data.models.NewsCampaignStatusHistory;
 import com.nexo.manada_solidaria_backend.campaigns.data.repositories.CampaignRepository;
 import com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils;
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthenticatedIntegrationTest;
@@ -170,16 +173,31 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
         assertThat(campaignRepository.findById(campaignId)).isPresent();
     }
 
-    @Test
-    @DisplayName("DELETE /campaigns/{id} en estado FINISHED devuelve 409 y no elimina")
-    void delete_finishedCampaign_returnsConflictAndKeepsCampaign() throws Exception {
-        UUID campaignId = saveFinishedCampaignOwnedByAdmin().getId();
+    @DisplayName("DELETE /campaigns/{id} de una donación en estado final devuelve 409 y no elimina")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource("com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils#provideFinalDonationStatuses")
+    void delete_donationInFinalState_returnsConflictAndKeepsCampaign(String testName, DonationCampaignStatus status) throws Exception {
+        UUID campaignId = saveDonationWithStatus(admin(), status).getId();
 
         mockMvc.perform(delete("/campaigns/" + campaignId)
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isConflict())
                 // Substring ASCII: robusto ante la normalización de tildes del repo al commitear.
                 .andExpect(jsonPath("$.errors", hasItem(containsString("finalizada"))));
+
+        assertThat(campaignRepository.findById(campaignId)).isPresent();
+    }
+
+    @Test
+    @DisplayName("DELETE /campaigns/{id} de una noticia en estado FINISHED devuelve 409 y no elimina")
+    void delete_finishedNewsCampaign_returnsConflictAndKeepsCampaign() throws Exception {
+        NewsCampaign campaign = MockCampaignDataUtils.buildNewsModel(admin());
+        campaign.setStatusHistory(new ArrayList<>(List.of(new NewsCampaignStatusHistory(NewsCampaginStatus.FINISHED, campaign))));
+        UUID campaignId = campaignRepository.save(campaign).getId();
+
+        mockMvc.perform(delete("/campaigns/" + campaignId)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isConflict());
 
         assertThat(campaignRepository.findById(campaignId)).isPresent();
     }
@@ -218,10 +236,10 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
         return campaignRepository.save(MockCampaignDataUtils.buildDonationModel(other));
     }
 
-    private Campaign saveFinishedCampaignOwnedByAdmin() {
-        DonationCampaign campaign = MockCampaignDataUtils.buildDonationModel(admin());
-        // Fila FINISHED con finishedAt == null: es el estado vigente que resuelve getCurrentStatus().
-        campaign.setStatusHistory(new ArrayList<>(List.of(new DonationCampaignStatusHistory(DonationCampaignStatus.FINISHED, campaign))));
+    private Campaign saveDonationWithStatus(User owner, DonationCampaignStatus status) {
+        DonationCampaign campaign = MockCampaignDataUtils.buildDonationModel(owner);
+        // Fila con finishedAt == null: es el estado vigente que resuelve getCurrentStatus().
+        campaign.setStatusHistory(new ArrayList<>(List.of(new DonationCampaignStatusHistory(status, campaign))));
         return campaignRepository.save(campaign);
     }
 }
