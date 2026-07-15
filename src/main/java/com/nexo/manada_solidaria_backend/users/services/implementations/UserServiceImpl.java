@@ -52,7 +52,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void createUser(CreateUserRequest createUserRequest) {
         try {
-            userRepository.save(buildUser(createUserRequest));
+            userRepository.saveAndFlush(buildUser(createUserRequest));
         } catch (DataIntegrityViolationException e) {
             log.error("Username already exists", e);
             throw new ResponseStatusException(BAD_REQUEST, "El nombre de usuario ya existe");
