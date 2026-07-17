@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.locations.data.models;
 
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
@@ -22,4 +23,12 @@ public class Location {
     private Double longitude;
     @Id
     private final UUID id = UUID.randomUUID();
+
+    public void update(UpdateAnimalPostRequest.LocationUpdate request) {
+        this.name = request.name();
+        this.address = request.address();
+        this.number = request.number();
+        this.latitude = request.latitude();
+        this.longitude = request.longitude();
+    }
 }
