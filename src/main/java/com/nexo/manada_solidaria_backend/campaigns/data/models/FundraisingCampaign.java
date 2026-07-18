@@ -21,35 +21,42 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class DonationCampaign extends Campaign<DonationCampaignStatusHistory> {
+public class FundraisingCampaign extends Campaign<FundraisingCampaignStatusHistory> {
+    private String accountAlias;
+    private Long amountToBeCollected;
+    private long amountCollected;
     private LocalDate campaignEndDate;
-
     @OneToMany(
             mappedBy = "campaign",
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    private List<DonationCampaignStatusHistory> statusHistory;
+    private List<FundraisingCampaignStatusHistory> statusHistory;
 
-    public DonationCampaign(
+    public FundraisingCampaign(
             String title,
             String description,
             String imageId,
             String shareCampaignUrl,
             Location location,
             User owner,
+            String accountAlias,
+            Long amountToBeCollected,
             LocalDate campaignEndDate
     ) {
         super(title, description, imageId, shareCampaignUrl, location, owner);
 
+        this.accountAlias = accountAlias;
+        this.amountToBeCollected = amountToBeCollected;
+        this.amountCollected = 0L;
         this.campaignEndDate = campaignEndDate;
         this.statusHistory = new ArrayList<>(
-                List.of(new DonationCampaignStatusHistory(CampaignStatus.CREATED, this))
+                List.of(new FundraisingCampaignStatusHistory(CampaignStatus.CREATED, this))
         );
     }
 
     @Override
-    public DonationCampaignStatusHistory getCurrentStatus() {
+    public FundraisingCampaignStatusHistory getCurrentStatus() {
         return StatusHistoryUtils.getCurrentStatus(statusHistory);
     }
 }

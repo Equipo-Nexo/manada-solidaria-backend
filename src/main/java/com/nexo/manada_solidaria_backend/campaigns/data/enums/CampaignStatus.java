@@ -1,8 +1,7 @@
 package com.nexo.manada_solidaria_backend.campaigns.data.enums;
 
-public enum DonationCampaignStatus {
+public enum CampaignStatus {
     CREATED,
-    STARTED,
     COMPLETED,
     FINISHED
 }

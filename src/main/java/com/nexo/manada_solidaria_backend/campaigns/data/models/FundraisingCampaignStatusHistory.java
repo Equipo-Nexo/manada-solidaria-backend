@@ -12,15 +12,15 @@ import lombok.Setter;
 @Entity
 @Setter
 @NoArgsConstructor
-public class DonationCampaignStatusHistory extends StatusHistory<CampaignStatus> {
+public class FundraisingCampaignStatusHistory extends StatusHistory<CampaignStatus> {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "donation_campaign_id", nullable = false)
-    private DonationCampaign campaign;
+    private FundraisingCampaign campaign;
 
-    public DonationCampaignStatusHistory(
+    public FundraisingCampaignStatusHistory(
             CampaignStatus status,
-            DonationCampaign campaign
+            FundraisingCampaign campaign
     ) {
         super(status);
         this.campaign = campaign;

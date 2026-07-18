@@ -1,6 +1,5 @@
 package com.nexo.manada_solidaria_backend.campaigns.controllers.requests;
 
-import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.validations.CampaignTypeValidation;
 import com.nexo.manada_solidaria_backend.common.controllers.validations.ConditionalField;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -8,18 +7,25 @@ import jakarta.validation.constraints.*;
 import java.time.LocalDate;
 
 @ConditionalField(
+        field = "accountAlias",
+        dependsOn = "type",
+        expectedValue = "FUNDRAISING",
+        rule = ConditionalField.Rule.REQUIRED,
+        message = "El alias es obligatorio solo para campañas de tipo FUNDRAISING"
+)
+@ConditionalField(
         field = "amountToBeCollected",
         dependsOn = "type",
-        expectedValue = "DONATION",
+        expectedValue = "FUNDRAISING",
         rule = ConditionalField.Rule.ONLY_ALLOWED,
-        message = "El monto a recaudar solo aplica para campañas de tipo DONATION"
+        message = "El monto a recaudar solo aplica para campañas de tipo FUNDRAISING"
 )
 @ConditionalField(
         field = "campaignEndDate",
         dependsOn = "type",
-        expectedValue = "DONATION",
+        expectedValue = "FUNDRAISING",
         rule = ConditionalField.Rule.ONLY_ALLOWED,
-        message = "La fecha de finalización solo aplica para campañas de tipo DONATION"
+        message = "La fecha de finalización solo aplica para campañas de tipo FUNDRAISING"
 )
 public record CreateCampaignRequest(
 
@@ -39,6 +45,10 @@ public record CreateCampaignRequest(
         @NotNull(message = "La ubicación es obligatoria")
         @Valid
         LocationRequest location,
+
+        @Size(min = 6, max = 20, message = "El alias debe tener entre 6 y 20 caracteres.")
+        @Pattern(regexp = "^[a-zA-Z0-9.-]+$", message = "El alias solo puede contener letras, números, puntos o guiones.")
+        String accountAlias,
 
         @Positive(message = "El monto a recaudar debe ser mayor a 0")
         Long amountToBeCollected,

@@ -1,14 +1,10 @@
 package com.nexo.manada_solidaria_backend.campaigns.components;
 
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest;
-import com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationCampaignStatus;
-import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaginStatus;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.*;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
 
 @Component
 public class CampaignFactory {
@@ -18,8 +14,8 @@ public class CampaignFactory {
 
         return switch (request.type()) {
 
-            case DONATION ->
-                    buildDonationCampaign(
+            case FUNDRAISING ->
+                    buildFundraisingCampaign(
                             request,
                             location,
                             owner
@@ -47,14 +43,15 @@ public class CampaignFactory {
         );
     }
 
-    private DonationCampaign buildDonationCampaign(CreateCampaignRequest request, Location location, User owner) {
-        return new DonationCampaign(
+    private FundraisingCampaign buildFundraisingCampaign(CreateCampaignRequest request, Location location, User owner) {
+        return new FundraisingCampaign(
                 request.title(),
                 request.description(),
                 request.imageId(),
                 null,
                 location,
                 owner,
+                request.accountAlias(),
                 request.amountToBeCollected(),
                 request.campaignEndDate()
         );

@@ -12,7 +12,7 @@ import java.util.UUID;
 public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
 
     @Query("SELECT c FROM Campaign c WHERE :type IS NULL " +
-            "OR (:type = 'DONATION' AND TYPE(c) = DonationCampaign) " +
+            "OR (:type = 'FUNDRAISING' AND TYPE(c) = FundraisingCampaign) " +
             "OR (:type = 'NEWS' AND TYPE(c) = NewsCampaign)")
     Page<Campaign<?>> findAllFiltered(@Param("type") String type, Pageable pageable);
 }

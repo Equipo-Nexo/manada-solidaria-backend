@@ -2,7 +2,7 @@ package com.nexo.manada_solidaria_backend.campaigns.controllers.responses;
 
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CampaignType;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.Campaign;
-import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationCampaign;
+import com.nexo.manada_solidaria_backend.campaigns.data.models.FundraisingCampaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.NewsCampaign;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -22,6 +22,7 @@ public record CampaignResponse(
         String status,
         LocalDateTime createdAt,
         UUID ownerId,
+        String accountAlias,
         Long amountToBeCollected,
         Long amountCollected,
         LocalDate campaignEndDate
@@ -29,16 +30,16 @@ public record CampaignResponse(
 
     public static CampaignResponse from(Campaign campaign) {
         return switch (campaign) {
-            case DonationCampaign donation -> buildDonationCampaignResponse(donation);
+            case FundraisingCampaign donation -> buildFundraisingCampaignResponse(donation);
             case NewsCampaign news -> buildNewsCampaignResponse(news);
             default -> throw new IllegalArgumentException("Unsupported campaign type");
         };
     }
 
-    private static CampaignResponse buildDonationCampaignResponse(DonationCampaign campaign) {
+    private static CampaignResponse buildFundraisingCampaignResponse(FundraisingCampaign campaign) {
         return new CampaignResponse(
                 campaign.getId(),
-                CampaignType.DONATION,
+                CampaignType.FUNDRAISING,
                 campaign.getTitle(),
                 campaign.getDescription(),
                 campaign.getImageId(),
@@ -48,9 +49,10 @@ public record CampaignResponse(
                 Optional.ofNullable(campaign.getOwner())
                         .map(User::getId)
                         .orElse(null),
+                campaign.getAccountAlias(),
                 campaign.getAmountToBeCollected(),
                 campaign.getAmountCollected(),
-                campaign.getEndDate()
+                campaign.getCampaignEndDate()
         );
     }
 
@@ -67,6 +69,7 @@ public record CampaignResponse(
                 Optional.ofNullable(campaign.getOwner())
                         .map(User::getId)
                         .orElse(null),
+                null,
                 null,
                 null,
                 null
