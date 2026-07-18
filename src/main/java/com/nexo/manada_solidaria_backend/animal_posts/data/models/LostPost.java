@@ -35,8 +35,8 @@ public class LostPost extends AnimalPost<LostPostStatusHistory> {
             List.of(new LostPostStatusHistory(StatusLostPost.CREATED, this))
     );
 
-    public LostPost(String title, String description, String imageUrl, String sharePostUrl, String phoneNumber, boolean hasOwner, User owner, Location location, Animal animal, BigDecimal reward) {
-        super(title, description, imageUrl, sharePostUrl, phoneNumber, owner, animal, location);
+    public LostPost(String name, String description, String imageUrl, String sharePostUrl, String phoneNumber, boolean hasOwner, User owner, Location location, Animal animal, BigDecimal reward) {
+        super(name, description, imageUrl, sharePostUrl, phoneNumber, owner, animal, location);
         this.hasOwner = hasOwner;
         this.reward = reward;
     }

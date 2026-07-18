@@ -28,8 +28,8 @@ public class AdoptionPost extends AnimalPost<AdoptionPostStatusHistory> {
             List.of(new AdoptionPostStatusHistory(StatusAdoptionPost.CREATED, this))
     );
 
-    public AdoptionPost(String title, String description, String imageUrl, String sharePostUrl, String phoneNumber, User owner, Animal animal, Location location, boolean inTransit) {
-        super(title, description, imageUrl, sharePostUrl, phoneNumber, owner, animal, location);
+    public AdoptionPost(String name, String description, String imageUrl, String sharePostUrl, String phoneNumber, User owner, Animal animal, Location location, boolean inTransit) {
+        super(name, description, imageUrl, sharePostUrl, phoneNumber, owner, animal, location);
         startSearching(inTransit);
     }
     private void startSearching(boolean inTransit) {

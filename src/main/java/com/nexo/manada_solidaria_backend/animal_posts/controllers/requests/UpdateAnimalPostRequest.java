@@ -12,8 +12,8 @@ import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 
 public record UpdateAnimalPostRequest(
-        @NotBlank(message = "El título es obligatorio")
-        String title,
+        @NotBlank(message = "El nombre es obligatorio")
+        String name,
 
         @NotBlank(message = "La descripción es obligatoria")
         String description,
@@ -21,7 +21,7 @@ public record UpdateAnimalPostRequest(
         @NotBlank(message = "El ID de imagen de Cloudflare es obligatorio")
         String imageId,
 
-        @NotBlank(message = "El número de teléfono es obligatorio")
+        // Opcional: un post "en la calle" (LOST sin dueño) no tiene teléfono y debe poder editarse.
         String phoneNumber,
 
         @PositiveOrZero(message = "La recompensa no puede ser negativa")
@@ -47,13 +47,9 @@ public record UpdateAnimalPostRequest(
             AnimalGender gender,
 
             String color,
-            String breed,
-            String fur,
 
             @NotNull(message = "La edad del animal es obligatoria")
-            AnimalAge age,
-
-            String description
+            AnimalAge age
     ) {
     }
 

@@ -20,7 +20,7 @@ import java.util.UUID;
 public record AnimalPostResponse(
         UUID id,
         AnimalPostType type,
-        String title,
+        String name,
         String description,
         String imageUrl,
         AnimalResponse animal,
@@ -36,7 +36,7 @@ public record AnimalPostResponse(
         return new AnimalPostResponse(
                 post.getId(),
                 isLostPost(post) ? AnimalPostType.LOST : AnimalPostType.ADOPTION,
-                post.getTitle(),
+                post.getName(),
                 post.getDescription(),
                 post.getImageUrl(),
                 AnimalResponse.from(post.getAnimal()),
@@ -61,10 +61,7 @@ public record AnimalPostResponse(
             AnimalSize size,
             AnimalGender gender,
             String color,
-            String breed,
-            String fur,
-            AnimalAge age,
-            String description
+            AnimalAge age
     ) {
         static AnimalResponse from(Animal animal) {
             return new AnimalResponse(
@@ -73,10 +70,7 @@ public record AnimalPostResponse(
                     animal.getSize(),
                     animal.getGender(),
                     animal.getColor(),
-                    animal.getBreed(),
-                    animal.getFur(),
-                    animal.getAge(),
-                    animal.getDescription()
+                    animal.getAge()
             );
         }
     }
