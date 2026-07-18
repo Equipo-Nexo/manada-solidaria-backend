@@ -32,12 +32,24 @@ import java.math.BigDecimal;
         rule = ConditionalField.Rule.ONLY_ALLOWED,
         message = "La recompensa solo aplica a publicaciones de tipo LOST"
 )
+@ConditionalField(
+        field = "phoneNumber",
+        dependsOn = "type",
+        expectedValue = "ADOPTION",
+        message = "El número de teléfono es obligatorio en publicaciones de adopción"
+)
+@ConditionalField(
+        field = "phoneNumber",
+        dependsOn = "hasOwner",
+        expectedValue = "true",
+        message = "El número de teléfono es obligatorio cuando el animal tiene dueño"
+)
 public record CreateAnimalPostRequest(
         @NotNull(message = "El tipo de publicación es obligatorio (LOST o ADOPTION)")
         AnimalPostType type,
         //definir tamaño maximo.
-        @NotBlank(message = "El título es obligatorio")
-        String title,
+        @NotBlank(message = "El nombre es obligatorio")
+        String name,
         //definir tamaño maximo.
         @NotBlank(message = "La descripción es obligatoria")
         String description,
@@ -45,7 +57,7 @@ public record CreateAnimalPostRequest(
         @NotBlank(message = "El ID de imagen de Cloudflare es obligatorio")
         String imageId,
 
-        @NotBlank(message = "El número de teléfono es obligatorio")
+        // Obligatorio salvo LOST con hasOwner=false ("en la calle"): lo resuelven los @ConditionalField de arriba.
         String phoneNumber,
 
         Boolean hasOwner,
@@ -75,11 +87,8 @@ public record CreateAnimalPostRequest(
             AnimalGender gender,
 
             String color,
-            String breed,
-            String fur,
             @NotNull(message = "La edad del animal es obligatoria")
-            AnimalAge age,
-            String description
+            AnimalAge age
     ) {
     }
 

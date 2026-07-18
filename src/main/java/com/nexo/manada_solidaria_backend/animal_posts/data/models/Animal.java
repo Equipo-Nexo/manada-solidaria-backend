@@ -23,11 +23,8 @@ import java.util.UUID;
 @NoArgsConstructor
 public class Animal {
     private String color;
-    private String breed;
-    private String fur;
     @Enumerated(EnumType.STRING)
     private AnimalAge age;
-    private String description;
     @Enumerated(EnumType.STRING)
     private AnimalSize size;
     @Enumerated(EnumType.STRING)
@@ -43,8 +40,5 @@ public class Animal {
         this.gender = request.gender();
         this.age = request.age();
         this.color = request.color();
-        this.breed = request.breed();
-        this.fur = request.fur();
-        this.description = request.description();
     }
 }
