@@ -29,7 +29,8 @@ public record AnimalPostResponse(
         LocalDateTime createdAt,
         UUID ownerId,
         String phoneNumber,
-        BigDecimal reward
+        BigDecimal reward,
+        Boolean hasOwner
 ) {
 
     public static AnimalPostResponse from(AnimalPost post) {
@@ -47,7 +48,8 @@ public record AnimalPostResponse(
                         .map(User::getId)
                         .orElse(null),
                 post.getPhoneNumber(),
-                post instanceof LostPost lost ? lost.getReward() : null
+                post instanceof LostPost lost ? lost.getReward() : null,
+                post instanceof LostPost lostPost ? lostPost.isHasOwner() : null
         );
     }
 
