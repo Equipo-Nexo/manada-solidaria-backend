@@ -6,6 +6,8 @@ import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class CampaignFactory {
 
@@ -23,6 +25,13 @@ public class CampaignFactory {
 
             case NEWS ->
                     buildNewsCampaign(
+                            request,
+                            location,
+                            owner
+                    );
+
+            case DONATION ->
+                    buildDonationCampaign(
                             request,
                             location,
                             owner
@@ -64,7 +73,36 @@ public class CampaignFactory {
                 request.imageId(),
                 null,
                 location,
-                owner
+                owner,
+                request.newsStartDateTime(),
+                request.newsEndDateTime(),
+                request.category()
+        );
+    }
+
+    private DonationCampaign buildDonationCampaign(CreateCampaignRequest request, Location location, User owner) {
+        DonationCampaign campaign = new DonationCampaign(
+                request.title(),
+                request.description(),
+                request.imageId(),
+                null,
+                location,
+                owner,
+                request.campaignEndDate()
+        );
+
+        addItemsToCampaign(campaign, request.items());
+
+        return campaign;
+    }
+
+    private void addItemsToCampaign(DonationCampaign campaign, List<CreateCampaignRequest.DonationItemRequest> itemRequests) {
+        if (itemRequests == null) {
+            return;
+        }
+
+        itemRequests.forEach(itemReq ->
+                campaign.addItem(new DonationItem(itemReq.name(), itemReq.category()))
         );
     }
 }

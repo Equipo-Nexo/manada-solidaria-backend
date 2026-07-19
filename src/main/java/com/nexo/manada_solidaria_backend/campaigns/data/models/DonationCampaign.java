@@ -23,7 +23,12 @@ import java.util.List;
 @AllArgsConstructor
 public class DonationCampaign extends Campaign<DonationCampaignStatusHistory> {
     private LocalDate campaignEndDate;
-
+    @OneToMany(
+            mappedBy = "campaign",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<DonationItem> items;
     @OneToMany(
             mappedBy = "campaign",
             cascade = CascadeType.ALL,
@@ -46,10 +51,18 @@ public class DonationCampaign extends Campaign<DonationCampaignStatusHistory> {
         this.statusHistory = new ArrayList<>(
                 List.of(new DonationCampaignStatusHistory(CampaignStatus.CREATED, this))
         );
+        this.items = new ArrayList<>();
     }
 
     @Override
     public DonationCampaignStatusHistory getCurrentStatus() {
         return StatusHistoryUtils.getCurrentStatus(statusHistory);
+    }
+
+    public void addItem(DonationItem item) {
+        if (item != null) {
+            this.items.add(item);
+            item.setCampaign(this);
+        }
     }
 }

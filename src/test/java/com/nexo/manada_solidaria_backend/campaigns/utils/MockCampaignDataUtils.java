@@ -32,6 +32,7 @@ public class MockCampaignDataUtils {
             UBICACION_VILLA_MARIA,
             null,
             null,
+            null,
             null
     );
 
@@ -41,6 +42,7 @@ public class MockCampaignDataUtils {
             "Limpieza de espacios verdes en el barrio.",
             null,
             UBICACION_SOLO_OBLIGATORIOS,
+            null,
             null,
             null,
             null
@@ -54,7 +56,8 @@ public class MockCampaignDataUtils {
             UBICACION_CORDOBA,
             "recaudacion.mofli",
             150000L,
-            LocalDate.now().plusYears(1)
+            LocalDate.now().plusYears(1),
+            null
     );
 
     public static final CreateCampaignRequest FUNDRAISING_VALID_OPEN = new CreateCampaignRequest(
@@ -64,6 +67,7 @@ public class MockCampaignDataUtils {
             null,
             UBICACION_VILLA_MARIA,
             "ayudemos.patitas",
+            null,
             null,
             null
     );
@@ -76,6 +80,7 @@ public class MockCampaignDataUtils {
             UBICACION_VILLA_MARIA,
             "alias.no.valido",
             null,
+            null,
             null
     );
 
@@ -87,6 +92,7 @@ public class MockCampaignDataUtils {
             UBICACION_VILLA_MARIA,
             null,
             10000L,
+            null,
             null
     );
 
@@ -98,6 +104,7 @@ public class MockCampaignDataUtils {
             UBICACION_VILLA_MARIA,
             "ayudemos.entre.todos",
             5000L,
+            null,
             null
     );
 
@@ -107,6 +114,7 @@ public class MockCampaignDataUtils {
             "Falta el título",
             null,
             UBICACION_VILLA_MARIA,
+            null,
             null,
             null,
             null
@@ -120,6 +128,7 @@ public class MockCampaignDataUtils {
             UBICACION_VILLA_MARIA,
             "ayudemos.entre.todos",
             -500L,
+            null,
             null
     );
 
@@ -131,7 +140,8 @@ public class MockCampaignDataUtils {
             UBICACION_VILLA_MARIA,
             "ayudemos.entre.todos",
             null,
-            LocalDate.now().minusDays(5)
+            LocalDate.now().minusDays(5),
+            null
     );
 
     private static Stream<Arguments> provideCreateCases() {
