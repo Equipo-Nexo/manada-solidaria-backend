@@ -14,14 +14,8 @@ import java.util.List;
         field = "accountAlias",
         dependsOn = "type",
         expectedValue = "FUNDRAISING",
+        rule = ConditionalField.Rule.REQUIRED_AND_ONLY_ALLOWED,
         message = "El alias es obligatorio solo para campañas de tipo FUNDRAISING"
-)
-@ConditionalField(
-        field = "accountAlias",
-        dependsOn = "type",
-        expectedValue = "DONATION",
-        rule = ConditionalField.Rule.ONLY_ALLOWED,
-        message = "El alias solo aplica para campañas de tipo FUNDRAISING"
 )
 @ConditionalField(
         field = "amountToBeCollected",
@@ -33,22 +27,16 @@ import java.util.List;
 @ConditionalField(
         field = "campaignEndDate",
         dependsOn = "type",
-        expectedValue = "FUNDRAISING",
-        rule = ConditionalField.Rule.ONLY_ALLOWED,
-        message = "La fecha de finalización solo aplica para campañas de tipo FUNDRAISING"
+        expectedValue = "NEWS",
+        rule = ConditionalField.Rule.NOT_ALLOWED,
+        message = "La fecha de finalización no aplica para campañas NEWS"
 )
 @ConditionalField(
         field = "items",
         dependsOn = "type",
         expectedValue = "DONATION",
-        message = "La lista de ítems es obligatoria para campañas de tipo DONATION"
-)
-@ConditionalField(
-        field = "items",
-        dependsOn = "type",
-        expectedValue = "DONATION",
-        rule = ConditionalField.Rule.ONLY_ALLOWED,
-        message = "Los ítems de donación solo se permiten para campañas de tipo DONATION"
+        rule = ConditionalField.Rule.REQUIRED_AND_ONLY_ALLOWED,
+        message = "La lista de items es obligatorio solo para campañas de tipo DONATION"
 )
 @ConditionalField(
         field = "newsStartDateTime",
@@ -57,27 +45,19 @@ import java.util.List;
         rule = ConditionalField.Rule.ONLY_ALLOWED,
         message = "La fecha de inicio solo aplica para campañas NEWS"
 )
-
 @ConditionalField(
         field = "newsEndDateTime",
         dependsOn = "type",
         expectedValue = "NEWS",
-        message = "La fecha de fin es obligatoria para campañas NEWS"
+        rule = ConditionalField.Rule.REQUIRED_AND_ONLY_ALLOWED,
+        message = "La fecha de fin es obligatoria solo para campañas de tipo NEWS"
 )
-
 @ConditionalField(
         field = "category",
         dependsOn = "type",
         expectedValue = "NEWS",
-        message = "La categoría es obligatoria para campañas NEWS"
-)
-
-@ConditionalField(
-        field = "category",
-        dependsOn = "type",
-        expectedValue = "NEWS",
-        rule = ConditionalField.Rule.ONLY_ALLOWED,
-        message = "La categoría solo aplica para campañas NEWS"
+        rule = ConditionalField.Rule.REQUIRED_AND_ONLY_ALLOWED,
+        message = "La categoría es obligatoria solo para campañas de tipo NEWS"
 )
 public record CreateCampaignRequest(
 

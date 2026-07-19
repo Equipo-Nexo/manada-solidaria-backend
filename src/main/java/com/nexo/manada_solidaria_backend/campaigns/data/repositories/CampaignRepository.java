@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.campaigns.data.repositories;
 
+import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCategory;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.Campaign;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,8 +12,32 @@ import java.util.UUID;
 
 public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
 
-    @Query("SELECT c FROM Campaign c WHERE :type IS NULL " +
-            "OR (:type = 'FUNDRAISING' AND TYPE(c) = FundraisingCampaign) " +
-            "OR (:type = 'NEWS' AND TYPE(c) = NewsCampaign)")
-    Page<Campaign<?>> findAllFiltered(@Param("type") String type, Pageable pageable);
+    @Query("""
+        SELECT c
+        FROM Campaign c
+        WHERE TYPE(c) <> FundraisingCampaign
+    """)
+    Page<Campaign<?>> findCampaigns(Pageable pageable);
+
+    @Query("""
+        SELECT c
+        FROM DonationCampaign c
+    """)
+    Page<Campaign<?>> findDonationCampaigns(Pageable pageable);
+
+    @Query("""
+        SELECT c
+        FROM NewsCampaign c
+        WHERE c.category = :category
+    """)
+    Page<Campaign<?>> findNewsCampaignsByCategory(
+            @Param("category") NewsCampaignCategory category,
+            Pageable pageable
+    );
+
+    @Query("""
+        SELECT c
+        FROM FundraisingCampaign c
+    """)
+    Page<Campaign<?>> findFundraisingCampaigns(Pageable pageable);
 }

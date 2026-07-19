@@ -97,43 +97,88 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     @Test
-    @DisplayName("GET /campaigns — Trae todas las campañas paginadas por defecto")
-    void getAll_returnsAllCampaignsWithDefaultPagination() throws Exception {
-        Campaign news = MockCampaignDataUtils.buildNewsModel(userRepository.findByUsername("admin").orElseThrow());
-        Campaign fundraising = MockCampaignDataUtils.buildFundraisingModel(userRepository.findByUsername("admin").orElseThrow());
-        campaignRepository.save(news);
-        campaignRepository.save(fundraising);
+    @DisplayName("GET /campaigns devuelve News y Donation, excluyendo Fundraising")
+    void getCampaigns_returnsNewsAndDonation() throws Exception {
 
-        mockMvc.perform(get("/campaigns")
+        var owner = userRepository.findByUsername("admin").orElseThrow();
+
+        campaignRepository.save(MockCampaignDataUtils.buildDonationModel(owner));
+        campaignRepository.save(MockCampaignDataUtils.buildNewsModel(owner));
+        campaignRepository.save(MockCampaignDataUtils.buildFundraisingModel(owner));
+
+        String response = mockMvc.perform(get("/campaigns")
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.content.length()").value(2)) // Valida que trajo ambas
-                .andExpect(jsonPath("$.totalElements").value(2));
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        assertThat(response).doesNotContain("\"type\":\"FUNDRAISING\"");
     }
 
     @Test
-    @DisplayName("GET /campaigns?type=FUNDRAISING — Filtra trayendo solo donaciones")
-    void getAll_withTypeFundraising_returnsOnlyFundraisings() throws Exception {
-        Campaign news = MockCampaignDataUtils.buildNewsModel(userRepository.findByUsername("admin").orElseThrow());
-        Campaign fundraising = MockCampaignDataUtils.buildFundraisingModel(userRepository.findByUsername("admin").orElseThrow());
-        campaignRepository.save(news);
-        campaignRepository.save(fundraising);
+    @DisplayName("GET /campaigns?category=VACCINATION devuelve solo noticias de vacunación")
+    void getCampaigns_filterVaccination() throws Exception {
+
+        var owner = userRepository.findByUsername("admin").orElseThrow();
+
+        campaignRepository.save(MockCampaignDataUtils.buildDonationModel(owner));
+        campaignRepository.save(MockCampaignDataUtils.buildNewsModel(owner));
+        campaignRepository.save(MockCampaignDataUtils.buildFundraisingModel(owner));
 
         mockMvc.perform(get("/campaigns")
                         .header("Authorization", "Bearer " + accessToken)
-                        .param("type", "FUNDRAISING"))
+                        .param("category", "VACCINATION"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].type").value("NEWS"))
+                .andExpect(jsonPath("$.content[0].newsCategory").value("VACCINATION"));
+    }
+
+    @Test
+    @DisplayName("GET /campaigns?category=DONATION devuelve solo campañas de donación")
+    void getCampaigns_filterDonation() throws Exception {
+
+        var owner = userRepository.findByUsername("admin").orElseThrow();
+
+        campaignRepository.save(MockCampaignDataUtils.buildDonationModel(owner));
+        campaignRepository.save(MockCampaignDataUtils.buildNewsModel(owner));
+        campaignRepository.save(MockCampaignDataUtils.buildFundraisingModel(owner));
+
+        mockMvc.perform(get("/campaigns")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .param("category", "DONATION"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].type").value("DONATION"));
+    }
+
+    @Test
+    @DisplayName("GET /fundraising_campaigns devuelve solo campañas de recaudación")
+    void getFundraisingCampaigns_returnsOnlyFundraisings() throws Exception {
+
+        var owner = userRepository.findByUsername("admin").orElseThrow();
+
+        campaignRepository.save(MockCampaignDataUtils.buildDonationModel(owner));
+        campaignRepository.save(MockCampaignDataUtils.buildNewsModel(owner));
+        campaignRepository.save(MockCampaignDataUtils.buildFundraisingModel(owner));
+
+        mockMvc.perform(get("/campaigns/fundraising_campaigns")
+                        .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(1))
                 .andExpect(jsonPath("$.content[0].type").value("FUNDRAISING"));
     }
 
     @Test
-    @DisplayName("GET /campaigns?type=HOLA — Devuelve 400 Bad Request por tipo inválido")
-    void getAll_withInvalidType_returnsBadRequest() throws Exception {
+    @DisplayName("GET /campaigns?category=HOLA devuelve 400")
+    void getCampaigns_invalidCategory_returnsBadRequest() throws Exception {
+
         mockMvc.perform(get("/campaigns")
                         .header("Authorization", "Bearer " + accessToken)
-                        .param("type", "HOLA"))
+                        .param("category", "HOLA"))
                 .andExpect(status().isBadRequest());
     }
 }

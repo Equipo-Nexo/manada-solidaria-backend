@@ -3,11 +3,17 @@ package com.nexo.manada_solidaria_backend.campaigns.utils;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CampaignType;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest.LocationRequest;
+import com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationCampaignCategory;
+import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCategory;
+import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationCampaign;
+import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationItem;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.FundraisingCampaign;
 import org.junit.jupiter.params.provider.Arguments;
 import org.springframework.http.HttpStatus;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.stream.Stream;
 
 public class MockCampaignDataUtils {
@@ -24,89 +30,165 @@ public class MockCampaignDataUtils {
             "Plaza Principal", null, null, -32.43, -63.26
     );
 
+    private static final LocalDateTime NEWS_START_DATE =
+            LocalDateTime.of(2026, 8, 1, 10, 0);
+
+    private static final LocalDateTime NEWS_END_DATE =
+            LocalDateTime.of(2026, 8, 10, 18, 0);
+
+
     public static final CreateCampaignRequest NEWS_VALID = new CreateCampaignRequest(
             CampaignType.NEWS,
             "Campaña de Vacunación",
-            "Estaremos vacunando gratis este sábado en la plaza principal.",
+            "Estaremos vacunando gratis este sábado.",
             "cf-image-news-123",
             UBICACION_VILLA_MARIA,
             null,
             null,
             null,
-            null
+            null,
+            NEWS_START_DATE,
+            NEWS_END_DATE,
+            NewsCampaignCategory.VACCINATION
     );
+
 
     public static final CreateCampaignRequest NEWS_UBICACION_OPCIONAL = new CreateCampaignRequest(
             CampaignType.NEWS,
             "Campaña Limpieza",
-            "Limpieza de espacios verdes en el barrio.",
+            "Limpieza de espacios verdes.",
             null,
             UBICACION_SOLO_OBLIGATORIOS,
             null,
             null,
             null,
-            null
+            null,
+            NEWS_START_DATE,
+            NEWS_END_DATE,
+            NewsCampaignCategory.OTHER
     );
+
 
     public static final CreateCampaignRequest FUNDRAISING_VALID_FULL = new CreateCampaignRequest(
             CampaignType.FUNDRAISING,
             "Operación de mofli",
-            "Necesitamos juntar fondos para la cirugía de mofli.",
+            "Necesitamos juntar fondos para cirugía",
             "cf-image-fundraising-456",
             UBICACION_CORDOBA,
             "recaudacion.mofli",
             150000L,
             LocalDate.now().plusYears(1),
+            null,
+            null,
+            null,
             null
     );
+
 
     public static final CreateCampaignRequest FUNDRAISING_VALID_OPEN = new CreateCampaignRequest(
             CampaignType.FUNDRAISING,
             "Fondo de emergencia",
-            "Recaudacion abierta para comprar balanceado.",
+            "Recaudación abierta para balanceado.",
             null,
             UBICACION_VILLA_MARIA,
             "ayudemos.patitas",
             null,
             null,
+            null,
+            null,
+            null,
             null
     );
+
+
+    public static final CreateCampaignRequest DONATION_VALID = new CreateCampaignRequest(
+            CampaignType.DONATION,
+            "Ayuda para refugio",
+            "Necesitamos donaciones para los animales.",
+            "cf-image-donation-123",
+            UBICACION_VILLA_MARIA,
+            null,
+            null,
+            null,
+            List.of(
+                    new CreateCampaignRequest.DonationItemRequest(
+                            "Alimento balanceado",
+                            DonationCampaignCategory.FOOD
+                    ),
+                    new CreateCampaignRequest.DonationItemRequest(
+                            "Mantas",
+                            DonationCampaignCategory.CLOTHING_AND_BLANKETS
+                    )
+            ),
+            null,
+            null,
+            null
+    );
+
 
     private static final CreateCampaignRequest NEWS_WITH_ACCOUNT_ALIAS = new CreateCampaignRequest(
             CampaignType.NEWS,
             "Noticia con Alias",
-            "Intenta meter un alias de banco en una noticia",
+            "Intenta meter alias en una noticia.",
             null,
             UBICACION_VILLA_MARIA,
             "alias.no.valido",
             null,
             null,
-            null
+            null,
+            NEWS_START_DATE,
+            NEWS_END_DATE,
+            NewsCampaignCategory.VACCINATION
     );
+
 
     private static final CreateCampaignRequest FUNDRAISING_WITHOUT_ALIAS = new CreateCampaignRequest(
             CampaignType.FUNDRAISING,
             "Recaudación sin alias",
-            "Se olvidaron de configurar dónde transferir",
+            "Se olvidaron de configurar dónde transferir.",
             null,
             UBICACION_VILLA_MARIA,
             null,
             10000L,
             null,
+            null,
+            null,
+            null,
             null
     );
 
+
     private static final CreateCampaignRequest NEWS_WITH_FUNDRAISING_FIELDS = new CreateCampaignRequest(
             CampaignType.NEWS,
-            "Noticia Inválida",
-            "Tiene campos de donación",
+            "Noticia inválida",
+            "Tiene campos de recaudación.",
             null,
             UBICACION_VILLA_MARIA,
             "ayudemos.entre.todos",
             5000L,
             null,
+            null,
+            NEWS_START_DATE,
+            NEWS_END_DATE,
+            NewsCampaignCategory.CASTRATION
+    );
+
+
+    private static final CreateCampaignRequest DONATION_WITHOUT_ITEMS = new CreateCampaignRequest(
+            CampaignType.DONATION,
+            "Donación inválida",
+            "No tiene elementos.",
+            null,
+            UBICACION_VILLA_MARIA,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
             null
     );
+
 
     private static final CreateCampaignRequest WITHOUT_TITLE = new CreateCampaignRequest(
             CampaignType.NEWS,
@@ -117,91 +199,115 @@ public class MockCampaignDataUtils {
             null,
             null,
             null,
-            null
+            null,
+            NEWS_START_DATE,
+            NEWS_END_DATE,
+            NewsCampaignCategory.OTHER
     );
+
 
     private static final CreateCampaignRequest FUNDRAISING_NEGATIVE_AMOUNT = new CreateCampaignRequest(
             CampaignType.FUNDRAISING,
             "Monto Negativo",
-            "No debería pasar",
+            "No debería pasar.",
             null,
             UBICACION_VILLA_MARIA,
             "ayudemos.entre.todos",
             -500L,
             null,
+            null,
+            null,
+            null,
             null
     );
+
 
     private static final CreateCampaignRequest FUNDRAISING_PAST_DATE = new CreateCampaignRequest(
             CampaignType.FUNDRAISING,
             "Fecha Pasada",
-            "No debería pasar",
+            "No debería pasar.",
             null,
             UBICACION_VILLA_MARIA,
             "ayudemos.entre.todos",
             null,
             LocalDate.now().minusDays(5),
+            null,
+            null,
+            null,
             null
     );
+
 
     private static Stream<Arguments> provideCreateCases() {
         return Stream.of(
                 Arguments.of(
-                        "La campaña de tipo NEWS se crea exitosamente y responde el HTTP status correspondiente",
+                        "La campaña NEWS se crea correctamente",
                         NEWS_VALID,
                         HttpStatus.CREATED,
                         "NEWS"
                 ),
                 Arguments.of(
-                        "La campaña de tipo NEWS con ubicación opcional (sin calle/número) se crea exitosamente",
+                        "La campaña NEWS con ubicación opcional se crea correctamente",
                         NEWS_UBICACION_OPCIONAL,
                         HttpStatus.CREATED,
                         "NEWS"
                 ),
                 Arguments.of(
-                        "La campaña de tipo FUNDRAISING completa se crea exitosamente y responde el HTTP status correspondiente",
+                        "La campaña FUNDRAISING completa se crea correctamente",
                         FUNDRAISING_VALID_FULL,
                         HttpStatus.CREATED,
                         "FUNDRAISING"
                 ),
                 Arguments.of(
-                        "La campaña de tipo FUNDRAISING abierta se crea exitosamente y responde el HTTP status correspondiente",
+                        "La campaña FUNDRAISING abierta se crea correctamente",
                         FUNDRAISING_VALID_OPEN,
                         HttpStatus.CREATED,
                         "FUNDRAISING"
                 ),
                 Arguments.of(
-                        "La campaña de tipo NEWS con alias de cuenta falla en la validación",
+                        "La campaña DONATION con items se crea correctamente",
+                        DONATION_VALID,
+                        HttpStatus.CREATED,
+                        "DONATION"
+                ),
+                Arguments.of(
+                        "La campaña NEWS con alias falla",
                         NEWS_WITH_ACCOUNT_ALIAS,
                         HttpStatus.BAD_REQUEST,
                         null
                 ),
                 Arguments.of(
-                        "La campaña de tipo FUNDRAISING sin alias obligatorio falla en la validación",
+                        "La campaña FUNDRAISING sin alias falla",
                         FUNDRAISING_WITHOUT_ALIAS,
                         HttpStatus.BAD_REQUEST,
                         null
                 ),
                 Arguments.of(
-                        "La campaña de tipo NEWS con campos de recaudación falla en la validación y devuelve un HTTP status erróneo",
+                        "La campaña NEWS con campos de fundraising falla",
                         NEWS_WITH_FUNDRAISING_FIELDS,
                         HttpStatus.BAD_REQUEST,
                         null
                 ),
                 Arguments.of(
-                        "La campaña sin título obligatorio falla en la validación y devuelve un HTTP status erróneo",
+                        "La campaña DONATION sin items falla",
+                        DONATION_WITHOUT_ITEMS,
+                        HttpStatus.BAD_REQUEST,
+                        null
+                ),
+                Arguments.of(
+                        "La campaña sin título falla",
                         WITHOUT_TITLE,
                         HttpStatus.BAD_REQUEST,
                         null
                 ),
                 Arguments.of(
-                        "La campaña de tipo FUNDRAISING con monto negativo falla en la validación y devuelve un HTTP status erróneo",
+                        "La campaña FUNDRAISING con monto negativo falla",
                         FUNDRAISING_NEGATIVE_AMOUNT,
                         HttpStatus.BAD_REQUEST,
                         null
                 ),
                 Arguments.of(
-                        "La campaña de tipo FUNDRAISING con fecha de fin en el pasado falla en la validación y devuelve un HTTP status erróneo",
+                        "La campaña FUNDRAISING con fecha pasada falla",
                         FUNDRAISING_PAST_DATE,
                         HttpStatus.BAD_REQUEST,
                         null
@@ -209,27 +315,79 @@ public class MockCampaignDataUtils {
         );
     }
 
-    public static com.nexo.manada_solidaria_backend.campaigns.data.models.NewsCampaign buildNewsModel(com.nexo.manada_solidaria_backend.users.data.models.User owner) {
+
+    public static com.nexo.manada_solidaria_backend.campaigns.data.models.NewsCampaign buildNewsModel(
+            com.nexo.manada_solidaria_backend.users.data.models.User owner
+    ) {
         com.nexo.manada_solidaria_backend.locations.data.models.Location location =
                 new com.nexo.manada_solidaria_backend.locations.data.models.Location();
+
         location.setName("Villa María");
         location.setLatitude(-32.41);
         location.setLongitude(-63.24);
 
         return new com.nexo.manada_solidaria_backend.campaigns.data.models.NewsCampaign(
-                "Título Noticia Test", "Descripción Noticia", "img-1", "url-1", location, owner
+                "Título Noticia Test",
+                "Descripción Noticia",
+                "img-1",
+                "url-1",
+                location,
+                owner,
+                NEWS_START_DATE,
+                NEWS_END_DATE,
+                NewsCampaignCategory.VACCINATION
         );
     }
 
-    public static FundraisingCampaign buildFundraisingModel(com.nexo.manada_solidaria_backend.users.data.models.User owner) {
+
+    public static FundraisingCampaign buildFundraisingModel(
+            com.nexo.manada_solidaria_backend.users.data.models.User owner
+    ) {
         com.nexo.manada_solidaria_backend.locations.data.models.Location location =
                 new com.nexo.manada_solidaria_backend.locations.data.models.Location();
+
         location.setName("Córdoba");
         location.setLatitude(-32.42);
         location.setLongitude(-63.25);
 
         return new FundraisingCampaign(
-                "Título Recaudación de Dinero Test", "Descripción Recaudación de Dinero", "img-2", "url-2", location, owner,"alias Recaudacion de Dinero", 50000L, LocalDate.now().plusDays(10)
+                "Título Recaudación de Dinero Test",
+                "Descripción Recaudación de Dinero",
+                "img-2",
+                "url-2",
+                location,
+                owner,
+                "alias.recaudacion",
+                50000L,
+                LocalDate.now().plusDays(10)
         );
+    }
+
+    public static DonationCampaign buildDonationModel(
+            com.nexo.manada_solidaria_backend.users.data.models.User owner
+    ) {
+        com.nexo.manada_solidaria_backend.locations.data.models.Location location =
+                new com.nexo.manada_solidaria_backend.locations.data.models.Location();
+
+        location.setName("Villa María");
+        location.setLatitude(-32.41);
+        location.setLongitude(-63.24);
+
+        DonationCampaign campaign = new DonationCampaign(
+                "Título Donación Test",
+                "Descripción Donación",
+                "img-3",
+                "url-3",
+                location,
+                owner,
+                LocalDate.now().plusDays(10)
+        );
+
+        campaign.addItem(new DonationItem(
+                "Bolsa de alimento",
+                DonationCampaignCategory.FOOD
+        ));
+
+        return campaign;
     }
 }
