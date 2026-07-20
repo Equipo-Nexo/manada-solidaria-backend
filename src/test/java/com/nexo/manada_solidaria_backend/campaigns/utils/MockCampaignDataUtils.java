@@ -8,6 +8,7 @@ import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCatego
 import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationCampaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationItem;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.FundraisingCampaign;
+import com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationCampaignStatus;
 import org.junit.jupiter.params.provider.Arguments;
 import org.springframework.http.HttpStatus;
 
@@ -389,5 +390,12 @@ public class MockCampaignDataUtils {
         ));
 
         return campaign;
+    }
+
+    private static Stream<Arguments> provideFinalDonationStatuses() {
+        return Stream.of(
+                Arguments.of("Una donacion en estado FINISHED no se puede eliminar", DonationCampaignStatus.FINISHED),
+                Arguments.of("Una donacion en estado COMPLETED tampoco se puede eliminar", DonationCampaignStatus.COMPLETED)
+        );
     }
 }

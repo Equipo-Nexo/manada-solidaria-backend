@@ -3,10 +3,12 @@ package com.nexo.manada_solidaria_backend.animal_posts.services.implementations;
 import com.nexo.manada_solidaria_backend.animal_posts.components.AnimalPostFactory;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostType;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAnimalPostRequest;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AnimalPostResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
+import com.nexo.manada_solidaria_backend.common.utils.EnumUtils;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -37,12 +39,21 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     @Transactional(readOnly = true)
     public Page<AnimalPostResponse> getAnimalPosts(AnimalPostType type, String status, Pageable pageable) {
         return animalPostRepository
-                .findAllFiltered(getSafeTypeValue(type), status, pageable)
+                .findAllFiltered(EnumUtils.getNameOrNull(type), status, pageable)
                 .map(AnimalPostResponse::from);
     }
 
-    private String getSafeTypeValue(AnimalPostType type) {
-        return type != null ? type.name() : null;
+    @Override
+    public void update(UUID animalPostId, UpdateAnimalPostRequest request, User authenticatedUser) {
+        AnimalPost post = animalPostRepository.findById(animalPostId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "La publicación no existe"));
+
+        if (!post.getOwner().getId().equals(authenticatedUser.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo el dueño puede editar la publicación");
+        }
+
+        post.update(request);
+        animalPostRepository.save(post);
     }
 
     @Override

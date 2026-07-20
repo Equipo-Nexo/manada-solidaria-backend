@@ -1,7 +1,6 @@
 package com.nexo.manada_solidaria_backend.campaigns.services.implementations;
 
 import com.nexo.manada_solidaria_backend.campaigns.components.CampaignFactory;
-import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CampaignType;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.responses.CampaignResponse;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.CampaignCategoryFilter;
@@ -10,11 +9,14 @@ import com.nexo.manada_solidaria_backend.campaigns.data.models.Campaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.repositories.CampaignRepository;
 import com.nexo.manada_solidaria_backend.campaigns.services.interfaces.CampaignService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
+import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -49,6 +51,23 @@ public class CampaignServiceImpl implements CampaignService {
     @Transactional(readOnly = true)
     public Page<CampaignResponse> getFundraisingCampaigns(Pageable pageable) {
         return toResponse(campaignRepository.findFundraisingCampaigns(pageable));
+    }
+
+    @Override
+    @Transactional
+    public void delete(UUID campaignId, User authenticatedUser) {
+        Campaign campaign = campaignRepository.findById(campaignId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "La campaña no existe"));
+
+        if (!campaign.getOwner().getId().equals(authenticatedUser.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo el dueño puede eliminar la campaña");
+        }
+
+        if (campaign.isFinished()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "No se puede eliminar una campaña finalizada");
+        }
+
+        campaignRepository.delete(campaign);
     }
 
     private <T extends Campaign<?>> Page<CampaignResponse> toResponse(Page<T> campaigns) {

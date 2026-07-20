@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.RestController;
+import java.util.UUID;
 
 @RestController
 @AllArgsConstructor
@@ -31,5 +32,10 @@ public class CampaignControllerImpl implements CampaignController {
     @Override
     public Page<CampaignResponse> getFundraisingCampaigns(Pageable pageable) {
         return campaignService.getFundraisingCampaigns(pageable);
+    }
+
+    @Override
+    public void delete(UUID campaignId, User authenticatedUser) {
+        campaignService.delete(campaignId, authenticatedUser);
     }
 }

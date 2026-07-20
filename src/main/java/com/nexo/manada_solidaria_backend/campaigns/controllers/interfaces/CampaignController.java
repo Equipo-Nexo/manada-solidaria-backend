@@ -13,6 +13,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import java.util.UUID;
 
 @RequestMapping("/campaigns")
 public interface CampaignController {
@@ -42,5 +43,12 @@ public interface CampaignController {
                     sort = "createdAt",
                     direction = Sort.Direction.DESC
             ) Pageable pageable
+    );
+
+    @DeleteMapping("/{campaignId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void delete(
+            @PathVariable UUID campaignId,
+            @AuthenticationPrincipal User authenticatedUser
     );
 }

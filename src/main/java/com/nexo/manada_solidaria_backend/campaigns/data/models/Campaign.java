@@ -50,4 +50,6 @@ public abstract class Campaign<T extends StatusHistory<?>> {
     }
 
     public abstract T getCurrentStatus();
+
+    public abstract boolean isFinished();
 }

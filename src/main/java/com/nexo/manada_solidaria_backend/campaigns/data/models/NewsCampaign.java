@@ -62,4 +62,9 @@ public class NewsCampaign extends Campaign<NewsCampaignStatusHistory> {
     public NewsCampaignStatusHistory getCurrentStatus() {
         return StatusHistoryUtils.getCurrentStatus(statusHistory);
     }
+
+    @Override
+    public boolean isFinished() {
+        return getCurrentStatus().getStatus() == NewsCampaginStatus.FINISHED;
+    }
 }

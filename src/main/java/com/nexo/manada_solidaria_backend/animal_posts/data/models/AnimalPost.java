@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.animal_posts.data.models;
 
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.common.data.models.StatusHistory;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -19,7 +20,7 @@ import java.util.UUID;
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class AnimalPost<T extends StatusHistory> {
-    private String title;
+    private String name;
     private String description;
     private String imageUrl;
     private String sharePostUrl;
@@ -51,8 +52,8 @@ public abstract class AnimalPost<T extends StatusHistory> {
     @Id
     private UUID id = UUID.randomUUID();
 
-    public AnimalPost(String title, String description, String imageUrl, String sharePostUrl, String phoneNumber, User owner, Animal animal, Location location) {
-        this.title = title;
+    public AnimalPost(String name, String description, String imageUrl, String sharePostUrl, String phoneNumber, User owner, Animal animal, Location location) {
+        this.name = name;
         this.description = description;
         this.imageUrl = imageUrl;
         this.sharePostUrl = sharePostUrl;
@@ -60,6 +61,17 @@ public abstract class AnimalPost<T extends StatusHistory> {
         this.owner = owner;
         this.animal = animal;
         this.location = location;
+    }
+
+
+    public void update(UpdateAnimalPostRequest request) {
+        this.name = request.name();
+        this.description = request.description();
+        this.imageUrl = request.imageId();
+        this.phoneNumber = request.phoneNumber();
+        this.updatedAt = LocalDateTime.now();
+        this.animal.update(request.animal());
+        this.location.update(request.location());
     }
 
     public abstract T getCurrentStatus();
