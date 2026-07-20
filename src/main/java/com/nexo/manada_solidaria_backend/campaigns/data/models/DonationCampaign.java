@@ -61,8 +61,8 @@ public class DonationCampaign extends Campaign<DonationCampaignStatusHistory> {
 
     @Override
     public boolean isFinished() {
-        DonationCampaignStatus status = getCurrentStatus().getStatus();
-        return status == DonationCampaignStatus.FINISHED || status == DonationCampaignStatus.COMPLETED;
+        CampaignStatus status = getCurrentStatus().getStatus();
+        return status == CampaignStatus.FINISHED || status == CampaignStatus.COMPLETED;
     }
 
     public void addItem(DonationItem item) {

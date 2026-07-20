@@ -59,4 +59,10 @@ public class FundraisingCampaign extends Campaign<FundraisingCampaignStatusHisto
     public FundraisingCampaignStatusHistory getCurrentStatus() {
         return StatusHistoryUtils.getCurrentStatus(statusHistory);
     }
+
+    @Override
+    public boolean isFinished() {
+        CampaignStatus status = getCurrentStatus().getStatus();
+        return status == CampaignStatus.FINISHED || status == CampaignStatus.COMPLETED;
+    }
 }
