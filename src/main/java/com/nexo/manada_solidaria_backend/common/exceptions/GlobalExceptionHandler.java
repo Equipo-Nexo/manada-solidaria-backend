@@ -10,7 +10,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
+import tools.jackson.databind.exc.InvalidFormatException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 
+import java.util.Arrays;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Stream;
@@ -75,6 +78,35 @@ public class GlobalExceptionHandler {
                 .body(ApiError.builder()
                         .status(HttpStatus.BAD_REQUEST.value())
                         .errors(List.of(mensaje))
+                        .path(request.getRequestURI())
+                        .timestamp(LocalDateTime.now())
+                        .build()
+                );
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    ResponseEntity<ApiError> handleHttpMessageNotReadableException(
+            HttpMessageNotReadableException ex,
+            HttpServletRequest request
+    ) {
+
+        String message = "El cuerpo de la solicitud contiene un valor inválido.";
+
+        Throwable cause = ex.getMostSpecificCause();
+
+        if (cause instanceof InvalidFormatException invalidFormatException
+                && invalidFormatException.getTargetType().isEnum()) {
+
+            message = "El valor '" + invalidFormatException.getValue()
+                    + "' no es válido. Los valores permitidos son: "
+                    + Arrays.toString(invalidFormatException.getTargetType().getEnumConstants());
+        }
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiError.builder()
+                        .status(HttpStatus.BAD_REQUEST.value())
+                        .errors(List.of(message))
                         .path(request.getRequestURI())
                         .timestamp(LocalDateTime.now())
                         .build()

@@ -30,7 +30,9 @@ public @interface ConditionalField {
 
     enum Rule {
         REQUIRED,
-        ONLY_ALLOWED
+        ONLY_ALLOWED,
+        REQUIRED_AND_ONLY_ALLOWED,
+        NOT_ALLOWED
     }
 
     @Target(ElementType.TYPE)
