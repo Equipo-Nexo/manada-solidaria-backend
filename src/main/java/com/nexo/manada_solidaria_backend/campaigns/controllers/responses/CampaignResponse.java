@@ -16,7 +16,7 @@ import java.util.UUID;
 
 public record CampaignResponse(
         UUID id,
-        CampaignType type,
+        String campaignType,
         String title,
         String description,
         String imageId,
@@ -30,8 +30,7 @@ public record CampaignResponse(
         LocalDate campaignEndDate,
         List<DonationItemResponse> items,
         LocalDateTime newsStartDateTime,
-        LocalDateTime newsEndDateTime,
-        String newsCategory
+        LocalDateTime newsEndDateTime
 ) {
 
     public static CampaignResponse from(Campaign campaign) {
@@ -46,7 +45,7 @@ public record CampaignResponse(
     private static CampaignResponse buildFundraisingCampaignResponse(FundraisingCampaign campaign) {
         return new CampaignResponse(
                 campaign.getId(),
-                CampaignType.FUNDRAISING,
+                CampaignType.FUNDRAISING.getValue(),
                 campaign.getTitle(),
                 campaign.getDescription(),
                 campaign.getImageId(),
@@ -62,7 +61,6 @@ public record CampaignResponse(
                 campaign.getCampaignEndDate(),
                 null,
                 null,
-                null,
                 null
         );
     }
@@ -70,7 +68,7 @@ public record CampaignResponse(
     private static CampaignResponse buildNewsCampaignResponse(NewsCampaign campaign) {
         return new CampaignResponse(
                 campaign.getId(),
-                CampaignType.NEWS,
+                campaign.getCategory().name(),
                 campaign.getTitle(),
                 campaign.getDescription(),
                 campaign.getImageId(),
@@ -86,8 +84,7 @@ public record CampaignResponse(
                 null,
                 null,
                 campaign.getNewsStartDateTime(),
-                campaign.getNewsEndDateTime(),
-                campaign.getCategory().name()
+                campaign.getNewsEndDateTime()
         );
     }
 
@@ -98,7 +95,7 @@ public record CampaignResponse(
 
         return new CampaignResponse(
                 campaign.getId(),
-                CampaignType.DONATION,
+                CampaignType.DONATION.getValue(),
                 campaign.getTitle(),
                 campaign.getDescription(),
                 campaign.getImageId(),
@@ -111,7 +108,6 @@ public record CampaignResponse(
                 null,
                 campaign.getCampaignEndDate(),
                 itemResponses,
-                null,
                 null,
                 null
         );
