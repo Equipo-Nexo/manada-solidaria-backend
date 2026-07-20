@@ -75,7 +75,7 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                         .content(toJson(MockCampaignDataUtils.FUNDRAISING_VALID_FULL)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.type").value("FUNDRAISING"))
+                .andExpect(jsonPath("$.type").value("fundraising"))
                 .andExpect(jsonPath("$.title").value("Operación de mofli"))
                 .andExpect(jsonPath("$.ownerId").value(adminId.toString()))
                 .andReturn().getResponse().getContentAsString();
@@ -129,7 +129,7 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                 .getResponse()
                 .getContentAsString();
 
-        assertThat(response).doesNotContain("\"type\":\"FUNDRAISING\"");
+        assertThat(response).doesNotContain("\"type\":\"fundraising\"");
     }
 
     @Test
@@ -147,8 +147,7 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                         .param("category", "VACCINATION"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(1))
-                .andExpect(jsonPath("$.content[0].type").value("NEWS"))
-                .andExpect(jsonPath("$.content[0].newsCategory").value("VACCINATION"));
+                .andExpect(jsonPath("$.content[0].type").value("vaccination"));
     }
 
     @Test
@@ -166,7 +165,7 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                         .param("category", "DONATION"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(1))
-                .andExpect(jsonPath("$.content[0].type").value("DONATION"));
+                .andExpect(jsonPath("$.content[0].type").value("donation"));
     }
 
     @Test
@@ -183,7 +182,7 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(1))
-                .andExpect(jsonPath("$.content[0].type").value("FUNDRAISING"));
+                .andExpect(jsonPath("$.content[0].type").value("fundraising"));
     }
 
     @Test

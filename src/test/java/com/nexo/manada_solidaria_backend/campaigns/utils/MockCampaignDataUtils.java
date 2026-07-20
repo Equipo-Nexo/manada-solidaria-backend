@@ -43,6 +43,7 @@ public class MockCampaignDataUtils {
             "Campaña de Vacunación",
             "Estaremos vacunando gratis este sábado.",
             "cf-image-news-123",
+            "154154154",
             UBICACION_VILLA_MARIA,
             null,
             null,
@@ -59,6 +60,7 @@ public class MockCampaignDataUtils {
             "Campaña Limpieza",
             "Limpieza de espacios verdes.",
             null,
+            "1542345678",
             UBICACION_SOLO_OBLIGATORIOS,
             null,
             null,
@@ -75,6 +77,7 @@ public class MockCampaignDataUtils {
             "Operación de mofli",
             "Necesitamos juntar fondos para cirugía",
             "cf-image-fundraising-456",
+            "123456789",
             UBICACION_CORDOBA,
             "recaudacion.mofli",
             150000L,
@@ -91,6 +94,7 @@ public class MockCampaignDataUtils {
             "Fondo de emergencia",
             "Recaudación abierta para balanceado.",
             null,
+            "1234567891",
             UBICACION_VILLA_MARIA,
             "ayudemos.patitas",
             null,
@@ -107,6 +111,7 @@ public class MockCampaignDataUtils {
             "Ayuda para refugio",
             "Necesitamos donaciones para los animales.",
             "cf-image-donation-123",
+            "12345678912",
             UBICACION_VILLA_MARIA,
             null,
             null,
@@ -132,6 +137,7 @@ public class MockCampaignDataUtils {
             "Noticia con Alias",
             "Intenta meter alias en una noticia.",
             null,
+            "1234567812",
             UBICACION_VILLA_MARIA,
             "alias.no.valido",
             null,
@@ -148,6 +154,7 @@ public class MockCampaignDataUtils {
             "Recaudación sin alias",
             "Se olvidaron de configurar dónde transferir.",
             null,
+            "154154154",
             UBICACION_VILLA_MARIA,
             null,
             10000L,
@@ -164,6 +171,7 @@ public class MockCampaignDataUtils {
             "Noticia inválida",
             "Tiene campos de recaudación.",
             null,
+            "154154154",
             UBICACION_VILLA_MARIA,
             "ayudemos.entre.todos",
             5000L,
@@ -180,6 +188,7 @@ public class MockCampaignDataUtils {
             "Donación inválida",
             "No tiene elementos.",
             null,
+            "1541541234",
             UBICACION_VILLA_MARIA,
             null,
             null,
@@ -196,6 +205,7 @@ public class MockCampaignDataUtils {
             null,
             "Falta el título",
             null,
+            "123456789",
             UBICACION_VILLA_MARIA,
             null,
             null,
@@ -212,6 +222,7 @@ public class MockCampaignDataUtils {
             "Monto Negativo",
             "No debería pasar.",
             null,
+            "123456789",
             UBICACION_VILLA_MARIA,
             "ayudemos.entre.todos",
             -500L,
@@ -228,6 +239,7 @@ public class MockCampaignDataUtils {
             "Fecha Pasada",
             "No debería pasar.",
             null,
+            "123456789",
             UBICACION_VILLA_MARIA,
             "ayudemos.entre.todos",
             null,
@@ -238,6 +250,21 @@ public class MockCampaignDataUtils {
             null
     );
 
+    private static final CreateCampaignRequest NEWS_END_DATE_BEFORE_START_DATE = new CreateCampaignRequest(
+            CampaignType.NEWS,
+            "Noticia con fechas inválidas",
+            "La fecha de fin es anterior a la de inicio.",
+            null,
+            "123456789",
+            UBICACION_VILLA_MARIA,
+            null,
+            null,
+            null,
+            null,
+            NEWS_START_DATE,
+            NEWS_START_DATE.minusDays(1),
+            NewsCampaignCategory.VACCINATION
+    );
 
     private static Stream<Arguments> provideCreateCases() {
         return Stream.of(
@@ -245,31 +272,31 @@ public class MockCampaignDataUtils {
                         "La campaña NEWS se crea correctamente",
                         NEWS_VALID,
                         HttpStatus.CREATED,
-                        "NEWS"
+                        "vaccination"
                 ),
                 Arguments.of(
                         "La campaña NEWS con ubicación opcional se crea correctamente",
                         NEWS_UBICACION_OPCIONAL,
                         HttpStatus.CREATED,
-                        "NEWS"
+                        "other"
                 ),
                 Arguments.of(
                         "La campaña FUNDRAISING completa se crea correctamente",
                         FUNDRAISING_VALID_FULL,
                         HttpStatus.CREATED,
-                        "FUNDRAISING"
+                        "fundraising"
                 ),
                 Arguments.of(
                         "La campaña FUNDRAISING abierta se crea correctamente",
                         FUNDRAISING_VALID_OPEN,
                         HttpStatus.CREATED,
-                        "FUNDRAISING"
+                        "fundraising"
                 ),
                 Arguments.of(
                         "La campaña DONATION con items se crea correctamente",
                         DONATION_VALID,
                         HttpStatus.CREATED,
-                        "DONATION"
+                        "donation"
                 ),
                 Arguments.of(
                         "La campaña NEWS con alias falla",
@@ -312,6 +339,12 @@ public class MockCampaignDataUtils {
                         FUNDRAISING_PAST_DATE,
                         HttpStatus.BAD_REQUEST,
                         null
+                ),
+                Arguments.of(
+                        "La campaña NEWS con fecha de fin anterior a la fecha de inicio falla",
+                        NEWS_END_DATE_BEFORE_START_DATE,
+                        HttpStatus.BAD_REQUEST,
+                        null
                 )
         );
     }
@@ -332,6 +365,7 @@ public class MockCampaignDataUtils {
                 "Descripción Noticia",
                 "img-1",
                 "url-1",
+                "123456789",
                 location,
                 owner,
                 NEWS_START_DATE,
@@ -356,6 +390,7 @@ public class MockCampaignDataUtils {
                 "Descripción Recaudación de Dinero",
                 "img-2",
                 "url-2",
+                "123456789",
                 location,
                 owner,
                 "alias.recaudacion",
@@ -379,6 +414,7 @@ public class MockCampaignDataUtils {
                 "Descripción Donación",
                 "img-3",
                 "url-3",
+                "123456789",
                 location,
                 owner,
                 LocalDate.now().plusDays(10)
