@@ -117,7 +117,6 @@ public record CreateCampaignRequest(
     ) {}
 
     public record DonationItemRequest(
-            @NotBlank(message = "El nombre del ítem es obligatorio")
             String name,
 
             @NotNull(message = "La categoría es obligatoria")
