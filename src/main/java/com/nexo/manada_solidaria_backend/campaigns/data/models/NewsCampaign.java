@@ -38,13 +38,14 @@ public class NewsCampaign extends Campaign<NewsCampaignStatusHistory> {
             String description,
             String imageId,
             String shareCampaignUrl,
+            String phoneNumber,
             Location location,
             User owner,
             LocalDateTime startDateTime,
             LocalDateTime endDateTime,
             NewsCampaignCategory category
     ) {
-        super(title, description, imageId, shareCampaignUrl, location, owner);
+        super(title, description, imageId, shareCampaignUrl, phoneNumber, location, owner);
 
         this.newsStartDateTime = startDateTime != null
                 ? startDateTime

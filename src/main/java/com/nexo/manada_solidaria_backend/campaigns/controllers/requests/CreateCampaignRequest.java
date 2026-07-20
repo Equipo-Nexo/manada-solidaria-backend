@@ -3,6 +3,7 @@ package com.nexo.manada_solidaria_backend.campaigns.controllers.requests;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationCampaignCategory;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCategory;
 import com.nexo.manada_solidaria_backend.common.controllers.validations.ConditionalField;
+import com.nexo.manada_solidaria_backend.common.controllers.validations.DateRange;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
@@ -59,6 +60,11 @@ import java.util.List;
         rule = ConditionalField.Rule.REQUIRED_AND_ONLY_ALLOWED,
         message = "La categoría es obligatoria solo para campañas de tipo NEWS"
 )
+@DateRange(
+        startField = "newsStartDateTime",
+        endField = "newsEndDateTime",
+        message = "La fecha de finalización debe ser posterior a la fecha de inicio"
+)
 public record CreateCampaignRequest(
 
         @NotNull(message = "El tipo de campaña es obligatorio")
@@ -73,6 +79,13 @@ public record CreateCampaignRequest(
         String description,
 
         String imageId,
+
+        @NotBlank(message = "El teléfono es obligatorio")
+        @Pattern(
+                regexp = "^[0-9]{8,15}$",
+                message = "El teléfono debe contener entre 8 y 15 dígitos numéricos"
+        )
+        String phoneNumber,
 
         @NotNull(message = "La ubicación es obligatoria")
         @Valid
@@ -117,7 +130,6 @@ public record CreateCampaignRequest(
     ) {}
 
     public record DonationItemRequest(
-            @NotBlank(message = "El nombre del ítem es obligatorio")
             String name,
 
             @NotNull(message = "La categoría es obligatoria")

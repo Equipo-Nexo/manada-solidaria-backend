@@ -58,6 +58,7 @@ public class CampaignFactory {
                 request.description(),
                 request.imageId(),
                 null,
+                request.phoneNumber(),
                 location,
                 owner,
                 request.accountAlias(),
@@ -72,6 +73,7 @@ public class CampaignFactory {
                 request.description(),
                 request.imageId(),
                 null,
+                request.phoneNumber(),
                 location,
                 owner,
                 request.newsStartDateTime(),
@@ -86,6 +88,7 @@ public class CampaignFactory {
                 request.description(),
                 request.imageId(),
                 null,
+                request.phoneNumber(),
                 location,
                 owner,
                 request.campaignEndDate()

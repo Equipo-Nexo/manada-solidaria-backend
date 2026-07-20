@@ -38,13 +38,14 @@ public class FundraisingCampaign extends Campaign<FundraisingCampaignStatusHisto
             String description,
             String imageId,
             String shareCampaignUrl,
+            String phoneNumber,
             Location location,
             User owner,
             String accountAlias,
             Long amountToBeCollected,
             LocalDate campaignEndDate
     ) {
-        super(title, description, imageId, shareCampaignUrl, location, owner);
+        super(title, description, imageId, shareCampaignUrl, phoneNumber, location, owner);
 
         this.accountAlias = accountAlias;
         this.amountToBeCollected = amountToBeCollected;

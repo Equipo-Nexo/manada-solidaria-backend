@@ -24,6 +24,7 @@ public abstract class Campaign<T extends StatusHistory<?>> {
     private String description;
     private String imageId;
     private String shareCampaignUrl;
+    private String phoneNumber;
     private LocalDateTime updatedAt = null;
     private final LocalDateTime createdAt = LocalDateTime.now();
     @ManyToOne(optional = false, cascade = CascadeType.ALL)
@@ -38,6 +39,7 @@ public abstract class Campaign<T extends StatusHistory<?>> {
             String description,
             String imageId,
             String shareCampaignUrl,
+            String phoneNumber,
             Location location,
             User owner
     ) {
@@ -45,6 +47,7 @@ public abstract class Campaign<T extends StatusHistory<?>> {
         this.description = description;
         this.imageId = imageId;
         this.shareCampaignUrl = shareCampaignUrl;
+        this.phoneNumber = phoneNumber;
         this.location = location;
         this.owner = owner;
     }
