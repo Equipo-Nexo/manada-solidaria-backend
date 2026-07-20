@@ -16,7 +16,7 @@ import java.util.UUID;
 
 public record CampaignResponse(
         UUID id,
-        String campaignType,
+        String type,
         String title,
         String description,
         String imageId,
