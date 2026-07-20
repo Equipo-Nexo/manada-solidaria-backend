@@ -68,7 +68,7 @@ public record CampaignResponse(
     private static CampaignResponse buildNewsCampaignResponse(NewsCampaign campaign) {
         return new CampaignResponse(
                 campaign.getId(),
-                campaign.getCategory().name(),
+                campaign.getCategory().getValue(),
                 campaign.getTitle(),
                 campaign.getDescription(),
                 campaign.getImageId(),
