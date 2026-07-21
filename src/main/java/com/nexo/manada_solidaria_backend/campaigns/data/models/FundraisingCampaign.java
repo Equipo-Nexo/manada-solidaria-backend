@@ -1,17 +1,18 @@
 package com.nexo.manada_solidaria_backend.campaigns.data.models;
 
-import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaginStatus;
-import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCategory;
+import com.nexo.manada_solidaria_backend.campaigns.data.enums.CampaignStatus;
 import com.nexo.manada_solidaria_backend.common.utils.StatusHistoryUtils;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,20 +21,19 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class NewsCampaign extends Campaign<NewsCampaignStatusHistory> {
-    private LocalDateTime newsStartDateTime;
-    private LocalDateTime newsEndDateTime;
-    @Enumerated(EnumType.STRING)
-    private NewsCampaignCategory category;
-
+public class FundraisingCampaign extends Campaign<FundraisingCampaignStatusHistory> {
+    private String accountAlias;
+    private Long amountToBeCollected;
+    private long amountCollected;
+    private LocalDate campaignEndDate;
     @OneToMany(
             mappedBy = "campaign",
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    private List<NewsCampaignStatusHistory> statusHistory;
+    private List<FundraisingCampaignStatusHistory> statusHistory;
 
-    public NewsCampaign(
+    public FundraisingCampaign(
             String title,
             String description,
             String imageId,
@@ -41,31 +41,29 @@ public class NewsCampaign extends Campaign<NewsCampaignStatusHistory> {
             String phoneNumber,
             Location location,
             User owner,
-            LocalDateTime startDateTime,
-            LocalDateTime endDateTime,
-            NewsCampaignCategory category
+            String accountAlias,
+            Long amountToBeCollected,
+            LocalDate campaignEndDate
     ) {
         super(title, description, imageId, shareCampaignUrl, phoneNumber, location, owner);
 
-        this.newsStartDateTime = startDateTime != null
-                ? startDateTime
-                : LocalDateTime.now();
-
-        this.newsEndDateTime = endDateTime;
-        this.category = category;
-
+        this.accountAlias = accountAlias;
+        this.amountToBeCollected = amountToBeCollected;
+        this.amountCollected = 0L;
+        this.campaignEndDate = campaignEndDate;
         this.statusHistory = new ArrayList<>(
-                List.of(new NewsCampaignStatusHistory(NewsCampaginStatus.CREATED, this))
+                List.of(new FundraisingCampaignStatusHistory(CampaignStatus.CREATED, this))
         );
     }
 
     @Override
-    public NewsCampaignStatusHistory getCurrentStatus() {
+    public FundraisingCampaignStatusHistory getCurrentStatus() {
         return StatusHistoryUtils.getCurrentStatus(statusHistory);
     }
 
     @Override
     public boolean isFinished() {
-        return getCurrentStatus().getStatus() == NewsCampaginStatus.FINISHED;
+        CampaignStatus status = getCurrentStatus().getStatus();
+        return status == CampaignStatus.FINISHED || status == CampaignStatus.COMPLETED;
     }
 }

@@ -1,6 +1,6 @@
 package com.nexo.manada_solidaria_backend.campaigns.data.models;
 
-import com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationCampaignStatus;
+import com.nexo.manada_solidaria_backend.campaigns.data.enums.CampaignStatus;
 import com.nexo.manada_solidaria_backend.common.utils.StatusHistoryUtils;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -22,9 +22,13 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DonationCampaign extends Campaign<DonationCampaignStatusHistory> {
-    private Long amountToBeCollected;
-    private long amountCollected;
-    private LocalDate endDate;
+    private LocalDate campaignEndDate;
+    @OneToMany(
+            mappedBy = "campaign",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<DonationItem> items;
     @OneToMany(
             mappedBy = "campaign",
             cascade = CascadeType.ALL,
@@ -37,19 +41,18 @@ public class DonationCampaign extends Campaign<DonationCampaignStatusHistory> {
             String description,
             String imageId,
             String shareCampaignUrl,
+            String phoneNumber,
             Location location,
             User owner,
-            Long amountToBeCollected,
             LocalDate campaignEndDate
     ) {
-        super(title, description, imageId, shareCampaignUrl, location, owner);
+        super(title, description, imageId, shareCampaignUrl, phoneNumber, location, owner);
 
-        this.amountToBeCollected = amountToBeCollected;
-        this.amountCollected = 0L;
-        this.endDate = campaignEndDate;
+        this.campaignEndDate = campaignEndDate;
         this.statusHistory = new ArrayList<>(
-                List.of(new DonationCampaignStatusHistory(DonationCampaignStatus.CREATED, this))
+                List.of(new DonationCampaignStatusHistory(CampaignStatus.CREATED, this))
         );
+        this.items = new ArrayList<>();
     }
 
     @Override
@@ -59,7 +62,14 @@ public class DonationCampaign extends Campaign<DonationCampaignStatusHistory> {
 
     @Override
     public boolean isFinished() {
-        DonationCampaignStatus status = getCurrentStatus().getStatus();
-        return status == DonationCampaignStatus.FINISHED || status == DonationCampaignStatus.COMPLETED;
+        CampaignStatus status = getCurrentStatus().getStatus();
+        return status == CampaignStatus.FINISHED || status == CampaignStatus.COMPLETED;
+    }
+
+    public void addItem(DonationItem item) {
+        if (item != null) {
+            this.items.add(item);
+            item.setCampaign(this);
+        }
     }
 }
