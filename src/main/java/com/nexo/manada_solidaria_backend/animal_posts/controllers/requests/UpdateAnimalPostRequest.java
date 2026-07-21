@@ -4,6 +4,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalAge;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalGender;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalSize;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
+import com.nexo.manada_solidaria_backend.locations.controllers.requests.UpdateLocationRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -38,7 +39,7 @@ public record UpdateAnimalPostRequest(
 
         @NotNull(message = "Los datos de ubicación son obligatorios")
         @Valid
-        LocationUpdate location
+        UpdateLocationRequest location
 ) {
 
     public record AnimalUpdate(
@@ -55,19 +56,6 @@ public record UpdateAnimalPostRequest(
 
             @NotNull(message = "La edad del animal es obligatoria")
             AnimalAge age
-    ) {
-    }
-
-    public record LocationUpdate(
-            @NotBlank(message = "El nombre de la ubicación es obligatorio")
-            String name,
-
-            @NotBlank(message = "La dirección es obligatoria")
-            String address,
-
-            int number,
-            double latitude,
-            double longitude
     ) {
     }
 }

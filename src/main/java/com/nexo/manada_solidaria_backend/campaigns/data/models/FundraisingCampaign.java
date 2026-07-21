@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.campaigns.data.models;
 
+import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.CampaignStatus;
 import com.nexo.manada_solidaria_backend.common.utils.StatusHistoryUtils;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
@@ -54,6 +55,16 @@ public class FundraisingCampaign extends Campaign<FundraisingCampaignStatusHisto
         this.statusHistory = new ArrayList<>(
                 List.of(new FundraisingCampaignStatusHistory(CampaignStatus.CREATED, this))
         );
+    }
+
+    @Override
+    public void update(UpdateCampaignRequest request) {
+        super.update(request);
+
+        this.accountAlias = request.accountAlias();
+        this.amountToBeCollected = request.amountToBeCollected();
+        this.amountCollected = request.amountCollected();
+        this.campaignEndDate = request.campaignEndDate();
     }
 
     @Override

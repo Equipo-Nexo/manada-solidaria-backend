@@ -3,12 +3,14 @@ package com.nexo.manada_solidaria_backend.campaigns.utils;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CampaignType;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest.LocationRequest;
+import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.CampaignStatus;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationCampaignCategory;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCategory;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationCampaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationItem;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.FundraisingCampaign;
+import com.nexo.manada_solidaria_backend.locations.controllers.requests.UpdateLocationRequest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.springframework.http.HttpStatus;
 
@@ -426,6 +428,80 @@ public class MockCampaignDataUtils {
         ));
 
         return campaign;
+    }
+
+    public static UpdateCampaignRequest buildDonationUpdateRequest() {
+
+        return new UpdateCampaignRequest(
+                "Título Donación Editado",
+                "Descripción editada",
+                "img-updated",
+                "999999999",
+                new UpdateLocationRequest(
+                        "Villa María",
+                        "Nueva dirección",
+                        100,
+                        -32.40,
+                        -63.20
+                ),
+                null,
+                null,
+                null,
+                LocalDate.now().plusMonths(2),
+                null,
+                null,
+                null
+        );
+    }
+
+
+    public static UpdateCampaignRequest buildFundraisingUpdateRequest() {
+
+        return new UpdateCampaignRequest(
+                "Recaudación Editada",
+                "Nueva descripción",
+                "img-fundraising-updated",
+                "111111111",
+                new UpdateLocationRequest(
+                        "Córdoba",
+                        "Nueva dirección",
+                        200,
+                        -31.41,
+                        -64.18
+                ),
+                "nuevo.alias",
+                100000L,
+                25000L,
+                LocalDate.now().plusMonths(3),
+                null,
+                null,
+                null
+        );
+    }
+
+
+    public static UpdateCampaignRequest buildNewsUpdateRequest() {
+
+        return new UpdateCampaignRequest(
+                "Noticia Editada",
+                "Nueva descripción noticia",
+                "img-news-updated",
+                "222222222",
+                new UpdateLocationRequest(
+                        "Villa María",
+                        "Plaza nueva",
+                        50,
+                        -32.41,
+                        -63.24
+                ),
+                null,
+                null,
+                null,
+                null,
+                LocalDateTime.of(2026, 9, 1, 10, 0),
+                LocalDateTime.of(2026, 9, 5, 18, 0),
+                NewsCampaignCategory.OTHER
+        );
     }
 
     private static Stream<Arguments> provideFinalDonationStatuses() {

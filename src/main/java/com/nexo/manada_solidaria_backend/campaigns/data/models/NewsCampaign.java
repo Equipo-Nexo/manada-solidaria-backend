@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.campaigns.data.models;
 
+import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaginStatus;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCategory;
 import com.nexo.manada_solidaria_backend.common.utils.StatusHistoryUtils;
@@ -57,6 +58,15 @@ public class NewsCampaign extends Campaign<NewsCampaignStatusHistory> {
         this.statusHistory = new ArrayList<>(
                 List.of(new NewsCampaignStatusHistory(NewsCampaginStatus.CREATED, this))
         );
+    }
+
+    @Override
+    public void update(UpdateCampaignRequest request) {
+        super.update(request);
+
+        this.newsStartDateTime = request.newsStartDateTime();
+        this.newsEndDateTime = request.newsEndDateTime();
+        this.category = request.category();
     }
 
     @Override

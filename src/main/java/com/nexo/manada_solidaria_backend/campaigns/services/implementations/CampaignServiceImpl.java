@@ -2,6 +2,7 @@ package com.nexo.manada_solidaria_backend.campaigns.services.implementations;
 
 import com.nexo.manada_solidaria_backend.campaigns.components.CampaignFactory;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest;
+import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.responses.CampaignResponse;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.CampaignCategoryFilter;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCategory;
@@ -55,6 +56,15 @@ public class CampaignServiceImpl implements CampaignService {
 
     @Override
     @Transactional
+    public void update(UUID campaignId, UpdateCampaignRequest request, User authenticatedUser) {
+        Campaign campaign = getOwnedCampaignOrThrow(campaignId, authenticatedUser);
+
+        campaign.update(request);
+        campaignRepository.save(campaign);
+    }
+
+    @Override
+    @Transactional
     public void delete(UUID campaignId, User authenticatedUser) {
         Campaign campaign = campaignRepository.findById(campaignId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "La campaña no existe"));
@@ -72,6 +82,32 @@ public class CampaignServiceImpl implements CampaignService {
 
     private <T extends Campaign<?>> Page<CampaignResponse> toResponse(Page<T> campaigns) {
         return campaigns.map(CampaignResponse::from);
+    }
+
+    private Campaign getOwnedCampaignOrThrow(UUID campaignId, User authenticatedUser) {
+        Campaign campaign = getCampaignOrThrow(campaignId);
+
+        validateOwner(campaign, authenticatedUser);
+        return campaign;
+    }
+
+    private Campaign getCampaignOrThrow(UUID campaignId) {
+        return campaignRepository.findById(campaignId)
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "La campaña no existe"
+                        )
+                );
+    }
+
+    private void validateOwner(Campaign campaign, User authenticatedUser) {
+        if (!campaign.getOwner().getId().equals(authenticatedUser.getId())) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Solo el dueño puede editar la campaña"
+            );
+        }
     }
 
 }
