@@ -2,6 +2,7 @@ package com.nexo.manada_solidaria_backend.campaigns.controllers.implementations;
 
 import com.nexo.manada_solidaria_backend.campaigns.controllers.interfaces.CampaignController;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest;
+import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.responses.CampaignResponse;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.CampaignCategoryFilter;
 import com.nexo.manada_solidaria_backend.campaigns.services.interfaces.CampaignService;
@@ -31,6 +32,11 @@ public class CampaignControllerImpl implements CampaignController {
     @Override
     public Page<CampaignResponse> getFundraisingCampaigns(Pageable pageable) {
         return campaignService.getFundraisingCampaigns(pageable);
+    }
+
+    @Override
+    public void update(UUID campaignId, UpdateCampaignRequest request, User authenticatedUser) {
+        campaignService.update(campaignId, request, authenticatedUser);
     }
 
     @Override
