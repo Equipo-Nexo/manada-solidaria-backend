@@ -31,10 +31,7 @@ MERGE INTO ANIMAL (
     SIZE,
     GENDER,
     AGE,
-    COLOR,
-    BREED,
-    FUR,
-    DESCRIPTION
+    COLOR
 )
 KEY (ID)
 VALUES (
@@ -43,10 +40,7 @@ VALUES (
     'MEDIUM',
     'MALE',
     'ADULT',
-    'BROWN',
-    'MESTIZO',
-    'SHORT',
-    'Perro marrón de tamaño mediano con collar rojo.'
+    'BROWN'
 );
 
 
@@ -56,7 +50,7 @@ VALUES (
 
 MERGE INTO ANIMAL_POST (
     ID,
-    TITLE,
+    NAME,
     DESCRIPTION,
     IMAGE_URL,
     SHARE_POST_URL,
