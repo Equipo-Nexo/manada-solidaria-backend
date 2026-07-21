@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.animal_posts.integrations;
 
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalAge;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalGender;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalSize;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
@@ -87,7 +88,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.type").value("LOST"))
-                .andExpect(jsonPath("$.title").value("Perdí a mi perro"))
+                .andExpect(jsonPath("$.name").value("Perdí a mi perro"))
                 .andExpect(jsonPath("$.description").value("Se escapó en el parque"))
                 .andExpect(jsonPath("$.imageUrl").value("cf-image-123")) // imageId del request → imageUrl
                 .andExpect(jsonPath("$.status").value("CREATED"))
@@ -109,7 +110,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(1))
-                .andExpect(jsonPath("$.content[0].title").value("Perdí a mi perro"))
+                .andExpect(jsonPath("$.content[0].name").value("Perdí a mi perro"))
                 .andExpect(jsonPath("$.content[0].ownerId").value(adminId.toString()))
                 .andExpect(jsonPath("$.content[0].status").value("CREATED"));
     }
@@ -195,8 +196,8 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(2))
-                .andExpect(jsonPath("$.content[0].title").value("Caso adopción"))
-                .andExpect(jsonPath("$.content[1].title").value("Caso perdido"))
+                .andExpect(jsonPath("$.content[0].name").value("Caso adopción"))
+                .andExpect(jsonPath("$.content[1].name").value("Caso perdido"))
                 .andExpect(jsonPath("$.content[0].status").value("SEARCHING_ADOPT_AND_TRANSIT"));
     }
 
@@ -237,7 +238,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(1))
-                .andExpect(jsonPath("$.content[0].title").value("En búsqueda"))
+                .andExpect(jsonPath("$.content[0].name").value("En búsqueda"))
                 .andExpect(jsonPath("$.content[0].type").value("LOST"))
                 .andExpect(jsonPath("$.content[0].status").value("SEARCHING"));
     }
@@ -310,7 +311,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(status().isNoContent());
 
         LostPost updated = (LostPost) animalPostRepository.findById(postId).orElseThrow();
-        assertThat(updated.getTitle()).isEqualTo("Titulo actualizado");
+        assertThat(updated.getName()).isEqualTo("Titulo actualizado");
         assertThat(updated.getDescription()).isEqualTo("Descripcion actualizada");
         assertThat(updated.getImageUrl()).isEqualTo("cf-image-put");
         assertThat(updated.getPhoneNumber()).isEqualTo("1199887766");
@@ -319,7 +320,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         assertThat(updated.getAnimal().getType()).isEqualTo(AnimalType.CAT);
         assertThat(updated.getAnimal().getSize()).isEqualTo(AnimalSize.LARGE);
         assertThat(updated.getAnimal().getGender()).isEqualTo(AnimalGender.FEMALE);
-        assertThat(updated.getAnimal().getAge().name()).isEqualTo("SENIOR");
+        assertThat(updated.getAnimal().getAge()).isEqualTo(AnimalAge.SENIOR);
         assertThat(updated.getAnimal().getColor()).isEqualTo("negro");
         assertThat(updated.getLocation().getName()).isEqualTo("Refugio Nuevo");
         assertThat(updated.getLocation().getAddress()).isEqualTo("Nueva direccion 456");
@@ -475,14 +476,14 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         return animalPostRepository.save(post);
     }
 
-    private void saveLostPost(String title, StatusLostPost status) {
-        LostPost post = new LostPost(title, "Descripción", "cf-img", null, null, true, null, location(), animal(), null);
+    private void saveLostPost(String name, StatusLostPost status) {
+        LostPost post = new LostPost(name, "Descripción", "cf-img", null, null, true, null, location(), animal(), null);
         post.setStatusHistory(new ArrayList<>(List.of(new LostPostStatusHistory(status, post))));
         animalPostRepository.save(post);
     }
 
-    private void saveAdoptionPost(String title, StatusAdoptionPost status) {
-        AdoptionPost post = new AdoptionPost(title, "Descripción", "cf-img", null, null, null, animal(), location(), false);
+    private void saveAdoptionPost(String name, StatusAdoptionPost status) {
+        AdoptionPost post = new AdoptionPost(name, "Descripción", "cf-img", null, null, null, animal(), location(), false);
         post.setStatusHistory(new ArrayList<>(List.of(new AdoptionPostStatusHistory(status, post))));
         animalPostRepository.save(post);
     }

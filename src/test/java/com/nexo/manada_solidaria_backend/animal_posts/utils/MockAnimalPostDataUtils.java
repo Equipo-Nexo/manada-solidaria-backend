@@ -10,7 +10,7 @@ public class MockAnimalPostDataUtils {
     public static final String LOST_VALID = """
             {
               "type": "LOST",
-              "title": "Perdí a mi perro",
+              "name": "Perdí a mi perro",
               "description": "Se escapó en el parque",
               "imageId": "cf-image-123",
               "phoneNumber": "1122334455",
@@ -24,7 +24,7 @@ public class MockAnimalPostDataUtils {
     public static final String ADOPTION_VALID = """
             {
               "type": "ADOPTION",
-              "title": "Busco hogar para gata",
+              "name": "Busco hogar para gata",
               "description": "Rescatada de la calle",
               "imageId": "cf-image-456",
               "phoneNumber": "1122334455",
@@ -37,7 +37,7 @@ public class MockAnimalPostDataUtils {
     public static final String ADOPTION_IN_TRANSIT = """
             {
               "type": "ADOPTION",
-              "title": "Gata en tránsito",
+              "name": "Gata en tránsito",
               "description": "En hogar de tránsito",
               "imageId": "cf-image-555",
               "phoneNumber": "1122334455",
@@ -50,7 +50,7 @@ public class MockAnimalPostDataUtils {
     public static final String LOST_WITHOUT_HAS_OWNER = """
             {
               "type": "LOST",
-              "title": "Encontré un perro",
+              "name": "Encontré un perro",
               "description": "Estaba solo en la calle",
               "imageId": "cf-image-999",
               "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE" },
@@ -58,7 +58,7 @@ public class MockAnimalPostDataUtils {
             }
             """;
 
-    private static final String WITHOUT_TITLE = """
+    private static final String WITHOUT_NAME = """
             {
               "type": "ADOPTION",
               "description": "Sin título",
@@ -71,7 +71,7 @@ public class MockAnimalPostDataUtils {
     private static final String WITHOUT_DESCRIPTION = """
             {
               "type": "ADOPTION",
-              "title": "Gatito en adopción",
+              "name": "Gatito en adopción",
               "imageId": "cf-image-111",
               "animal": { "type": "CAT", "size": "SMALL", "gender": "FEMALE" },
               "location": { "name": "Refugio", "address": "Calle Falsa", "number": 123, "latitude": -34.5, "longitude": -58.5 }
@@ -81,7 +81,7 @@ public class MockAnimalPostDataUtils {
     private static final String WITHOUT_IMAGE_ID = """
             {
               "type": "ADOPTION",
-              "title": "Gatito en adopción",
+              "name": "Gatito en adopción",
               "description": "Rescatado de la calle",
               "animal": { "type": "CAT", "size": "SMALL", "gender": "FEMALE" },
               "location": { "name": "Refugio", "address": "Calle Falsa", "number": 123, "latitude": -34.5, "longitude": -58.5 }
@@ -91,7 +91,7 @@ public class MockAnimalPostDataUtils {
     private static final String WITHOUT_ANIMAL = """
             {
               "type": "ADOPTION",
-              "title": "Post sin animal",
+              "name": "Post sin animal",
               "description": "Descripción válida",
               "imageId": "cf-image-222",
               "location": { "name": "Refugio", "address": "Calle Falsa", "number": 123, "latitude": -34.5, "longitude": -58.5 }
@@ -101,7 +101,7 @@ public class MockAnimalPostDataUtils {
     private static final String WITHOUT_LOCATION = """
             {
               "type": "ADOPTION",
-              "title": "Post sin ubicación",
+              "name": "Post sin ubicación",
               "description": "Descripción válida",
               "imageId": "cf-image-333",
               "animal": { "type": "CAT", "size": "SMALL", "gender": "FEMALE" }
@@ -110,7 +110,7 @@ public class MockAnimalPostDataUtils {
 
     private static final String WITHOUT_TYPE = """
             {
-              "title": "Sin tipo",
+              "name": "Sin tipo",
               "description": "Descripción válida",
               "imageId": "cf-image-000",
               "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE" },
@@ -121,7 +121,7 @@ public class MockAnimalPostDataUtils {
     private static final String WITHOUT_AGE = """
             {
               "type": "LOST",
-              "title": "Sin edad",
+              "name": "Sin edad",
               "description": "Falta la edad",
               "imageId": "cf-image-666",
               "phoneNumber": "1122334455",
@@ -134,7 +134,7 @@ public class MockAnimalPostDataUtils {
     private static final String WITHOUT_PHONE = """
             {
               "type": "LOST",
-              "title": "Sin teléfono",
+              "name": "Sin teléfono",
               "description": "Falta el teléfono",
               "imageId": "cf-image-777",
               "hasOwner": true,
@@ -143,10 +143,35 @@ public class MockAnimalPostDataUtils {
             }
             """;
 
+    // LOST "en la calle" (hasOwner=false): el teléfono NO es obligatorio.
+    public static final String LOST_STREET_WITHOUT_PHONE = """
+            {
+              "type": "LOST",
+              "name": "Animal en la calle",
+              "description": "Lo vi deambulando, no lo tengo conmigo",
+              "imageId": "cf-image-street",
+              "hasOwner": false,
+              "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE", "age": "ADULT" },
+              "location": { "name": "Esquina", "address": "Corrientes", "number": 500, "latitude": -34.6, "longitude": -58.4 }
+            }
+            """;
+
+    private static final String ADOPTION_WITHOUT_PHONE = """
+            {
+              "type": "ADOPTION",
+              "name": "Adopción sin teléfono",
+              "description": "Falta el teléfono",
+              "imageId": "cf-image-aa1",
+              "inTransit": false,
+              "animal": { "type": "CAT", "size": "SMALL", "gender": "FEMALE", "age": "PUPPY" },
+              "location": { "name": "Refugio", "address": "Calle", "number": 1, "latitude": -34.5, "longitude": -58.5 }
+            }
+            """;
+
     private static final String ADOPTION_WITHOUT_IN_TRANSIT = """
             {
               "type": "ADOPTION",
-              "title": "Adopción sin inTransit",
+              "name": "Adopción sin inTransit",
               "description": "Falta inTransit",
               "imageId": "cf-image-888",
               "phoneNumber": "1122334455",
@@ -158,7 +183,7 @@ public class MockAnimalPostDataUtils {
     private static final String ADOPTION_WITH_REWARD = """
             {
               "type": "ADOPTION",
-              "title": "Adopción con reward",
+              "name": "Adopción con reward",
               "description": "El reward no aplica a adopción",
               "imageId": "cf-image-999a",
               "phoneNumber": "1122334455",
@@ -171,18 +196,18 @@ public class MockAnimalPostDataUtils {
     
     public static final String PUT_VALID = """
             {
-              "title": "Titulo actualizado",
+              "name": "Titulo actualizado",
               "description": "Descripcion actualizada",
               "imageId": "cf-image-put",
               "phoneNumber": "1199887766",
               "reward": 7500,
-              "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE", "age": "SENIOR", "color": "negro", "breed": "siames", "fur": "corto", "description": "gata tranquila" },
+              "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE", "age": "SENIOR", "color": "negro" },
               "location": { "name": "Refugio Nuevo", "address": "Nueva direccion 456", "number": 999, "latitude": -34.7, "longitude": -58.7 }
             }
             """;
 
     // Cada uno es un PUT completo al que le falta UN campo obligatorio -> 400. (reward es opcional, se omite.)
-    private static final String PUT_WITHOUT_TITLE = """
+    private static final String PUT_WITHOUT_NAME = """
             {
               "description": "d", "imageId": "i", "phoneNumber": "1122334455",
               "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE", "age": "SENIOR" },
@@ -192,7 +217,7 @@ public class MockAnimalPostDataUtils {
 
     private static final String PUT_WITHOUT_DESCRIPTION = """
             {
-              "title": "t", "imageId": "i", "phoneNumber": "1122334455",
+              "name": "t", "imageId": "i", "phoneNumber": "1122334455",
               "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE", "age": "SENIOR" },
               "location": { "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
             }
@@ -200,15 +225,7 @@ public class MockAnimalPostDataUtils {
 
     private static final String PUT_WITHOUT_IMAGE_ID = """
             {
-              "title": "t", "description": "d", "phoneNumber": "1122334455",
-              "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE", "age": "SENIOR" },
-              "location": { "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
-            }
-            """;
-
-    private static final String PUT_WITHOUT_PHONE = """
-            {
-              "title": "t", "description": "d", "imageId": "i",
+              "name": "t", "description": "d", "phoneNumber": "1122334455",
               "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE", "age": "SENIOR" },
               "location": { "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
             }
@@ -216,21 +233,21 @@ public class MockAnimalPostDataUtils {
 
     private static final String PUT_WITHOUT_ANIMAL = """
             {
-              "title": "t", "description": "d", "imageId": "i", "phoneNumber": "1122334455",
+              "name": "t", "description": "d", "imageId": "i", "phoneNumber": "1122334455",
               "location": { "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
             }
             """;
 
     private static final String PUT_WITHOUT_LOCATION = """
             {
-              "title": "t", "description": "d", "imageId": "i", "phoneNumber": "1122334455",
+              "name": "t", "description": "d", "imageId": "i", "phoneNumber": "1122334455",
               "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE", "age": "SENIOR" }
             }
             """;
 
     private static final String PUT_ANIMAL_WITHOUT_TYPE = """
             {
-              "title": "t", "description": "d", "imageId": "i", "phoneNumber": "1122334455",
+              "name": "t", "description": "d", "imageId": "i", "phoneNumber": "1122334455",
               "animal": { "size": "LARGE", "gender": "FEMALE", "age": "SENIOR" },
               "location": { "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
             }
@@ -238,7 +255,7 @@ public class MockAnimalPostDataUtils {
 
     private static final String PUT_ANIMAL_WITHOUT_AGE = """
             {
-              "title": "t", "description": "d", "imageId": "i", "phoneNumber": "1122334455",
+              "name": "t", "description": "d", "imageId": "i", "phoneNumber": "1122334455",
               "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE" },
               "location": { "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
             }
@@ -246,7 +263,7 @@ public class MockAnimalPostDataUtils {
 
     private static final String PUT_LOCATION_WITHOUT_NAME = """
             {
-              "title": "t", "description": "d", "imageId": "i", "phoneNumber": "1122334455",
+              "name": "t", "description": "d", "imageId": "i", "phoneNumber": "1122334455",
               "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE", "age": "SENIOR" },
               "location": { "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
             }
@@ -260,10 +277,12 @@ public class MockAnimalPostDataUtils {
                 Arguments.of("Se envia una request del tipo ADOPTION sin el parametro inTransit, devuelve BAD_REQUEST", ADOPTION_WITHOUT_IN_TRANSIT, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Se envia una request del tipo ADOPTION con reward, devuelve BAD_REQUEST", ADOPTION_WITH_REWARD, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Se envia una request sin type, devuelve BAD_REQUEST", WITHOUT_TYPE, HttpStatus.BAD_REQUEST, null),
-                Arguments.of("Se envia una request sin title, devuelve BAD_REQUEST", WITHOUT_TITLE, HttpStatus.BAD_REQUEST, null),
+                Arguments.of("Se envia una request sin name, devuelve BAD_REQUEST", WITHOUT_NAME, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Se envia una request sin description, devuelve BAD_REQUEST", WITHOUT_DESCRIPTION, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Se envia una request sin imageId, devuelve BAD_REQUEST", WITHOUT_IMAGE_ID, HttpStatus.BAD_REQUEST, null),
-                Arguments.of("Se envia una request sin phoneNumber, devuelve BAD_REQUEST", WITHOUT_PHONE, HttpStatus.BAD_REQUEST, null),
+                Arguments.of("Una request LOST con dueno sin phoneNumber, devuelve BAD_REQUEST", WITHOUT_PHONE, HttpStatus.BAD_REQUEST, null),
+                Arguments.of("Una request ADOPTION sin phoneNumber, devuelve BAD_REQUEST", ADOPTION_WITHOUT_PHONE, HttpStatus.BAD_REQUEST, null),
+                Arguments.of("Una request LOST en la calle (hasOwner=false) sin phoneNumber se crea igual", LOST_STREET_WITHOUT_PHONE, HttpStatus.CREATED, "LOST"),
                 Arguments.of("Se envia una request sin age, devuelve BAD_REQUEST", WITHOUT_AGE, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Se envia una request sin animal, devuelve BAD_REQUEST", WITHOUT_ANIMAL, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Se envia una request sin location, devuelve BAD_REQUEST", WITHOUT_LOCATION, HttpStatus.BAD_REQUEST, null)
@@ -272,10 +291,9 @@ public class MockAnimalPostDataUtils {
 
     private static Stream<Arguments> provideUpdateInvalidCases() {
         return Stream.of(
-                Arguments.of("Sin title devuelve BAD_REQUEST", PUT_WITHOUT_TITLE),
+                Arguments.of("Sin name devuelve BAD_REQUEST", PUT_WITHOUT_NAME),
                 Arguments.of("Sin description devuelve BAD_REQUEST", PUT_WITHOUT_DESCRIPTION),
                 Arguments.of("Sin imageId devuelve BAD_REQUEST", PUT_WITHOUT_IMAGE_ID),
-                Arguments.of("Sin phoneNumber devuelve BAD_REQUEST", PUT_WITHOUT_PHONE),
                 Arguments.of("Sin animal devuelve BAD_REQUEST", PUT_WITHOUT_ANIMAL),
                 Arguments.of("Sin location devuelve BAD_REQUEST", PUT_WITHOUT_LOCATION),
                 Arguments.of("Animal sin type devuelve BAD_REQUEST", PUT_ANIMAL_WITHOUT_TYPE),

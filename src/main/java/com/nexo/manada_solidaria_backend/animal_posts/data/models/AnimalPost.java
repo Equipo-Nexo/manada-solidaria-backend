@@ -20,7 +20,7 @@ import java.util.UUID;
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class AnimalPost<T extends StatusHistory> {
-    private String title;
+    private String name;
     private String description;
     private String imageUrl;
     private String sharePostUrl;
@@ -52,8 +52,8 @@ public abstract class AnimalPost<T extends StatusHistory> {
     @Id
     private UUID id = UUID.randomUUID();
 
-    public AnimalPost(String title, String description, String imageUrl, String sharePostUrl, String phoneNumber, User owner, Animal animal, Location location) {
-        this.title = title;
+    public AnimalPost(String name, String description, String imageUrl, String sharePostUrl, String phoneNumber, User owner, Animal animal, Location location) {
+        this.name = name;
         this.description = description;
         this.imageUrl = imageUrl;
         this.sharePostUrl = sharePostUrl;
@@ -65,7 +65,7 @@ public abstract class AnimalPost<T extends StatusHistory> {
 
 
     public void update(UpdateAnimalPostRequest request) {
-        this.title = request.title();
+        this.name = request.name();
         this.description = request.description();
         this.imageUrl = request.imageId();
         this.phoneNumber = request.phoneNumber();

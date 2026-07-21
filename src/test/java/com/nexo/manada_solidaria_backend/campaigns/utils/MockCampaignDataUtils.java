@@ -3,6 +3,7 @@ package com.nexo.manada_solidaria_backend.campaigns.utils;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CampaignType;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest.LocationRequest;
+import com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationCampaignStatus;
 import org.junit.jupiter.params.provider.Arguments;
 import org.springframework.http.HttpStatus;
 
@@ -153,6 +154,13 @@ public class MockCampaignDataUtils {
                         HttpStatus.BAD_REQUEST,
                         null
                 )
+        );
+    }
+
+    private static Stream<Arguments> provideFinalDonationStatuses() {
+        return Stream.of(
+                Arguments.of("Una donacion en estado FINISHED no se puede eliminar", DonationCampaignStatus.FINISHED),
+                Arguments.of("Una donacion en estado COMPLETED tampoco se puede eliminar", DonationCampaignStatus.COMPLETED)
         );
     }
 
