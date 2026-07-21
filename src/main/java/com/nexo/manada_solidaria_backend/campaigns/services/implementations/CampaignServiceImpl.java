@@ -9,13 +9,15 @@ import com.nexo.manada_solidaria_backend.campaigns.data.models.Campaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.repositories.CampaignRepository;
 import com.nexo.manada_solidaria_backend.campaigns.services.interfaces.CampaignService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
-import org.springframework.http.HttpStatus;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -70,8 +72,16 @@ public class CampaignServiceImpl implements CampaignService {
         campaignRepository.delete(campaign);
     }
 
+    @Override
+    public List<CampaignResponse> getUserCampaigns(User user) {
+        return campaignRepository
+                .findAllByOwner(user)
+                .stream()
+                .map(CampaignResponse::from)
+                .toList();
+    }
+
     private <T extends Campaign<?>> Page<CampaignResponse> toResponse(Page<T> campaigns) {
         return campaigns.map(CampaignResponse::from);
     }
-
 }

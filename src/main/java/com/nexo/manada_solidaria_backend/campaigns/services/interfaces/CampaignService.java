@@ -8,6 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.util.UUID;
 
+import java.util.List;
+
 public interface CampaignService {
 
     CampaignResponse create(CreateCampaignRequest request, User owner);
@@ -17,4 +19,6 @@ public interface CampaignService {
     Page<CampaignResponse> getFundraisingCampaigns(Pageable pageable);
 
     void delete(UUID campaignId, User authenticatedUser);
+
+    List<CampaignResponse> getUserCampaigns(User user);
 }
