@@ -35,6 +35,10 @@ public interface CampaignController {
             ) Pageable pageable
     );
 
+    @GetMapping("/{campaignId}")
+    CampaignResponse getCampaign(
+            @PathVariable UUID campaignId
+    );
 
     @GetMapping("/fundraising_campaigns")
     Page<CampaignResponse> getFundraisingCampaigns(
@@ -59,4 +63,5 @@ public interface CampaignController {
             @PathVariable UUID campaignId,
             @AuthenticationPrincipal User authenticatedUser
     );
+
 }

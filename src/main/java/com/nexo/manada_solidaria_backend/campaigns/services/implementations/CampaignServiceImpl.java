@@ -52,6 +52,14 @@ public class CampaignServiceImpl implements CampaignService {
 
     @Override
     @Transactional(readOnly = true)
+    public CampaignResponse getCampaign(UUID campaignId) {
+        Campaign campaign = getCampaignOrThrow(campaignId);
+
+        return CampaignResponse.from(campaign);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Page<CampaignResponse> getFundraisingCampaigns(Pageable pageable) {
         return toResponse(campaignRepository.findFundraisingCampaigns(pageable));
     }

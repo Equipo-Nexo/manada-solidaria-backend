@@ -398,6 +398,69 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    @DisplayName("GET /campaigns/{id} devuelve una campaña de donación")
+    void getCampaign_returnsDonationCampaign() throws Exception {
+
+        DonationCampaign campaign = campaignRepository.save(
+                MockCampaignDataUtils.buildDonationModel(admin())
+        );
+
+        mockMvc.perform(get("/campaigns/" + campaign.getId())
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(campaign.getId().toString()))
+                .andExpect(jsonPath("$.type").value("donation"))
+                .andExpect(jsonPath("$.title").value("Título Donación Test"))
+                .andExpect(jsonPath("$.items.length()").value(1));
+    }
+
+    @Test
+    @DisplayName("GET /campaigns/{id} devuelve una campaña NEWS")
+    void getCampaign_returnsNewsCampaign() throws Exception {
+
+        NewsCampaign campaign = campaignRepository.save(
+                MockCampaignDataUtils.buildNewsModel(admin())
+        );
+
+        mockMvc.perform(get("/campaigns/" + campaign.getId())
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(campaign.getId().toString()))
+                .andExpect(jsonPath("$.type").value("vaccination"))
+                .andExpect(jsonPath("$.title").value("Título Noticia Test"))
+                .andExpect(jsonPath("$.newsStartDateTime").exists())
+                .andExpect(jsonPath("$.newsEndDateTime").exists());
+    }
+
+    @Test
+    @DisplayName("GET /campaigns/{id} inexistente devuelve 404")
+    void getCampaign_nonExisting_returnsNotFound() throws Exception {
+
+        mockMvc.perform(get("/campaigns/" + UUID.randomUUID())
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errors",
+                        hasItem(containsString("no existe"))));
+    }
+
+    @Test
+    @DisplayName("GET /campaigns/{id} sin token devuelve 401")
+    void getCampaign_withoutToken_returnsUnauthorized() throws Exception {
+
+        mockMvc.perform(get("/campaigns/" + UUID.randomUUID()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("GET /campaigns/{id} con token inválido devuelve 401")
+    void getCampaign_withInvalidToken_returnsUnauthorized() throws Exception {
+
+        mockMvc.perform(get("/campaigns/" + UUID.randomUUID())
+                        .header("Authorization", "Bearer " + INVALID_ACCESS_TOKEN))
+                .andExpect(status().isUnauthorized());
+    }
+
     private User admin() {
         return userRepository.findByUsername("admin").orElseThrow();
     }
