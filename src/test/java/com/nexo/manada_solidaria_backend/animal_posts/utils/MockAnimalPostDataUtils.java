@@ -311,17 +311,20 @@ public class MockAnimalPostDataUtils {
 
     private static Stream<Arguments> provideFilterCases() {
         return Stream.of(
-                Arguments.of("Sin filtros devuelve todos los posts", null, null, 4),
-                Arguments.of("type=LOST devuelve solo los posts perdidos", "LOST", null, 2),
+                Arguments.of("Sin filtros devuelve todos los posts", null, null, 5),
+                Arguments.of("type=LOST devuelve solo los perdidos con dueno", "LOST", null, 2),
+                Arguments.of("type=INSTREET devuelve solo los que estan en la calle", "INSTREET", null, 1),
                 Arguments.of("type=ADOPTION devuelve solo las adopciones", "ADOPTION", null, 2),
                 Arguments.of("status=CREATED devuelve solo los perdidos recien creados", null, "CREATED", 1),
-                Arguments.of("status=SEARCHING devuelve solo los perdidos en busqueda", null, "SEARCHING", 1),
+                Arguments.of("status=SEARCHING devuelve los LOST en busqueda (perdido y en la calle)", null, "SEARCHING", 2),
                 Arguments.of("status=FOUND no devuelve resultados", null, "FOUND", 0),
                 Arguments.of("status=SEARCHING_ADOPT_AND_TRANSIT devuelve las adopciones con transito", null, "SEARCHING_ADOPT_AND_TRANSIT", 1),
                 Arguments.of("status=SEARCHING_ADOPT no devuelve resultados", null, "SEARCHING_ADOPT", 0),
                 Arguments.of("status=ADOPTED devuelve las adopciones concretadas", null, "ADOPTED", 1),
                 Arguments.of("type=ADOPTION y status=ADOPTED devuelve las adopciones adoptadas", "ADOPTION", "ADOPTED", 1),
-                Arguments.of("type=LOST y status=ADOPTED no devuelve resultados", "LOST", "ADOPTED", 0)
+                Arguments.of("type=LOST y status=ADOPTED no devuelve resultados", "LOST", "ADOPTED", 0),
+                Arguments.of("type=LOST y status=SEARCHING excluye a los de la calle", "LOST", "SEARCHING", 1),
+                Arguments.of("type=INSTREET y status=SEARCHING devuelve al de la calle", "INSTREET", "SEARCHING", 1)
         );
     }
 }
