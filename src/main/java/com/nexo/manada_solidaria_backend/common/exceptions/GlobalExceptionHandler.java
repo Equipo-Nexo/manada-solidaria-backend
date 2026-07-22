@@ -1,10 +1,12 @@
 package com.nexo.manada_solidaria_backend.common.exceptions;
 
 import com.nexo.manada_solidaria_backend.common.exceptions.responses.ApiError;
+import tools.jackson.databind.exc.InvalidFormatException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -12,7 +14,10 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @RestControllerAdvice
@@ -56,6 +61,46 @@ public class GlobalExceptionHandler {
                 );
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    ResponseEntity<ApiError> handleNotReadableException(
+            HttpMessageNotReadableException ex,
+            HttpServletRequest request) {
+
+        String mensaje = "El cuerpo de la petición es inválido o está mal formado.";
+
+        InvalidFormatException ife = findInvalidFormat(ex.getCause());
+        if (ife != null
+                && ife.getTargetType() != null
+                && ife.getTargetType().isEnum()) {
+
+            String campo = ife.getPath().stream()
+                    .map(ref -> ref.getPropertyName())
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.joining("."));
+
+            mensaje = "El valor '" + ife.getValue() + "' no es válido para el campo '" + campo
+                    + "'. Los valores permitidos son: "
+                    + Arrays.toString(ife.getTargetType().getEnumConstants());
+        }
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiError.builder()
+                        .status(HttpStatus.BAD_REQUEST.value())
+                        .errors(List.of(mensaje))
+                        .path(request.getRequestURI())
+                        .timestamp(LocalDateTime.now())
+                        .build()
+                );
+    }
+
+    private static InvalidFormatException findInvalidFormat(Throwable cause) {
+        while (cause != null && !(cause instanceof InvalidFormatException)) {
+            cause = cause.getCause();
+        }
+        return (InvalidFormatException) cause;
+    }
+
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     ResponseEntity<ApiError> handleTypeMismatchException(
             MethodArgumentTypeMismatchException ex,
@@ -75,6 +120,19 @@ public class GlobalExceptionHandler {
                 .body(ApiError.builder()
                         .status(HttpStatus.BAD_REQUEST.value())
                         .errors(List.of(mensaje))
+                        .path(request.getRequestURI())
+                        .timestamp(LocalDateTime.now())
+                        .build()
+                );
+    }
+    
+    @ExceptionHandler(Exception.class)
+    ResponseEntity<ApiError> handleUnexpectedException(Exception ex, HttpServletRequest request) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiError.builder()
+                        .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                        .errors(List.of("Ocurrió un error inesperado en el servidor."))
                         .path(request.getRequestURI())
                         .timestamp(LocalDateTime.now())
                         .build()

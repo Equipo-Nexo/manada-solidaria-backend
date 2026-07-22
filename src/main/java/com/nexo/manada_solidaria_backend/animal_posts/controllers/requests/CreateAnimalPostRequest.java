@@ -48,7 +48,7 @@ public record CreateAnimalPostRequest(
         @NotNull(message = "El tipo de publicación es obligatorio (LOST o ADOPTION)")
         AnimalPostType type,
         //definir tamaño maximo.
-        @NotBlank(message = "El nombre es obligatorio")
+        // ponytail: name opcional -> se guarda null; el front decide cómo mostrarlo.
         String name,
         //definir tamaño maximo.
         @NotBlank(message = "La descripción es obligatoria")
@@ -87,7 +87,7 @@ public record CreateAnimalPostRequest(
             AnimalGender gender,
 
             String color,
-            @NotNull(message = "La edad del animal es obligatoria")
+            @NotNull(message = "La edad del animal es obligatoria (usar UNKNOWN si se desconoce)")
             AnimalAge age
     ) {
     }

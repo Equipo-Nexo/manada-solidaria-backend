@@ -38,6 +38,7 @@ import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.I
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -127,6 +128,47 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(status().isBadRequest())
                 // Substring ASCII: robusto ante la normalización de tildes del repo al commitear.
                 .andExpect(jsonPath("$.errors", hasItem(containsString("hasOwner es obligatorio"))));
+    }
+
+    @Test
+    @DisplayName("POST /animal-post: name es opcional y se guarda como null")
+    void create_nameIsOptional_savedAsNull() throws Exception {
+        mockMvc.perform(
+                        post("/animal-posts")
+                                .header("Authorization", "Bearer " + accessToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(MockAnimalPostDataUtils.WITHOUT_NAME)
+                )
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name").value(nullValue()));
+    }
+
+    @Test
+    @DisplayName("POST /animal-post: age=UNKNOWN es un valor válido y se persiste")
+    void create_ageUnknown_isAccepted() throws Exception {
+        mockMvc.perform(
+                        post("/animal-posts")
+                                .header("Authorization", "Bearer " + accessToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(MockAnimalPostDataUtils.LOST_AGE_UNKNOWN)
+                )
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.animal.age").value("UNKNOWN"));
+    }
+
+    @Test
+    @DisplayName("POST /animal-post con enum inválido en el body: 400 e informa el campo y los valores permitidos")
+    void create_invalidEnumInBody_returnsAllowedValues() throws Exception {
+        mockMvc.perform(
+                        post("/animal-posts")
+                                .header("Authorization", "Bearer " + accessToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(MockAnimalPostDataUtils.INVALID_AGE)
+                )
+                .andExpect(status().isBadRequest())
+                // Substring ASCII (evita la normalización de tildes del repo).
+                .andExpect(jsonPath("$.errors", hasItem(containsString("age"))))
+                .andExpect(jsonPath("$.errors", hasItem(containsString("UNKNOWN"))));
     }
 
     @Test

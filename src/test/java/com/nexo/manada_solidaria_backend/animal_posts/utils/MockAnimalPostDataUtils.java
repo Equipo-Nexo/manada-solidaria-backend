@@ -58,12 +58,14 @@ public class MockAnimalPostDataUtils {
             }
             """;
 
-    private static final String WITHOUT_NAME = """
+    // Sin name: es opcional, se crea igual (name queda null).
+    public static final String WITHOUT_NAME = """
             {
-              "type": "ADOPTION",
-              "description": "Sin título",
+              "type": "LOST",
+              "description": "Publicacion sin nombre",
               "imageId": "cf-image-789",
-              "animal": { "type": "DOG", "size": "LARGE", "gender": "UNKNOWN" },
+              "hasOwner": false,
+              "animal": { "type": "DOG", "size": "LARGE", "gender": "UNKNOWN", "age": "ADULT" },
               "location": { "name": "Plaza", "address": "Mitre", "number": 1, "latitude": -34.0, "longitude": -58.0 }
             }
             """;
@@ -118,6 +120,7 @@ public class MockAnimalPostDataUtils {
             }
             """;
 
+    // Sin age: es obligatorio -> 400.
     private static final String WITHOUT_AGE = """
             {
               "type": "LOST",
@@ -127,6 +130,34 @@ public class MockAnimalPostDataUtils {
               "phoneNumber": "1122334455",
               "hasOwner": true,
               "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE" },
+              "location": { "name": "Plaza", "address": "Corrientes", "number": 1, "latitude": -34.6, "longitude": -58.4 }
+            }
+            """;
+
+    // age con un valor que no existe en el enum -> 400 informando los valores permitidos.
+    public static final String INVALID_AGE = """
+            {
+              "type": "LOST",
+              "name": "Edad invalida",
+              "description": "La edad no es un valor valido",
+              "imageId": "cf-image-badage",
+              "phoneNumber": "1122334455",
+              "hasOwner": true,
+              "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE", "age": "OLD" },
+              "location": { "name": "Plaza", "address": "Corrientes", "number": 1, "latitude": -34.6, "longitude": -58.4 }
+            }
+            """;
+
+    // age = UNKNOWN es un valor válido (lo que manda el front cuando no sabe la edad).
+    public static final String LOST_AGE_UNKNOWN = """
+            {
+              "type": "LOST",
+              "name": "Edad desconocida",
+              "description": "No se sabe la edad",
+              "imageId": "cf-image-unk",
+              "phoneNumber": "1122334455",
+              "hasOwner": true,
+              "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE", "age": "UNKNOWN" },
               "location": { "name": "Plaza", "address": "Corrientes", "number": 1, "latitude": -34.6, "longitude": -58.4 }
             }
             """;
@@ -207,14 +238,6 @@ public class MockAnimalPostDataUtils {
             """;
 
     // Cada uno es un PUT completo al que le falta UN campo obligatorio -> 400. (reward es opcional, se omite.)
-    private static final String PUT_WITHOUT_NAME = """
-            {
-              "description": "d", "imageId": "i", "phoneNumber": "1122334455",
-              "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE", "age": "SENIOR" },
-              "location": { "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
-            }
-            """;
-
     private static final String PUT_WITHOUT_DESCRIPTION = """
             {
               "name": "t", "imageId": "i", "phoneNumber": "1122334455",
@@ -277,7 +300,7 @@ public class MockAnimalPostDataUtils {
                 Arguments.of("Se envia una request del tipo ADOPTION sin el parametro inTransit, devuelve BAD_REQUEST", ADOPTION_WITHOUT_IN_TRANSIT, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Se envia una request del tipo ADOPTION con reward, devuelve BAD_REQUEST", ADOPTION_WITH_REWARD, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Se envia una request sin type, devuelve BAD_REQUEST", WITHOUT_TYPE, HttpStatus.BAD_REQUEST, null),
-                Arguments.of("Se envia una request sin name, devuelve BAD_REQUEST", WITHOUT_NAME, HttpStatus.BAD_REQUEST, null),
+                Arguments.of("Se envia una request sin name (opcional), se crea igual", WITHOUT_NAME, HttpStatus.CREATED, "LOST"),
                 Arguments.of("Se envia una request sin description, devuelve BAD_REQUEST", WITHOUT_DESCRIPTION, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Se envia una request sin imageId, devuelve BAD_REQUEST", WITHOUT_IMAGE_ID, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Una request LOST con dueno sin phoneNumber, devuelve BAD_REQUEST", WITHOUT_PHONE, HttpStatus.BAD_REQUEST, null),
@@ -291,7 +314,6 @@ public class MockAnimalPostDataUtils {
 
     private static Stream<Arguments> provideUpdateInvalidCases() {
         return Stream.of(
-                Arguments.of("Sin name devuelve BAD_REQUEST", PUT_WITHOUT_NAME),
                 Arguments.of("Sin description devuelve BAD_REQUEST", PUT_WITHOUT_DESCRIPTION),
                 Arguments.of("Sin imageId devuelve BAD_REQUEST", PUT_WITHOUT_IMAGE_ID),
                 Arguments.of("Sin animal devuelve BAD_REQUEST", PUT_WITHOUT_ANIMAL),
