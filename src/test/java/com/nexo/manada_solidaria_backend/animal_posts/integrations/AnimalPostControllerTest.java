@@ -116,6 +116,25 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     @Test
+    @DisplayName("La response distingue perdido (LOST) de en la calle (INSTREET) sin exponer hasOwner")
+    void response_typeDistinguishesLostFromInStreet() throws Exception {
+        postAndExpectType(MockAnimalPostDataUtils.LOST_VALID, "LOST");
+        postAndExpectType(MockAnimalPostDataUtils.LOST_STREET_WITHOUT_PHONE, "INSTREET");
+        postAndExpectType(MockAnimalPostDataUtils.ADOPTION_VALID, "ADOPTION");
+    }
+
+    private void postAndExpectType(String body, String expectedType) throws Exception {
+        mockMvc.perform(
+                        post("/animal-posts")
+                                .header("Authorization", "Bearer " + accessToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body)
+                )
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.type").value(expectedType));
+    }
+
+    @Test
     @DisplayName("POST /animal-post LOST sin hasOwner: 400 con el mensaje del validator @ConditionalField")
     void create_lostWithoutHasOwner_returnsValidatorMessage() throws Exception {
         mockMvc.perform(

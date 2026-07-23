@@ -282,7 +282,7 @@ public class MockAnimalPostDataUtils {
                 Arguments.of("Se envia una request sin imageId, devuelve BAD_REQUEST", WITHOUT_IMAGE_ID, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Una request LOST con dueno sin phoneNumber, devuelve BAD_REQUEST", WITHOUT_PHONE, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Una request ADOPTION sin phoneNumber, devuelve BAD_REQUEST", ADOPTION_WITHOUT_PHONE, HttpStatus.BAD_REQUEST, null),
-                Arguments.of("Una request LOST en la calle (hasOwner=false) sin phoneNumber se crea igual", LOST_STREET_WITHOUT_PHONE, HttpStatus.CREATED, "LOST"),
+                Arguments.of("Una request LOST en la calle (hasOwner=false) sin phoneNumber se crea igual y vuelve como INSTREET", LOST_STREET_WITHOUT_PHONE, HttpStatus.CREATED, "INSTREET"),
                 Arguments.of("Se envia una request sin age, devuelve BAD_REQUEST", WITHOUT_AGE, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Se envia una request sin animal, devuelve BAD_REQUEST", WITHOUT_ANIMAL, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Se envia una request sin location, devuelve BAD_REQUEST", WITHOUT_LOCATION, HttpStatus.BAD_REQUEST, null)
