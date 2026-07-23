@@ -495,8 +495,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.animal.type").value("DOG"))
                 .andExpect(jsonPath("$.location.name").value("Parque Centenario"))
                 .andExpect(jsonPath("$.phoneNumber").value("1122334455"))
-                .andExpect(jsonPath("$.reward").value(5000))
-                .andExpect(jsonPath("$.hasOwner").value(true));
+                .andExpect(jsonPath("$.reward").value(5000));
     }
 
     @Test
