@@ -475,6 +475,61 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    @DisplayName("GET /animal-posts/{id} devuelve la publicación")
+    void getAnimalPost_returnsAnimalPost() throws Exception {
+        UUID postId = createOwnedPostReturningId();
+
+        mockMvc.perform(
+                        get("/animal-posts/" + postId)
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(postId.toString()))
+                .andExpect(jsonPath("$.type").value("LOST"))
+                .andExpect(jsonPath("$.name").value("Perdí a mi perro"))
+                .andExpect(jsonPath("$.description").value("Se escapó en el parque"))
+                .andExpect(jsonPath("$.imageUrl").value("cf-image-123"))
+                .andExpect(jsonPath("$.status").value("CREATED"))
+                .andExpect(jsonPath("$.animal.type").value("DOG"))
+                .andExpect(jsonPath("$.location.name").value("Parque Centenario"))
+                .andExpect(jsonPath("$.phoneNumber").value("1122334455"))
+                .andExpect(jsonPath("$.reward").value(5000))
+                .andExpect(jsonPath("$.hasOwner").value(true));
+    }
+
+    @Test
+    @DisplayName("GET /animal-posts/{id} inexistente devuelve 404")
+    void getAnimalPost_nonExistent_returnsNotFound() throws Exception {
+        mockMvc.perform(
+                        get("/animal-posts/" + UUID.randomUUID())
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errors", hasItem(containsString("no existe"))));
+    }
+
+    @Test
+    @DisplayName("GET /animal-posts/{id} sin token devuelve 401")
+    void getAnimalPost_withoutToken_returnsUnauthorized() throws Exception {
+        mockMvc.perform(
+                        get("/animal-posts/" + UUID.randomUUID())
+                )
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("GET /animal-posts/{id} con token inválido devuelve 401")
+    void getAnimalPost_withInvalidToken_returnsUnauthorized() throws Exception {
+        mockMvc.perform(
+                        get("/animal-posts/" + UUID.randomUUID())
+                                .header("Authorization", "Bearer " + INVALID_ACCESS_TOKEN)
+                )
+                .andExpect(status().isUnauthorized());
+    }
+
+
+
     private UUID createOwnedPostReturningId() throws Exception {
         String responseBody = mockMvc.perform(
                         post("/animal-posts")

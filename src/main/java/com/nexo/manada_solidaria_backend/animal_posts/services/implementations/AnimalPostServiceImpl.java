@@ -45,9 +45,14 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public AnimalPostResponse getAnimalPost(UUID animalPostId) {
+        return AnimalPostResponse.from(getAnimalPostOrThrow(animalPostId));
+    }
+
+    @Override
     public void update(UUID animalPostId, UpdateAnimalPostRequest request, User authenticatedUser) {
-        AnimalPost post = animalPostRepository.findById(animalPostId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "La publicación no existe"));
+        AnimalPost post = getAnimalPostOrThrow(animalPostId);
 
         if (!post.getOwner().getId().equals(authenticatedUser.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo el dueño puede editar la publicación");
@@ -59,8 +64,7 @@ public class AnimalPostServiceImpl implements AnimalPostService {
 
     @Override
     public void delete(UUID animalPostId, User authenticatedUser) {
-        AnimalPost post = animalPostRepository.findById(animalPostId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "La publicación no existe"));
+        AnimalPost post = getAnimalPostOrThrow(animalPostId);
 
         if (!post.getOwner().getId().equals(authenticatedUser.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo el dueño puede eliminar la publicación");
@@ -75,5 +79,14 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                 .stream()
                 .map(AnimalPostResponse::from)
                 .toList();
+    }
+
+    private AnimalPost getAnimalPostOrThrow(UUID animalPostId) {
+        return animalPostRepository.findById(animalPostId)
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "La publicación no existe"
+                        ));
     }
 }
