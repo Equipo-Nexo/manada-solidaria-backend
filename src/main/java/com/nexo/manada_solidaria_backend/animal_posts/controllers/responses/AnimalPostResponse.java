@@ -1,6 +1,6 @@
 package com.nexo.manada_solidaria_backend.animal_posts.controllers.responses;
 
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostType;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalAge;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalGender;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalSize;
@@ -19,7 +19,7 @@ import java.util.UUID;
 
 public record AnimalPostResponse(
         UUID id,
-        AnimalPostType type,
+        AnimalPostFilter type,
         String name,
         String description,
         String imageUrl,
@@ -29,14 +29,13 @@ public record AnimalPostResponse(
         LocalDateTime createdAt,
         UUID ownerId,
         String phoneNumber,
-        BigDecimal reward,
-        Boolean hasOwner
+        BigDecimal reward
 ) {
 
     public static AnimalPostResponse from(AnimalPost post) {
         return new AnimalPostResponse(
                 post.getId(),
-                isLostPost(post) ? AnimalPostType.LOST : AnimalPostType.ADOPTION,
+                typeFrom(post),
                 post.getName(),
                 post.getDescription(),
                 post.getImageUrl(),
@@ -48,13 +47,15 @@ public record AnimalPostResponse(
                         .map(User::getId)
                         .orElse(null),
                 post.getPhoneNumber(),
-                post instanceof LostPost lost ? lost.getReward() : null,
-                post instanceof LostPost lostPost ? lostPost.isHasOwner() : null
+                post instanceof LostPost lost ? lost.getReward() : null
         );
     }
 
-    private static boolean isLostPost(AnimalPost post) {
-        return post instanceof LostPost;
+    private static AnimalPostFilter typeFrom(AnimalPost post) {
+        if (post instanceof LostPost lost) {
+            return lost.isHasOwner() ? AnimalPostFilter.LOST : AnimalPostFilter.INSTREET;
+        }
+        return AnimalPostFilter.ADOPTION;
     }
 
     public record AnimalResponse(

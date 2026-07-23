@@ -16,7 +16,8 @@ public interface AnimalPostRepository extends JpaRepository<AnimalPost, UUID> {
     @Query("""
             SELECT p FROM AnimalPost p
             WHERE (:type IS NULL
-                OR (:type = 'LOST' AND TYPE(p) = LostPost)
+                OR (:type = 'LOST' AND TYPE(p) = LostPost AND TREAT(p AS LostPost).hasOwner = true)
+                OR (:type = 'INSTREET' AND TYPE(p) = LostPost AND TREAT(p AS LostPost).hasOwner = false)
                 OR (:type = 'ADOPTION' AND TYPE(p) = AdoptionPost))
             AND (:status IS NULL
                 OR EXISTS (SELECT 1 FROM LostPostStatusHistory h

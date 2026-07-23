@@ -116,14 +116,14 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     @Test
-    @DisplayName("La response expone hasOwner: true (perdido), false (en la calle), null (adopción)")
-    void response_exposesHasOwner() throws Exception {
-        postAndExpectHasOwner(MockAnimalPostDataUtils.LOST_VALID, true);
-        postAndExpectHasOwner(MockAnimalPostDataUtils.LOST_STREET_WITHOUT_PHONE, false);
-        postAndExpectHasOwner(MockAnimalPostDataUtils.ADOPTION_VALID, null);
+    @DisplayName("La response distingue perdido (LOST) de en la calle (INSTREET) sin exponer hasOwner")
+    void response_typeDistinguishesLostFromInStreet() throws Exception {
+        postAndExpectType(MockAnimalPostDataUtils.LOST_VALID, "LOST");
+        postAndExpectType(MockAnimalPostDataUtils.LOST_STREET_WITHOUT_PHONE, "INSTREET");
+        postAndExpectType(MockAnimalPostDataUtils.ADOPTION_VALID, "ADOPTION");
     }
 
-    private void postAndExpectHasOwner(String body, Boolean expected) throws Exception {
+    private void postAndExpectType(String body, String expectedType) throws Exception {
         mockMvc.perform(
                         post("/animal-posts")
                                 .header("Authorization", "Bearer " + accessToken)
@@ -131,7 +131,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                                 .content(body)
                 )
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.hasOwner").value(expected));
+                .andExpect(jsonPath("$.type").value(expectedType));
     }
 
     @Test
@@ -226,6 +226,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     void filterTests(String testName, String type, String status, int expectedCount) throws Exception {
         saveLostPost("Lost creado", StatusLostPost.CREATED);
         saveLostPost("Lost buscando", StatusLostPost.SEARCHING);
+        saveLostPost("En la calle", StatusLostPost.SEARCHING, false);
         saveAdoptionPost("Adopción en búsqueda y tránsito", StatusAdoptionPost.SEARCHING_ADOPT_AND_TRANSIT);
         saveAdoptionPost("Adopción adoptada", StatusAdoptionPost.ADOPTED);
 
@@ -551,7 +552,11 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     private void saveLostPost(String name, StatusLostPost status) {
-        LostPost post = new LostPost(name, "Descripción", "cf-img", null, null, true, null, location(), animal(), null);
+        saveLostPost(name, status, true);
+    }
+
+    private void saveLostPost(String name, StatusLostPost status, boolean hasOwner) {
+        LostPost post = new LostPost(name, "Descripción", "cf-img", null, null, hasOwner, null, location(), animal(), null);
         post.setStatusHistory(new ArrayList<>(List.of(new LostPostStatusHistory(status, post))));
         animalPostRepository.save(post);
     }
