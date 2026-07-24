@@ -5,7 +5,9 @@ import com.nexo.manada_solidaria_backend.images.controllers.requests.CreatePresi
 import com.nexo.manada_solidaria_backend.images.controllers.responses.PresignedUrlResponse;
 import com.nexo.manada_solidaria_backend.images.services.interfaces.ImageService;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
@@ -65,13 +67,15 @@ public class ImageServiceImpl implements ImageService {
 
     private void validateFile(CreatePresignedUrlRequest request) {
         if (!ALLOWED_CONTENT_TYPES.contains(request.contentType())) {
-            throw new IllegalArgumentException(
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
                     "El formato de imagen no está permitido."
             );
         }
 
         if (request.fileSize() <= 0 || request.fileSize() > MAX_FILE_SIZE) {
-            throw new IllegalArgumentException(
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
                     "La imagen no puede superar los 5 MB."
             );
         }
