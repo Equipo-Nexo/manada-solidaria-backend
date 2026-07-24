@@ -19,3 +19,10 @@ security:
   access-token-expiration: 60
   refresh-token-expiration: 120
   secret: ${SECURITY_KEY}
+cloudflare:
+  r2:
+    account-id: ${CLOUDFLARE_R2_ACCOUNT_ID}
+    access-key-id: ${CLOUDFLARE_R2_ACCESS_KEY_ID}
+    secret-access-key: ${CLOUDFLARE_R2_SECRET_ACCESS_KEY}
+    bucket: ${CLOUDFLARE_R2_BUCKET}
+    public-url: ${CLOUDFLARE_R2_PUBLIC_URL}
