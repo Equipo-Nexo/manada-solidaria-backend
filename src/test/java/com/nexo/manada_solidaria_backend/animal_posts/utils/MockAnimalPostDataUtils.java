@@ -5,6 +5,11 @@ import org.springframework.http.HttpStatus;
 
 import java.util.stream.Stream;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+
 public class MockAnimalPostDataUtils {
 
     public static final String LOST_VALID = """
@@ -58,12 +63,13 @@ public class MockAnimalPostDataUtils {
             }
             """;
 
-    private static final String WITHOUT_NAME = """
+    public static final String WITHOUT_NAME = """
             {
-              "type": "ADOPTION",
-              "description": "Sin título",
+              "type": "LOST",
+              "description": "Publicacion sin nombre",
               "imageId": "cf-image-789",
-              "animal": { "type": "DOG", "size": "LARGE", "gender": "UNKNOWN" },
+              "hasOwner": false,
+              "animal": { "type": "DOG", "size": "LARGE", "gender": "UNKNOWN", "age": "ADULT" },
               "location": { "name": "Plaza", "address": "Mitre", "number": 1, "latitude": -34.0, "longitude": -58.0 }
             }
             """;
@@ -127,6 +133,32 @@ public class MockAnimalPostDataUtils {
               "phoneNumber": "1122334455",
               "hasOwner": true,
               "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE" },
+              "location": { "name": "Plaza", "address": "Corrientes", "number": 1, "latitude": -34.6, "longitude": -58.4 }
+            }
+            """;
+
+    public static final String INVALID_AGE = """
+            {
+              "type": "LOST",
+              "name": "Edad invalida",
+              "description": "La edad no es un valor valido",
+              "imageId": "cf-image-badage",
+              "phoneNumber": "1122334455",
+              "hasOwner": true,
+              "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE", "age": "OLD" },
+              "location": { "name": "Plaza", "address": "Corrientes", "number": 1, "latitude": -34.6, "longitude": -58.4 }
+            }
+            """;
+
+    public static final String LOST_AGE_UNKNOWN = """
+            {
+              "type": "LOST",
+              "name": "Edad desconocida",
+              "description": "No se sabe la edad",
+              "imageId": "cf-image-unk",
+              "phoneNumber": "1122334455",
+              "hasOwner": true,
+              "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE", "age": "UNKNOWN" },
               "location": { "name": "Plaza", "address": "Corrientes", "number": 1, "latitude": -34.6, "longitude": -58.4 }
             }
             """;
@@ -207,14 +239,6 @@ public class MockAnimalPostDataUtils {
             """;
 
     // Cada uno es un PUT completo al que le falta UN campo obligatorio -> 400. (reward es opcional, se omite.)
-    private static final String PUT_WITHOUT_NAME = """
-            {
-              "description": "d", "imageId": "i", "phoneNumber": "1122334455",
-              "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE", "age": "SENIOR" },
-              "location": { "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
-            }
-            """;
-
     private static final String PUT_WITHOUT_DESCRIPTION = """
             {
               "name": "t", "imageId": "i", "phoneNumber": "1122334455",
@@ -277,21 +301,29 @@ public class MockAnimalPostDataUtils {
                 Arguments.of("Se envia una request del tipo ADOPTION sin el parametro inTransit, devuelve BAD_REQUEST", ADOPTION_WITHOUT_IN_TRANSIT, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Se envia una request del tipo ADOPTION con reward, devuelve BAD_REQUEST", ADOPTION_WITH_REWARD, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Se envia una request sin type, devuelve BAD_REQUEST", WITHOUT_TYPE, HttpStatus.BAD_REQUEST, null),
-                Arguments.of("Se envia una request sin name, devuelve BAD_REQUEST", WITHOUT_NAME, HttpStatus.BAD_REQUEST, null),
+                Arguments.of("Se envia una request sin name (opcional), se crea igual", WITHOUT_NAME, HttpStatus.CREATED, "LOST"),
                 Arguments.of("Se envia una request sin description, devuelve BAD_REQUEST", WITHOUT_DESCRIPTION, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Se envia una request sin imageId, devuelve BAD_REQUEST", WITHOUT_IMAGE_ID, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Una request LOST con dueno sin phoneNumber, devuelve BAD_REQUEST", WITHOUT_PHONE, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Una request ADOPTION sin phoneNumber, devuelve BAD_REQUEST", ADOPTION_WITHOUT_PHONE, HttpStatus.BAD_REQUEST, null),
-                Arguments.of("Una request LOST en la calle (hasOwner=false) sin phoneNumber se crea igual y vuelve como INSTREET", LOST_STREET_WITHOUT_PHONE, HttpStatus.CREATED, "INSTREET"),
+                Arguments.of("Una request LOST en la calle (hasOwner=false) sin phoneNumber se crea igual y vuelve como IN_STREET", LOST_STREET_WITHOUT_PHONE, HttpStatus.CREATED, "IN_STREET"),
                 Arguments.of("Se envia una request sin age, devuelve BAD_REQUEST", WITHOUT_AGE, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Se envia una request sin animal, devuelve BAD_REQUEST", WITHOUT_ANIMAL, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Se envia una request sin location, devuelve BAD_REQUEST", WITHOUT_LOCATION, HttpStatus.BAD_REQUEST, null)
         );
     }
 
+    private static Stream<Arguments> provideCreateFieldCases() {
+        return Stream.of(
+                Arguments.of("Sin name se crea igual y queda null", WITHOUT_NAME, HttpStatus.CREATED, "$.name", nullValue()),
+                Arguments.of("age=UNKNOWN es valido y se persiste", LOST_AGE_UNKNOWN, HttpStatus.CREATED, "$.animal.age", is("UNKNOWN")),
+                Arguments.of("Un age invalido informa el campo", INVALID_AGE, HttpStatus.BAD_REQUEST, "$.errors", hasItem(containsString("age"))),
+                Arguments.of("Un age invalido informa los valores permitidos", INVALID_AGE, HttpStatus.BAD_REQUEST, "$.errors", hasItem(containsString("UNKNOWN")))
+        );
+    }
+
     private static Stream<Arguments> provideUpdateInvalidCases() {
         return Stream.of(
-                Arguments.of("Sin name devuelve BAD_REQUEST", PUT_WITHOUT_NAME),
                 Arguments.of("Sin description devuelve BAD_REQUEST", PUT_WITHOUT_DESCRIPTION),
                 Arguments.of("Sin imageId devuelve BAD_REQUEST", PUT_WITHOUT_IMAGE_ID),
                 Arguments.of("Sin animal devuelve BAD_REQUEST", PUT_WITHOUT_ANIMAL),
@@ -309,11 +341,19 @@ public class MockAnimalPostDataUtils {
         );
     }
 
+    private static Stream<Arguments> provideResponseTypeCases() {
+        return Stream.of(
+                Arguments.of("Un LOST con dueno vuelve como LOST", LOST_VALID, "LOST"),
+                Arguments.of("Un LOST sin dueno vuelve como IN_STREET", LOST_STREET_WITHOUT_PHONE, "IN_STREET"),
+                Arguments.of("Una adopcion vuelve como ADOPTION", ADOPTION_VALID, "ADOPTION")
+        );
+    }
+
     private static Stream<Arguments> provideFilterCases() {
         return Stream.of(
                 Arguments.of("Sin filtros devuelve todos los posts", null, null, 5),
                 Arguments.of("type=LOST devuelve solo los perdidos con dueno", "LOST", null, 2),
-                Arguments.of("type=INSTREET devuelve solo los que estan en la calle", "INSTREET", null, 1),
+                Arguments.of("type=IN_STREET devuelve solo los que estan en la calle", "IN_STREET", null, 1),
                 Arguments.of("type=ADOPTION devuelve solo las adopciones", "ADOPTION", null, 2),
                 Arguments.of("status=CREATED devuelve solo los perdidos recien creados", null, "CREATED", 1),
                 Arguments.of("status=SEARCHING devuelve los LOST en busqueda (perdido y en la calle)", null, "SEARCHING", 2),
@@ -324,7 +364,7 @@ public class MockAnimalPostDataUtils {
                 Arguments.of("type=ADOPTION y status=ADOPTED devuelve las adopciones adoptadas", "ADOPTION", "ADOPTED", 1),
                 Arguments.of("type=LOST y status=ADOPTED no devuelve resultados", "LOST", "ADOPTED", 0),
                 Arguments.of("type=LOST y status=SEARCHING excluye a los de la calle", "LOST", "SEARCHING", 1),
-                Arguments.of("type=INSTREET y status=SEARCHING devuelve al de la calle", "INSTREET", "SEARCHING", 1)
+                Arguments.of("type=IN_STREET y status=SEARCHING devuelve al de la calle", "IN_STREET", "SEARCHING", 1)
         );
     }
 }

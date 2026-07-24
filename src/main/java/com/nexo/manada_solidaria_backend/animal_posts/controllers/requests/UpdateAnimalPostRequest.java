@@ -14,7 +14,6 @@ import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 
 public record UpdateAnimalPostRequest(
-        @NotBlank(message = "El nombre es obligatorio")
         String name,
 
         @NotBlank(message = "La descripción es obligatoria")
@@ -54,7 +53,7 @@ public record UpdateAnimalPostRequest(
 
             String color,
 
-            @NotNull(message = "La edad del animal es obligatoria")
+            @NotNull(message = "La edad del animal es obligatoria (usar UNKNOWN si se desconoce)")
             AnimalAge age
     ) {
     }
