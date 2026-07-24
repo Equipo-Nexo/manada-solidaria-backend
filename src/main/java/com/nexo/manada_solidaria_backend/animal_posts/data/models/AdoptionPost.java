@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.animal_posts.data.models;
 
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusAdoptionPost;
 import com.nexo.manada_solidaria_backend.common.utils.StatusHistoryUtils;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
@@ -43,5 +44,10 @@ public class AdoptionPost extends AnimalPost<AdoptionPostStatusHistory> {
     @Override
     public AdoptionPostStatusHistory getCurrentStatus() {
         return StatusHistoryUtils.getCurrentStatus(this.statusHistory);
+    }
+
+    @Override
+    public AnimalPostFilter getType() {
+        return AnimalPostFilter.ADOPTION;
     }
 }

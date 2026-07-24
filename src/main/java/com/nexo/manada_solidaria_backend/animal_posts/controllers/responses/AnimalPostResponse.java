@@ -35,7 +35,7 @@ public record AnimalPostResponse(
     public static AnimalPostResponse from(AnimalPost post) {
         return new AnimalPostResponse(
                 post.getId(),
-                typeFrom(post),
+                post.getType(),
                 post.getName(),
                 post.getDescription(),
                 post.getImageUrl(),
@@ -49,13 +49,6 @@ public record AnimalPostResponse(
                 post.getPhoneNumber(),
                 post instanceof LostPost lost ? lost.getReward() : null
         );
-    }
-
-    private static AnimalPostFilter typeFrom(AnimalPost post) {
-        if (post instanceof LostPost lost) {
-            return lost.isHasOwner() ? AnimalPostFilter.LOST : AnimalPostFilter.INSTREET;
-        }
-        return AnimalPostFilter.ADOPTION;
     }
 
     public record AnimalResponse(

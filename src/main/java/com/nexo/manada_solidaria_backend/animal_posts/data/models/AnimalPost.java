@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.animal_posts.data.models;
 
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.common.data.models.StatusHistory;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
@@ -75,4 +76,6 @@ public abstract class AnimalPost<T extends StatusHistory> {
     }
 
     public abstract T getCurrentStatus();
+    
+    public abstract AnimalPostFilter getType();
 }

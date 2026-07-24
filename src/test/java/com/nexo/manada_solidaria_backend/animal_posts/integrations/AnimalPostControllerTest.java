@@ -115,15 +115,10 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.content[0].status").value("CREATED"));
     }
 
-    @Test
-    @DisplayName("La response distingue perdido (LOST) de en la calle (INSTREET) sin exponer hasOwner")
-    void response_typeDistinguishesLostFromInStreet() throws Exception {
-        postAndExpectType(MockAnimalPostDataUtils.LOST_VALID, "LOST");
-        postAndExpectType(MockAnimalPostDataUtils.LOST_STREET_WITHOUT_PHONE, "INSTREET");
-        postAndExpectType(MockAnimalPostDataUtils.ADOPTION_VALID, "ADOPTION");
-    }
-
-    private void postAndExpectType(String body, String expectedType) throws Exception {
+    @DisplayName("La response distingue perdido de en la calle sin exponer hasOwner")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource("com.nexo.manada_solidaria_backend.animal_posts.utils.MockAnimalPostDataUtils#provideResponseTypeCases")
+    void response_typeDistinguishesEachCategory(String testName, String body, String expectedType) throws Exception {
         mockMvc.perform(
                         post("/animal-posts")
                                 .header("Authorization", "Bearer " + accessToken)
