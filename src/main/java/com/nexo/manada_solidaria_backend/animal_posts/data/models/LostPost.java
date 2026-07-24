@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.animal_posts.data.models;
 
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusLostPost;
 import com.nexo.manada_solidaria_backend.common.utils.StatusHistoryUtils;
@@ -50,5 +51,10 @@ public class LostPost extends AnimalPost<LostPostStatusHistory> {
     @Override
     public LostPostStatusHistory getCurrentStatus() {
         return StatusHistoryUtils.getCurrentStatus(this.statusHistory);
+    }
+
+    @Override
+    public AnimalPostFilter getType() {
+        return hasOwner ? AnimalPostFilter.LOST : AnimalPostFilter.IN_STREET;
     }
 }

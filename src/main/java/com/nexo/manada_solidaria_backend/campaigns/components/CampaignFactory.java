@@ -1,14 +1,12 @@
 package com.nexo.manada_solidaria_backend.campaigns.components;
 
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest;
-import com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationCampaignStatus;
-import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaginStatus;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.*;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class CampaignFactory {
@@ -18,8 +16,8 @@ public class CampaignFactory {
 
         return switch (request.type()) {
 
-            case DONATION ->
-                    buildDonationCampaign(
+            case FUNDRAISING ->
+                    buildFundraisingCampaign(
                             request,
                             location,
                             owner
@@ -27,6 +25,13 @@ public class CampaignFactory {
 
             case NEWS ->
                     buildNewsCampaign(
+                            request,
+                            location,
+                            owner
+                    );
+
+            case DONATION ->
+                    buildDonationCampaign(
                             request,
                             location,
                             owner
@@ -47,14 +52,16 @@ public class CampaignFactory {
         );
     }
 
-    private DonationCampaign buildDonationCampaign(CreateCampaignRequest request, Location location, User owner) {
-        return new DonationCampaign(
+    private FundraisingCampaign buildFundraisingCampaign(CreateCampaignRequest request, Location location, User owner) {
+        return new FundraisingCampaign(
                 request.title(),
                 request.description(),
                 request.imageId(),
                 null,
+                request.phoneNumber(),
                 location,
                 owner,
+                request.accountAlias(),
                 request.amountToBeCollected(),
                 request.campaignEndDate()
         );
@@ -66,8 +73,39 @@ public class CampaignFactory {
                 request.description(),
                 request.imageId(),
                 null,
+                request.phoneNumber(),
                 location,
-                owner
+                owner,
+                request.newsStartDateTime(),
+                request.newsEndDateTime(),
+                request.category()
+        );
+    }
+
+    private DonationCampaign buildDonationCampaign(CreateCampaignRequest request, Location location, User owner) {
+        DonationCampaign campaign = new DonationCampaign(
+                request.title(),
+                request.description(),
+                request.imageId(),
+                null,
+                request.phoneNumber(),
+                location,
+                owner,
+                request.campaignEndDate()
+        );
+
+        addItemsToCampaign(campaign, request.items());
+
+        return campaign;
+    }
+
+    private void addItemsToCampaign(DonationCampaign campaign, List<CreateCampaignRequest.DonationItemRequest> itemRequests) {
+        if (itemRequests == null) {
+            return;
+        }
+
+        itemRequests.forEach(itemReq ->
+                campaign.addItem(new DonationItem(itemReq.name(), itemReq.category()))
         );
     }
 }

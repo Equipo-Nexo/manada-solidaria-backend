@@ -31,6 +31,8 @@ public class ConditionalFieldValidator implements ConstraintValidator<Conditiona
         boolean valid = switch (rule) {
             case REQUIRED -> !matches || present;
             case ONLY_ALLOWED -> matches || !present;
+            case REQUIRED_AND_ONLY_ALLOWED -> (matches && present) || (!matches && !present);
+            case NOT_ALLOWED -> !matches || !present;
         };
         if (valid) {
             return true;

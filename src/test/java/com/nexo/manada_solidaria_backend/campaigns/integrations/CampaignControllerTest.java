@@ -1,13 +1,15 @@
 package com.nexo.manada_solidaria_backend.campaigns.integrations;
 
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest;
-import com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationCampaignStatus;
+import com.nexo.manada_solidaria_backend.campaigns.data.enums.CampaignStatus;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaginStatus;
+import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCategory;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.Campaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationCampaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationCampaignStatusHistory;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.NewsCampaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.NewsCampaignStatusHistory;
+import com.nexo.manada_solidaria_backend.campaigns.data.models.FundraisingCampaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.repositories.CampaignRepository;
 import com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils;
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthenticatedIntegrationTest;
@@ -23,7 +25,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -71,10 +76,10 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
         String responseBody = mockMvc.perform(post("/campaigns")
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(toJson(MockCampaignDataUtils.DONATION_VALID_FULL)))
+                        .content(toJson(MockCampaignDataUtils.FUNDRAISING_VALID_FULL)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.type").value("DONATION"))
+                .andExpect(jsonPath("$.type").value("fundraising"))
                 .andExpect(jsonPath("$.title").value("Operación de mofli"))
                 .andExpect(jsonPath("$.ownerId").value(adminId.toString()))
                 .andReturn().getResponse().getContentAsString();
@@ -85,8 +90,9 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
         assertThat(savedCampaign.getTitle()).isEqualTo("Operación de mofli");
         assertThat(savedCampaign.getOwner().getId()).isEqualTo(adminId);
 
-        DonationCampaign savedDonation = (DonationCampaign) savedCampaign;
-        assertThat(savedDonation.getAmountToBeCollected()).isEqualTo(150000L);
+        FundraisingCampaign savedFundraising = (FundraisingCampaign) savedCampaign;
+        assertThat(savedFundraising.getAmountToBeCollected()).isEqualTo(150000L);
+        assertThat(savedFundraising.getAccountAlias()).isEqualTo("recaudacion.mofli");
     }
 
     @Test
@@ -109,43 +115,87 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     @Test
-    @DisplayName("GET /campaigns — Trae todas las campañas paginadas por defecto")
-    void getAll_returnsAllCampaignsWithDefaultPagination() throws Exception {
-        Campaign news = MockCampaignDataUtils.buildNewsModel(userRepository.findByUsername("admin").orElseThrow());
-        Campaign donation = MockCampaignDataUtils.buildDonationModel(userRepository.findByUsername("admin").orElseThrow());
-        campaignRepository.save(news);
-        campaignRepository.save(donation);
+    @DisplayName("GET /campaigns devuelve News y Donation, excluyendo Fundraising")
+    void getCampaigns_returnsNewsAndDonation() throws Exception {
 
-        mockMvc.perform(get("/campaigns")
+        var owner = userRepository.findByUsername("admin").orElseThrow();
+
+        campaignRepository.save(MockCampaignDataUtils.buildDonationModel(owner));
+        campaignRepository.save(MockCampaignDataUtils.buildNewsModel(owner));
+        campaignRepository.save(MockCampaignDataUtils.buildFundraisingModel(owner));
+
+        String response = mockMvc.perform(get("/campaigns")
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.content.length()").value(2)) // Valida que trajo ambas
-                .andExpect(jsonPath("$.totalElements").value(2));
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        assertThat(response).doesNotContain("\"type\":\"fundraising\"");
     }
 
     @Test
-    @DisplayName("GET /campaigns?type=DONATION — Filtra trayendo solo donaciones")
-    void getAll_withTypeDonation_returnsOnlyDonations() throws Exception {
-        Campaign news = MockCampaignDataUtils.buildNewsModel(userRepository.findByUsername("admin").orElseThrow());
-        Campaign donation = MockCampaignDataUtils.buildDonationModel(userRepository.findByUsername("admin").orElseThrow());
-        campaignRepository.save(news);
-        campaignRepository.save(donation);
+    @DisplayName("GET /campaigns?category=VACCINATION devuelve solo noticias de vacunación")
+    void getCampaigns_filterVaccination() throws Exception {
+
+        var owner = userRepository.findByUsername("admin").orElseThrow();
+
+        campaignRepository.save(MockCampaignDataUtils.buildDonationModel(owner));
+        campaignRepository.save(MockCampaignDataUtils.buildNewsModel(owner));
+        campaignRepository.save(MockCampaignDataUtils.buildFundraisingModel(owner));
 
         mockMvc.perform(get("/campaigns")
                         .header("Authorization", "Bearer " + accessToken)
-                        .param("type", "DONATION"))
+                        .param("category", "VACCINATION"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(1))
-                .andExpect(jsonPath("$.content[0].type").value("DONATION"));
+                .andExpect(jsonPath("$.content[0].type").value("vaccination"));
     }
 
     @Test
-    @DisplayName("GET /campaigns?type=HOLA — Devuelve 400 Bad Request por tipo inválido")
-    void getAll_withInvalidType_returnsBadRequest() throws Exception {
+    @DisplayName("GET /campaigns?category=DONATION devuelve solo campañas de donación")
+    void getCampaigns_filterDonation() throws Exception {
+
+        var owner = userRepository.findByUsername("admin").orElseThrow();
+
+        campaignRepository.save(MockCampaignDataUtils.buildDonationModel(owner));
+        campaignRepository.save(MockCampaignDataUtils.buildNewsModel(owner));
+        campaignRepository.save(MockCampaignDataUtils.buildFundraisingModel(owner));
+
         mockMvc.perform(get("/campaigns")
                         .header("Authorization", "Bearer " + accessToken)
-                        .param("type", "HOLA"))
+                        .param("category", "DONATION"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].type").value("donation"));
+    }
+
+    @Test
+    @DisplayName("GET /fundraising_campaigns devuelve solo campañas de recaudación")
+    void getFundraisingCampaigns_returnsOnlyFundraisings() throws Exception {
+
+        var owner = userRepository.findByUsername("admin").orElseThrow();
+
+        campaignRepository.save(MockCampaignDataUtils.buildDonationModel(owner));
+        campaignRepository.save(MockCampaignDataUtils.buildNewsModel(owner));
+        campaignRepository.save(MockCampaignDataUtils.buildFundraisingModel(owner));
+
+        mockMvc.perform(get("/campaigns/fundraising_campaigns")
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].type").value("fundraising"));
+    }
+
+    @Test
+    @DisplayName("GET /campaigns?category=HOLA devuelve 400")
+    void getCampaigns_invalidCategory_returnsBadRequest() throws Exception {
+
+        mockMvc.perform(get("/campaigns")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .param("category", "HOLA"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -176,7 +226,7 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     @DisplayName("DELETE /campaigns/{id} de una donación en estado final devuelve 409 y no elimina")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource("com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils#provideFinalDonationStatuses")
-    void delete_donationInFinalState_returnsConflictAndKeepsCampaign(String testName, DonationCampaignStatus status) throws Exception {
+    void delete_donationInFinalState_returnsConflictAndKeepsCampaign(String testName, CampaignStatus status) throws Exception {
         UUID campaignId = saveDonationWithStatus(admin(), status).getId();
 
         mockMvc.perform(delete("/campaigns/" + campaignId)
@@ -226,6 +276,128 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    @DisplayName("PUT /campaigns/{id} del owner actualiza una donación correctamente")
+    void update_donation_asOwner_updatesCampaign() throws Exception {
+        DonationCampaign campaign = MockCampaignDataUtils.buildDonationModel(admin());
+        UUID campaignId = campaignRepository.save(campaign).getId();
+
+        mockMvc.perform(put("/campaigns/" + campaignId)
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(MockCampaignDataUtils.buildDonationUpdateRequest())))
+                .andExpect(status().isNoContent());
+
+        DonationCampaign updated = (DonationCampaign) campaignRepository.findById(campaignId).orElseThrow();
+
+        assertThat(updated.getTitle()).isEqualTo("Título Donación Editado");
+        assertThat(updated.getDescription()).isEqualTo("Descripción editada");
+        assertThat(updated.getPhoneNumber()).isEqualTo("999999999");
+        assertThat(updated.getCampaignEndDate()).isEqualTo(LocalDate.now().plusMonths(2));
+    }
+
+    @Test
+    @DisplayName("PUT /campaigns/{id} actualiza campos propios de fundraising")
+    void update_fundraising_updatesSpecificFields() throws Exception {
+        FundraisingCampaign campaign = MockCampaignDataUtils.buildFundraisingModel(admin());
+        UUID campaignId = campaignRepository.save(campaign).getId();
+
+        mockMvc.perform(put("/campaigns/" + campaignId)
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(
+                                MockCampaignDataUtils.buildFundraisingUpdateRequest()
+                        )))
+                .andExpect(status().isNoContent());
+
+        FundraisingCampaign updated = (FundraisingCampaign) campaignRepository.findById(campaignId).orElseThrow();
+
+        assertThat(updated.getAccountAlias()).isEqualTo("nuevo.alias");
+        assertThat(updated.getAmountToBeCollected()).isEqualTo(100000L);
+        assertThat(updated.getAmountCollected()).isEqualTo(25000L);
+        assertThat(updated.getCampaignEndDate()).isEqualTo(LocalDate.now().plusMonths(3));
+    }
+
+    @Test
+    @DisplayName("PUT /campaigns/{id} actualiza campos propios de NEWS")
+    void update_news_updatesSpecificFields() throws Exception {
+        NewsCampaign campaign = MockCampaignDataUtils.buildNewsModel(admin());
+        UUID campaignId = campaignRepository.save(campaign).getId();
+
+        mockMvc.perform(put("/campaigns/" + campaignId)
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(
+                                MockCampaignDataUtils.buildNewsUpdateRequest()
+                        )))
+                .andExpect(status().isNoContent());
+
+        NewsCampaign updated = (NewsCampaign) campaignRepository.findById(campaignId).orElseThrow();
+
+        assertThat(updated.getCategory()).isEqualTo(NewsCampaignCategory.OTHER);
+        assertThat(updated.getNewsStartDateTime()).isEqualTo(LocalDateTime.of(2026,9,1,10,0));
+        assertThat(updated.getNewsEndDateTime()).isEqualTo(LocalDateTime.of(2026,9,5,18,0));
+    }
+
+    @Test
+    @DisplayName("PUT /campaigns/{id} de otro usuario devuelve 403")
+    void update_asNonOwner_returnsForbidden() throws Exception {
+        UUID campaignId = saveCampaignOwnedByOtherUser().getId();
+
+        mockMvc.perform(put("/campaigns/" + campaignId)
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(
+                                MockCampaignDataUtils.buildDonationUpdateRequest()
+                        )))
+                .andExpect(status().isForbidden());
+
+        DonationCampaign campaign = (DonationCampaign) campaignRepository.findById(campaignId).orElseThrow();
+
+        assertThat(campaign.getTitle()).isEqualTo("Título Donación Test");
+    }
+
+    @Test
+    @DisplayName("PUT /campaigns/{id} inexistente devuelve 404")
+    void update_nonExistentCampaign_returnsNotFound() throws Exception {
+
+        mockMvc.perform(put("/campaigns/" + UUID.randomUUID())
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(
+                                MockCampaignDataUtils.buildDonationUpdateRequest()
+                        )))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errors",
+                        hasItem(containsString("no existe"))));
+    }
+
+    @Test
+    @DisplayName("PUT /campaigns/{id} sin token devuelve 401")
+    void update_withoutToken_returnsUnauthorized() throws Exception {
+
+        mockMvc.perform(put("/campaigns/" + UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(
+                                MockCampaignDataUtils.buildDonationUpdateRequest()
+                        )))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("PUT /campaigns/{id} con token inválido devuelve 401")
+    void update_withInvalidToken_returnsUnauthorized() throws Exception {
+
+        mockMvc.perform(put("/campaigns/" + UUID.randomUUID())
+                        .header("Authorization",
+                                "Bearer " + INVALID_ACCESS_TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(
+                                MockCampaignDataUtils.buildDonationUpdateRequest()
+                        )))
+                .andExpect(status().isUnauthorized());
+    }
+
     private User admin() {
         return userRepository.findByUsername("admin").orElseThrow();
     }
@@ -236,7 +408,7 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
         return campaignRepository.save(MockCampaignDataUtils.buildDonationModel(other));
     }
 
-    private Campaign saveDonationWithStatus(User owner, DonationCampaignStatus status) {
+    private Campaign saveDonationWithStatus(User owner, CampaignStatus status) {
         DonationCampaign campaign = MockCampaignDataUtils.buildDonationModel(owner);
         // Fila con finishedAt == null: es el estado vigente que resuelve getCurrentStatus().
         campaign.setStatusHistory(new ArrayList<>(List.of(new DonationCampaignStatusHistory(status, campaign))));

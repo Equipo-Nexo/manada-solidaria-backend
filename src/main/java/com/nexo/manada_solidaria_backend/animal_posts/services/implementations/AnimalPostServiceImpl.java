@@ -1,7 +1,7 @@
 package com.nexo.manada_solidaria_backend.animal_posts.services.implementations;
 
 import com.nexo.manada_solidaria_backend.animal_posts.components.AnimalPostFactory;
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostType;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AnimalPostResponse;
@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -37,7 +38,7 @@ public class AnimalPostServiceImpl implements AnimalPostService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<AnimalPostResponse> getAnimalPosts(AnimalPostType type, String status, Pageable pageable) {
+    public Page<AnimalPostResponse> getAnimalPosts(AnimalPostFilter type, String status, Pageable pageable) {
         return animalPostRepository
                 .findAllFiltered(EnumUtils.getNameOrNull(type), status, pageable)
                 .map(AnimalPostResponse::from);
@@ -66,5 +67,13 @@ public class AnimalPostServiceImpl implements AnimalPostService {
         }
 
         animalPostRepository.delete(post);
+    }
+
+    @Override
+    public List<AnimalPostResponse> getUserAnimalPosts(User user) {
+        return animalPostRepository.findAllByOwner(user)
+                .stream()
+                .map(AnimalPostResponse::from)
+                .toList();
     }
 }

@@ -306,7 +306,7 @@ public class MockAnimalPostDataUtils {
                 Arguments.of("Se envia una request sin imageId, devuelve BAD_REQUEST", WITHOUT_IMAGE_ID, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Una request LOST con dueno sin phoneNumber, devuelve BAD_REQUEST", WITHOUT_PHONE, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Una request ADOPTION sin phoneNumber, devuelve BAD_REQUEST", ADOPTION_WITHOUT_PHONE, HttpStatus.BAD_REQUEST, null),
-                Arguments.of("Una request LOST en la calle (hasOwner=false) sin phoneNumber se crea igual", LOST_STREET_WITHOUT_PHONE, HttpStatus.CREATED, "LOST"),
+                Arguments.of("Una request LOST en la calle (hasOwner=false) sin phoneNumber se crea igual y vuelve como IN_STREET", LOST_STREET_WITHOUT_PHONE, HttpStatus.CREATED, "IN_STREET"),
                 Arguments.of("Se envia una request sin age, devuelve BAD_REQUEST", WITHOUT_AGE, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Se envia una request sin animal, devuelve BAD_REQUEST", WITHOUT_ANIMAL, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Se envia una request sin location, devuelve BAD_REQUEST", WITHOUT_LOCATION, HttpStatus.BAD_REQUEST, null)
@@ -341,19 +341,30 @@ public class MockAnimalPostDataUtils {
         );
     }
 
+    private static Stream<Arguments> provideResponseTypeCases() {
+        return Stream.of(
+                Arguments.of("Un LOST con dueno vuelve como LOST", LOST_VALID, "LOST"),
+                Arguments.of("Un LOST sin dueno vuelve como IN_STREET", LOST_STREET_WITHOUT_PHONE, "IN_STREET"),
+                Arguments.of("Una adopcion vuelve como ADOPTION", ADOPTION_VALID, "ADOPTION")
+        );
+    }
+
     private static Stream<Arguments> provideFilterCases() {
         return Stream.of(
-                Arguments.of("Sin filtros devuelve todos los posts", null, null, 4),
-                Arguments.of("type=LOST devuelve solo los posts perdidos", "LOST", null, 2),
+                Arguments.of("Sin filtros devuelve todos los posts", null, null, 5),
+                Arguments.of("type=LOST devuelve solo los perdidos con dueno", "LOST", null, 2),
+                Arguments.of("type=IN_STREET devuelve solo los que estan en la calle", "IN_STREET", null, 1),
                 Arguments.of("type=ADOPTION devuelve solo las adopciones", "ADOPTION", null, 2),
                 Arguments.of("status=CREATED devuelve solo los perdidos recien creados", null, "CREATED", 1),
-                Arguments.of("status=SEARCHING devuelve solo los perdidos en busqueda", null, "SEARCHING", 1),
+                Arguments.of("status=SEARCHING devuelve los LOST en busqueda (perdido y en la calle)", null, "SEARCHING", 2),
                 Arguments.of("status=FOUND no devuelve resultados", null, "FOUND", 0),
                 Arguments.of("status=SEARCHING_ADOPT_AND_TRANSIT devuelve las adopciones con transito", null, "SEARCHING_ADOPT_AND_TRANSIT", 1),
                 Arguments.of("status=SEARCHING_ADOPT no devuelve resultados", null, "SEARCHING_ADOPT", 0),
                 Arguments.of("status=ADOPTED devuelve las adopciones concretadas", null, "ADOPTED", 1),
                 Arguments.of("type=ADOPTION y status=ADOPTED devuelve las adopciones adoptadas", "ADOPTION", "ADOPTED", 1),
-                Arguments.of("type=LOST y status=ADOPTED no devuelve resultados", "LOST", "ADOPTED", 0)
+                Arguments.of("type=LOST y status=ADOPTED no devuelve resultados", "LOST", "ADOPTED", 0),
+                Arguments.of("type=LOST y status=SEARCHING excluye a los de la calle", "LOST", "SEARCHING", 1),
+                Arguments.of("type=IN_STREET y status=SEARCHING devuelve al de la calle", "IN_STREET", "SEARCHING", 1)
         );
     }
 }
