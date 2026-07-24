@@ -5,6 +5,11 @@ import org.springframework.http.HttpStatus;
 
 import java.util.stream.Stream;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+
 public class MockAnimalPostDataUtils {
 
     public static final String LOST_VALID = """
@@ -58,7 +63,6 @@ public class MockAnimalPostDataUtils {
             }
             """;
 
-    // Sin name: es opcional, se crea igual (name queda null).
     public static final String WITHOUT_NAME = """
             {
               "type": "LOST",
@@ -120,7 +124,6 @@ public class MockAnimalPostDataUtils {
             }
             """;
 
-    // Sin age: es obligatorio -> 400.
     private static final String WITHOUT_AGE = """
             {
               "type": "LOST",
@@ -134,7 +137,6 @@ public class MockAnimalPostDataUtils {
             }
             """;
 
-    // age con un valor que no existe en el enum -> 400 informando los valores permitidos.
     public static final String INVALID_AGE = """
             {
               "type": "LOST",
@@ -148,7 +150,6 @@ public class MockAnimalPostDataUtils {
             }
             """;
 
-    // age = UNKNOWN es un valor válido (lo que manda el front cuando no sabe la edad).
     public static final String LOST_AGE_UNKNOWN = """
             {
               "type": "LOST",
@@ -309,6 +310,15 @@ public class MockAnimalPostDataUtils {
                 Arguments.of("Se envia una request sin age, devuelve BAD_REQUEST", WITHOUT_AGE, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Se envia una request sin animal, devuelve BAD_REQUEST", WITHOUT_ANIMAL, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Se envia una request sin location, devuelve BAD_REQUEST", WITHOUT_LOCATION, HttpStatus.BAD_REQUEST, null)
+        );
+    }
+
+    private static Stream<Arguments> provideCreateFieldCases() {
+        return Stream.of(
+                Arguments.of("Sin name se crea igual y queda null", WITHOUT_NAME, HttpStatus.CREATED, "$.name", nullValue()),
+                Arguments.of("age=UNKNOWN es valido y se persiste", LOST_AGE_UNKNOWN, HttpStatus.CREATED, "$.animal.age", is("UNKNOWN")),
+                Arguments.of("Un age invalido informa el campo", INVALID_AGE, HttpStatus.BAD_REQUEST, "$.errors", hasItem(containsString("age"))),
+                Arguments.of("Un age invalido informa los valores permitidos", INVALID_AGE, HttpStatus.BAD_REQUEST, "$.errors", hasItem(containsString("UNKNOWN")))
         );
     }
 

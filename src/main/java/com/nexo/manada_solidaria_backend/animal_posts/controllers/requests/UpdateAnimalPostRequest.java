@@ -12,7 +12,6 @@ import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 
 public record UpdateAnimalPostRequest(
-        // ponytail: name opcional -> se guarda null; el front decide cómo mostrarlo.
         String name,
 
         @NotBlank(message = "La descripción es obligatoria")

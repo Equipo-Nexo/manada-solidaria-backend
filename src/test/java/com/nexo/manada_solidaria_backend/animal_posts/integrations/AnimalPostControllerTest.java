@@ -20,6 +20,7 @@ import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.Profile;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import com.nexo.manada_solidaria_backend.users.data.repositories.UserRepository;
+import org.hamcrest.Matcher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -38,7 +39,6 @@ import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.I
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -49,6 +49,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
 
+    private static final String MOCK_DATA =
+            "com.nexo.manada_solidaria_backend.animal_posts.utils.MockAnimalPostDataUtils#";
+
     @Autowired
     private AnimalPostRepository animalPostRepository;
     @Autowired
@@ -56,7 +59,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
 
     @DisplayName("POST /animal-post — código de estado por payload")
     @ParameterizedTest(name = "{index} - {0}")
-    @MethodSource("com.nexo.manada_solidaria_backend.animal_posts.utils.MockAnimalPostDataUtils#provideCreateCases")
+    @MethodSource(MOCK_DATA + "provideCreateCases")
     void createTests(
             String testName,
             String body,
@@ -130,45 +133,24 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.errors", hasItem(containsString("hasOwner es obligatorio"))));
     }
 
-    @Test
-    @DisplayName("POST /animal-post: name es opcional y se guarda como null")
-    void create_nameIsOptional_savedAsNull() throws Exception {
+    @DisplayName("POST /animal-post — campos opcionales y errores de enum")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideCreateFieldCases")
+    void createFieldTests(
+            String testName,
+            String body,
+            HttpStatus expectedStatus,
+            String jsonPathExpression,
+            Matcher<?> expected
+    ) throws Exception {
         mockMvc.perform(
                         post("/animal-posts")
                                 .header("Authorization", "Bearer " + accessToken)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(MockAnimalPostDataUtils.WITHOUT_NAME)
+                                .content(body)
                 )
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.name").value(nullValue()));
-    }
-
-    @Test
-    @DisplayName("POST /animal-post: age=UNKNOWN es un valor válido y se persiste")
-    void create_ageUnknown_isAccepted() throws Exception {
-        mockMvc.perform(
-                        post("/animal-posts")
-                                .header("Authorization", "Bearer " + accessToken)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(MockAnimalPostDataUtils.LOST_AGE_UNKNOWN)
-                )
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.animal.age").value("UNKNOWN"));
-    }
-
-    @Test
-    @DisplayName("POST /animal-post con enum inválido en el body: 400 e informa el campo y los valores permitidos")
-    void create_invalidEnumInBody_returnsAllowedValues() throws Exception {
-        mockMvc.perform(
-                        post("/animal-posts")
-                                .header("Authorization", "Bearer " + accessToken)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(MockAnimalPostDataUtils.INVALID_AGE)
-                )
-                .andExpect(status().isBadRequest())
-                // Substring ASCII (evita la normalización de tildes del repo).
-                .andExpect(jsonPath("$.errors", hasItem(containsString("age"))))
-                .andExpect(jsonPath("$.errors", hasItem(containsString("UNKNOWN"))));
+                .andExpect(status().is(expectedStatus.value()))
+                .andExpect(jsonPath(jsonPathExpression, expected));
     }
 
     @Test
@@ -196,7 +178,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
 
     @DisplayName("POST /animal-post ADOPTION: inTransit define el estado vigente y cierra el CREATED inicial")
     @ParameterizedTest(name = "{index} - {0}")
-    @MethodSource("com.nexo.manada_solidaria_backend.animal_posts.utils.MockAnimalPostDataUtils#provideInTransitCases")
+    @MethodSource(MOCK_DATA + "provideInTransitCases")
     void create_adoption_transitionsByInTransit(String testName, String body, String expectedStatus) throws Exception {
         String responseBody = mockMvc.perform(
                         post("/animal-posts")
@@ -245,7 +227,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
 
     @DisplayName("GET /animal-posts filtra por type y/o status")
     @ParameterizedTest(name = "{index} - {0}")
-    @MethodSource("com.nexo.manada_solidaria_backend.animal_posts.utils.MockAnimalPostDataUtils#provideFilterCases")
+    @MethodSource(MOCK_DATA + "provideFilterCases")
     void filterTests(String testName, String type, String status, int expectedCount) throws Exception {
         saveLostPost("Lost creado", StatusLostPost.CREATED);
         saveLostPost("Lost buscando", StatusLostPost.SEARCHING);
@@ -375,7 +357,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
 
     @DisplayName("PUT /animal-posts/{id} con payload inválido devuelve 400")
     @ParameterizedTest(name = "{index} - {0}")
-    @MethodSource("com.nexo.manada_solidaria_backend.animal_posts.utils.MockAnimalPostDataUtils#provideUpdateInvalidCases")
+    @MethodSource(MOCK_DATA + "provideUpdateInvalidCases")
     void update_invalidPayload_returnsBadRequest(String testName, String body) throws Exception {
         UUID postId = createOwnedPostReturningId();
 
