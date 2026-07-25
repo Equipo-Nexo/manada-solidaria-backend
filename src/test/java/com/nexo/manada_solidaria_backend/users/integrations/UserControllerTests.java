@@ -4,6 +4,7 @@ import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthentica
 import com.nexo.manada_solidaria_backend.users.data.models.Profile;
 import com.nexo.manada_solidaria_backend.users.data.repositories.UserRepository;
 import com.nexo.manada_solidaria_backend.users.utils.MockUserDataUtils;
+import org.hamcrest.Matcher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -16,7 +17,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -70,34 +70,29 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$", hasSize(0)));
     }
 
-    @Test
-    @DisplayName("PUT /users/profile actualiza el perfil del usuario autenticado y lo persiste")
-    void updateProfile_updatesAuthenticatedUserProfile() throws Exception {
-        putProfile(MockUserDataUtils.UPDATE_PROFILE_VALID)
+    @DisplayName("PUT /users/profile refleja en la response los datos enviados")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource("com.nexo.manada_solidaria_backend.users.utils.MockUserDataUtils#provideUpdateProfileResponseCases")
+    void updateProfile_returnsUpdatedProfile(
+            String testName,
+            String body,
+            String jsonPathExpression,
+            Matcher<?> expected
+    ) throws Exception {
+        putProfile(body)
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Elian"))
-                .andExpect(jsonPath("$.lastname").value("Enria"))
-                .andExpect(jsonPath("$.email").value("nuevo@mail.com"))
-                .andExpect(jsonPath("$.phoneNumber").value("1133334444"))
-                .andExpect(jsonPath("$.profileImageURL").value("cf-profile-1"));
+                .andExpect(jsonPath(jsonPathExpression, expected));
+    }
+
+    @Test
+    @DisplayName("PUT /users/profile persiste los cambios del usuario autenticado")
+    void updateProfile_persistsChanges() throws Exception {
+        putProfile(MockUserDataUtils.UPDATE_PROFILE_VALID).andExpect(status().isOk());
 
         Profile saved = userRepository.findByUsername("admin").orElseThrow().getProfile();
         assertThat(saved.getName()).isEqualTo("Elian");
         assertThat(saved.getEmail()).isEqualTo("nuevo@mail.com");
         assertThat(saved.getProfileImageURL()).isEqualTo("cf-profile-1");
-    }
-
-    @Test
-    @DisplayName("PUT /users/profile es reemplazo total: lo que se omite queda en null")
-    void updateProfile_isFullReplacement() throws Exception {
-        putProfile(MockUserDataUtils.UPDATE_PROFILE_VALID).andExpect(status().isOk());
-
-        putProfile(MockUserDataUtils.UPDATE_PROFILE_WITHOUT_IMAGE)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.profileImageURL").value(nullValue()));
-
-        assertThat(userRepository.findByUsername("admin").orElseThrow()
-                .getProfile().getProfileImageURL()).isNull();
     }
 
     @DisplayName("PUT /users/profile con payload invalido devuelve 400")

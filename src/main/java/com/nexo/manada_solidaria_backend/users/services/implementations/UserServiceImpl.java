@@ -73,10 +73,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ProfileResponse updateProfile(UpdateProfileRequest request, User authenticatedUser) {
-        User user = getUserById(authenticatedUser.getId());
-        user.getProfile().update(request);
-        userRepository.save(user);
-        return ProfileResponse.from(user.getProfile());
+        authenticatedUser.getProfile().update(request);
+        userRepository.save(authenticatedUser);
+        return ProfileResponse.from(authenticatedUser.getProfile());
     }
 
     private static boolean requireAllPosts(String type) {

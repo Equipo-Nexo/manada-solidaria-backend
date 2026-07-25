@@ -1,7 +1,7 @@
 package com.nexo.manada_solidaria_backend.users.controllers.requests;
 
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
 public record UpdateProfileRequest(
@@ -10,7 +10,7 @@ public record UpdateProfileRequest(
         String lastname,
 
         @Email
-        @NotNull(message = "Debe ingresar un correo electrónico")
+        @NotBlank(message = "Debe ingresar un correo electrónico")
         String email,
 
         @Pattern(
