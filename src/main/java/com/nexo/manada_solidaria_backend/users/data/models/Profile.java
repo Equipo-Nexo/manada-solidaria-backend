@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.users.data.models;
 
+import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -35,5 +36,13 @@ public class Profile {
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.roles = roles;
+    }
+
+    public void update(UpdateProfileRequest request) {
+        this.name = request.name();
+        this.lastname = request.lastname();
+        this.email = request.email();
+        this.phoneNumber = request.phoneNumber();
+        this.profileImageURL = request.profileImageURL();
     }
 }

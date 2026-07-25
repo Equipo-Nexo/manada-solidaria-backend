@@ -1,9 +1,14 @@
 package com.nexo.manada_solidaria_backend.users.controllers.interfaces;
 
+import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
+import com.nexo.manada_solidaria_backend.users.controllers.responses.ProfileResponse;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.UserPostResponse;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
+import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -16,5 +21,11 @@ public interface UserController {
     List<UserPostResponse> getUserPosts(
             @AuthenticationPrincipal User user,
             @RequestParam(required = false) String type
+    );
+
+    @PutMapping("/profile")
+    ProfileResponse updateProfile(
+            @Valid @RequestBody UpdateProfileRequest request,
+            @AuthenticationPrincipal User authenticatedUser
     );
 }

@@ -1,6 +1,8 @@
 package com.nexo.manada_solidaria_backend.users.services.interfaces;
 
 import com.nexo.manada_solidaria_backend.auth.controllers.requests.CreateUserRequest;
+import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
+import com.nexo.manada_solidaria_backend.users.controllers.responses.ProfileResponse;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.UserPostResponse;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -18,4 +20,6 @@ public interface UserService extends UserDetailsService {
     void createUser(CreateUserRequest createUserRequest);
 
     List<UserPostResponse> getUserPosts(User user, String type);
+
+    ProfileResponse updateProfile(UpdateProfileRequest request, User authenticatedUser);
 }

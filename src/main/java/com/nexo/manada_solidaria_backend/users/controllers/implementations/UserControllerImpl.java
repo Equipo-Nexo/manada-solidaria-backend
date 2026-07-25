@@ -1,6 +1,8 @@
 package com.nexo.manada_solidaria_backend.users.controllers.implementations;
 
 import com.nexo.manada_solidaria_backend.users.controllers.interfaces.UserController;
+import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
+import com.nexo.manada_solidaria_backend.users.controllers.responses.ProfileResponse;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.UserPostResponse;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import com.nexo.manada_solidaria_backend.users.services.interfaces.UserService;
@@ -18,5 +20,10 @@ public class UserControllerImpl implements UserController {
     @Override
     public List<UserPostResponse> getUserPosts(User user, String type) {
         return userService.getUserPosts(user, type);
+    }
+
+    @Override
+    public ProfileResponse updateProfile(UpdateProfileRequest request, User authenticatedUser) {
+        return userService.updateProfile(request, authenticatedUser);
     }
 }
