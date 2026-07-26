@@ -40,6 +40,13 @@ public class LostPost extends AnimalPost<LostPostStatusHistory> {
         super(name, description, imageUrl, sharePostUrl, phoneNumber, owner, animal, location);
         this.hasOwner = hasOwner;
         this.reward = reward;
+        startInitialStatus();
+    }
+
+    private void startInitialStatus() {
+        getCurrentStatus().finish();
+        StatusLostPost initial = hasOwner ? StatusLostPost.SEARCHING : StatusLostPost.TO_RESCUE;
+        this.statusHistory.add(new LostPostStatusHistory(initial, this));
     }
 
     @Override

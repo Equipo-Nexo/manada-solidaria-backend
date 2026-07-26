@@ -95,7 +95,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.name").value("Perdí a mi perro"))
                 .andExpect(jsonPath("$.description").value("Se escapó en el parque"))
                 .andExpect(jsonPath("$.imageUrl").value("cf-image-123")) // imageId del request → imageUrl
-                .andExpect(jsonPath("$.status").value("CREATED"))
+                .andExpect(jsonPath("$.status").value("SEARCHING"))
                 .andExpect(jsonPath("$.animal.type").value("DOG"))
                 .andExpect(jsonPath("$.animal.size").value("MEDIUM"))
                 .andExpect(jsonPath("$.animal.gender").value("MALE"))
@@ -116,7 +116,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.totalElements").value(1))
                 .andExpect(jsonPath("$.content[0].name").value("Perdí a mi perro"))
                 .andExpect(jsonPath("$.content[0].ownerId").value(adminId.toString()))
-                .andExpect(jsonPath("$.content[0].status").value("CREATED"));
+                .andExpect(jsonPath("$.content[0].status").value("SEARCHING"));
     }
 
     @DisplayName("La response distingue perdido de en la calle sin exponer hasOwner")
@@ -222,6 +222,34 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         assertThat(saved.getCurrentStatus().getFinishedAt()).isNull();
     }
 
+    @DisplayName("POST /animal-post LOST: nace en SEARCHING (con dueno) o TO_RESCUE (en la calle) y cierra el CREATED")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideLostTransitionCases")
+    void create_lost_transitionsToInitialStatus(String testName, String body, String expectedStatus) throws Exception {
+        String responseBody = mockMvc.perform(
+                        post("/animal-posts")
+                                .header("Authorization", "Bearer " + accessToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body)
+                )
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value(expectedStatus))
+                .andReturn().getResponse().getContentAsString();
+
+        UUID id = UUID.fromString(mapper.readTree(responseBody).get("id").asText());
+        LostPost saved = (LostPost) animalPostRepository.findById(id).orElseThrow();
+
+        assertThat(saved.getStatusHistory())
+                .extracting(h -> h.getStatus().name())
+                .containsExactlyInAnyOrder("CREATED", expectedStatus);
+        assertThat(saved.getStatusHistory())
+                .filteredOn(h -> h.getStatus() == StatusLostPost.CREATED)
+                .singleElement()
+                .satisfies(h -> assertThat(h.getFinishedAt()).isNotNull());
+        assertThat(saved.getCurrentStatus().getStatus().name()).isEqualTo(expectedStatus);
+        assertThat(saved.getCurrentStatus().getFinishedAt()).isNull();
+    }
+
     @Test
     @DisplayName("GET /animal-posts devuelve los casos del más nuevo al más viejo")
     void list_returnsNewestFirst() throws Exception {
@@ -245,7 +273,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     void filterTests(String testName, String type, String status, int expectedCount) throws Exception {
         saveLostPost("Lost creado", StatusLostPost.CREATED);
         saveLostPost("Lost buscando", StatusLostPost.SEARCHING);
-        saveLostPost("En la calle", StatusLostPost.SEARCHING, false);
+        saveLostPost("En la calle", StatusLostPost.TO_RESCUE, false);
         saveAdoptionPost("Adopción en búsqueda y tránsito", StatusAdoptionPost.SEARCHING_ADOPT_AND_TRANSIT);
         saveAdoptionPost("Adopción adoptada", StatusAdoptionPost.ADOPTED);
 
