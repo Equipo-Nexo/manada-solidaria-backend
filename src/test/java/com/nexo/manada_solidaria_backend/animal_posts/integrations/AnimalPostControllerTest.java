@@ -222,10 +222,10 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         assertThat(saved.getCurrentStatus().getFinishedAt()).isNull();
     }
 
-    @DisplayName("POST /animal-post LOST: transiciona a SEARCHING y cierra el CREATED inicial")
+    @DisplayName("POST /animal-post LOST: nace en SEARCHING (con dueno) o TO_RESCUE (en la calle) y cierra el CREATED")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource(MOCK_DATA + "provideLostTransitionCases")
-    void create_lost_transitionsToSearching(String testName, String body, String expectedStatus) throws Exception {
+    void create_lost_transitionsToInitialStatus(String testName, String body, String expectedStatus) throws Exception {
         String responseBody = mockMvc.perform(
                         post("/animal-posts")
                                 .header("Authorization", "Bearer " + accessToken)
@@ -273,7 +273,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     void filterTests(String testName, String type, String status, int expectedCount) throws Exception {
         saveLostPost("Lost creado", StatusLostPost.CREATED);
         saveLostPost("Lost buscando", StatusLostPost.SEARCHING);
-        saveLostPost("En la calle", StatusLostPost.SEARCHING, false);
+        saveLostPost("En la calle", StatusLostPost.TO_RESCUE, false);
         saveAdoptionPost("Adopción en búsqueda y tránsito", StatusAdoptionPost.SEARCHING_ADOPT_AND_TRANSIT);
         saveAdoptionPost("Adopción adoptada", StatusAdoptionPost.ADOPTED);
 
