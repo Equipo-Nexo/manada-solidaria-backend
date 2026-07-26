@@ -24,6 +24,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
@@ -398,39 +400,27 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
-    @Test
-    @DisplayName("GET /campaigns/{id} devuelve una campaña de donación")
-    void getCampaign_returnsDonationCampaign() throws Exception {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils#provideGetCampaignCases")
+    @Sql(
+            scripts="/sql/campaigns/get-campaigns.sql",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    void getCampaign(String testName, UUID id, String expectedType, String expectedTitle, Integer expectedItems) throws Exception {
 
-        DonationCampaign campaign = campaignRepository.save(
-                MockCampaignDataUtils.buildDonationModel(admin())
+        ResultActions result = mockMvc.perform(
+                get("/campaigns/" + id)
+                        .header("Authorization", "Bearer " + accessToken)
         );
 
-        mockMvc.perform(get("/campaigns/" + campaign.getId())
-                        .header("Authorization", "Bearer " + accessToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(campaign.getId().toString()))
-                .andExpect(jsonPath("$.type").value("donation"))
-                .andExpect(jsonPath("$.title").value("Título Donación Test"))
-                .andExpect(jsonPath("$.items.length()").value(1));
-    }
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id.toString()))
+                .andExpect(jsonPath("$.type").value(expectedType))
+                .andExpect(jsonPath("$.title").value(expectedTitle));
 
-    @Test
-    @DisplayName("GET /campaigns/{id} devuelve una campaña NEWS")
-    void getCampaign_returnsNewsCampaign() throws Exception {
-
-        NewsCampaign campaign = campaignRepository.save(
-                MockCampaignDataUtils.buildNewsModel(admin())
-        );
-
-        mockMvc.perform(get("/campaigns/" + campaign.getId())
-                        .header("Authorization", "Bearer " + accessToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(campaign.getId().toString()))
-                .andExpect(jsonPath("$.type").value("vaccination"))
-                .andExpect(jsonPath("$.title").value("Título Noticia Test"))
-                .andExpect(jsonPath("$.newsStartDateTime").exists())
-                .andExpect(jsonPath("$.newsEndDateTime").exists());
+        if(expectedItems != null){
+            result.andExpect(jsonPath("$.items.length()").value(expectedItems));
+        }
     }
 
     @Test
