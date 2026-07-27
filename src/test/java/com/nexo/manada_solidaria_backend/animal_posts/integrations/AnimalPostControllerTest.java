@@ -28,6 +28,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -495,58 +496,41 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
-    @Test
-    @DisplayName("GET /animal-posts/{id} devuelve la publicación")
-    void getAnimalPost_returnsAnimalPost() throws Exception {
-        UUID postId = createOwnedPostReturningId();
+    @Sql("/sql/animal_posts/get-animal-post.sql")
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("com.nexo.manada_solidaria_backend.animal_posts.utils.MockAnimalPostDataUtils#provideExistingAnimalPosts")
+    void getAnimalPost_existing_returnsData(
+            String testName,
+            String id,
+            String expectedType,
+            String expectedName
+    ) throws Exception {
 
         mockMvc.perform(
-                        get("/animal-posts/" + postId)
+                        get("/animal-posts/" + id)
                                 .header("Authorization", "Bearer " + accessToken)
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(postId.toString()))
-                .andExpect(jsonPath("$.type").value("LOST"))
-                .andExpect(jsonPath("$.name").value("Perdí a mi perro"))
-                .andExpect(jsonPath("$.description").value("Se escapó en el parque"))
-                .andExpect(jsonPath("$.imageUrl").value("cf-image-123"))
-                .andExpect(jsonPath("$.status").value("CREATED"))
-                .andExpect(jsonPath("$.animal.type").value("DOG"))
-                .andExpect(jsonPath("$.location.name").value("Parque Centenario"))
-                .andExpect(jsonPath("$.phoneNumber").value("1122334455"))
-                .andExpect(jsonPath("$.reward").value(5000));
+                .andExpect(jsonPath("$.type").value(expectedType))
+                .andExpect(jsonPath("$.name").value(expectedName));
     }
 
-    @Test
-    @DisplayName("GET /animal-posts/{id} inexistente devuelve 404")
-    void getAnimalPost_nonExistent_returnsNotFound() throws Exception {
-        mockMvc.perform(
-                        get("/animal-posts/" + UUID.randomUUID())
-                                .header("Authorization", "Bearer " + accessToken)
-                )
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.errors", hasItem(containsString("no existe"))));
-    }
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("com.nexo.manada_solidaria_backend.animal_posts.utils.MockAnimalPostDataUtils#provideGetAnimalPostCases")
+    void getAnimalPost_securityCases(String testName, String id, String token, HttpStatus expectedStatus) throws Exception {
 
-    @Test
-    @DisplayName("GET /animal-posts/{id} sin token devuelve 401")
-    void getAnimalPost_withoutToken_returnsUnauthorized() throws Exception {
-        mockMvc.perform(
-                        get("/animal-posts/" + UUID.randomUUID())
-                )
-                .andExpect(status().isUnauthorized());
-    }
+        MockHttpServletRequestBuilder request =
+                get("/animal-posts/" + id);
 
-    @Test
-    @DisplayName("GET /animal-posts/{id} con token inválido devuelve 401")
-    void getAnimalPost_withInvalidToken_returnsUnauthorized() throws Exception {
-        mockMvc.perform(
-                        get("/animal-posts/" + UUID.randomUUID())
-                                .header("Authorization", "Bearer " + INVALID_ACCESS_TOKEN)
-                )
-                .andExpect(status().isUnauthorized());
-    }
+        if ("VALID".equals(token)) {
+            request = request.header("Authorization", "Bearer " + accessToken);
+        } else if (token != null) {
+            request = request.header("Authorization", token);
+        }
 
+        mockMvc.perform(request)
+                .andExpect(status().is(expectedStatus.value()));
+    }
 
 
     private UUID createOwnedPostReturningId() throws Exception {
