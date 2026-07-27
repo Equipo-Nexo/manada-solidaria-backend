@@ -4,6 +4,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.Animal
 import com.nexo.manada_solidaria_backend.auth.controllers.requests.CreateUserRequest;
 import com.nexo.manada_solidaria_backend.campaigns.services.interfaces.CampaignService;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
+import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.AnimalUserPostResponse;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.CampaignUserPostResponse;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.ProfileResponse;
@@ -76,6 +77,13 @@ public class UserServiceImpl implements UserService {
         authenticatedUser.getProfile().update(request);
         userRepository.save(authenticatedUser);
         return ProfileResponse.from(authenticatedUser.getProfile());
+    }
+
+    @Override
+    public List<Rol> updateRoles(UpdateRolesRequest request, User authenticatedUser) {
+        authenticatedUser.getProfile().updateRoles(request);
+        userRepository.save(authenticatedUser);
+        return authenticatedUser.getProfile().getRoles();
     }
 
     private static boolean requireAllPosts(String type) {
