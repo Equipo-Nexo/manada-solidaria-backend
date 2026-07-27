@@ -42,6 +42,11 @@ public interface AnimalPostController {
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) @ParameterObject Pageable pageable
     );
 
+    @GetMapping("/{animalPostId}")
+    AnimalPostResponse getAnimalPost(
+            @PathVariable UUID animalPostId
+    );
+
     @PutMapping("/{animalPostId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void update(

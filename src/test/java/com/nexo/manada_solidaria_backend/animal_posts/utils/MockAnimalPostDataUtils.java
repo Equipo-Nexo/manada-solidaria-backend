@@ -3,8 +3,10 @@ package com.nexo.manada_solidaria_backend.animal_posts.utils;
 import org.junit.jupiter.params.provider.Arguments;
 import org.springframework.http.HttpStatus;
 
+import java.util.UUID;
 import java.util.stream.Stream;
 
+import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
@@ -238,6 +240,46 @@ public class MockAnimalPostDataUtils {
             }
             """;
 
+    public static Stream<Arguments> provideGetAnimalPostCases(){
+        return Stream.of(
+                Arguments.of(
+                        "Una publicación inexistente devuelve 404",
+                        UUID.randomUUID().toString(),
+                        "VALID",
+                        HttpStatus.NOT_FOUND
+                ),
+                Arguments.of(
+                        "Sin token devuelve 401",
+                        UUID.randomUUID().toString(),
+                        null,
+                        HttpStatus.UNAUTHORIZED
+                ),
+                Arguments.of(
+                        "Con token inválido devuelve 401",
+                        UUID.randomUUID().toString(),
+                        "Bearer " + INVALID_ACCESS_TOKEN,
+                        HttpStatus.UNAUTHORIZED
+                )
+        );
+    }
+
+    public static Stream<Arguments> provideExistingAnimalPosts() {
+        return Stream.of(
+                Arguments.of(
+                        "Obtiene una publicación LOST existente",
+                        "55555555-5555-5555-5555-555555555555",
+                        "LOST",
+                        "Perdí mi perro"
+                ),
+                Arguments.of(
+                        "Obtiene una publicación ADOPTION existente",
+                        "99999999-9999-9999-9999-999999999999",
+                        "ADOPTION",
+                        "Busco hogar para gata"
+                )
+        );
+    }
+
     // Cada uno es un PUT completo al que le falta UN campo obligatorio -> 400. (reward es opcional, se omite.)
     private static final String PUT_WITHOUT_DESCRIPTION = """
             {
@@ -375,4 +417,5 @@ public class MockAnimalPostDataUtils {
                 Arguments.of("type=IN_STREET y status=TO_RESCUE devuelve al de la calle", "IN_STREET", "TO_RESCUE", 1)
         );
     }
+
 }

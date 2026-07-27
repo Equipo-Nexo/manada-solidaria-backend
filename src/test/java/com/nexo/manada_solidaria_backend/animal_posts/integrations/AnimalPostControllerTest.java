@@ -28,6 +28,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -522,6 +523,43 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 )
                 .andExpect(status().isUnauthorized());
     }
+
+    @Sql("/sql/animal_posts/get-animal-post.sql")
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("com.nexo.manada_solidaria_backend.animal_posts.utils.MockAnimalPostDataUtils#provideExistingAnimalPosts")
+    void getAnimalPost_existing_returnsData(
+            String testName,
+            String id,
+            String expectedType,
+            String expectedName
+    ) throws Exception {
+
+        mockMvc.perform(
+                        get("/animal-posts/" + id)
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.type").value(expectedType))
+                .andExpect(jsonPath("$.name").value(expectedName));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("com.nexo.manada_solidaria_backend.animal_posts.utils.MockAnimalPostDataUtils#provideGetAnimalPostCases")
+    void getAnimalPost_securityCases(String testName, String id, String token, HttpStatus expectedStatus) throws Exception {
+
+        MockHttpServletRequestBuilder request =
+                get("/animal-posts/" + id);
+
+        if ("VALID".equals(token)) {
+            request = request.header("Authorization", "Bearer " + accessToken);
+        } else if (token != null) {
+            request = request.header("Authorization", token);
+        }
+
+        mockMvc.perform(request)
+                .andExpect(status().is(expectedStatus.value()));
+    }
+
 
     private UUID createOwnedPostReturningId() throws Exception {
         String responseBody = mockMvc.perform(
