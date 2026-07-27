@@ -14,5 +14,5 @@ public class  R2Properties  {
         String accessKeyId;
         String secretAccessKey;
         String bucket;
-        String publicUr;
+        String publicUrl;
 }

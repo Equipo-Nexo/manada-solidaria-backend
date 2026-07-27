@@ -7,8 +7,6 @@ import org.springframework.http.HttpStatus;
 import java.util.stream.Stream;
 
 public class MockImagesDataUtils {
-    public static CreatePresignedUrlRequest MOCKED_REQUEST = new CreatePresignedUrlRequest("image/jpg", 5000);
-
     private static Stream<Arguments> provideGetPresignedUrlTestCases() {
         return Stream.of(
                 Arguments.of("Request is OK", new CreatePresignedUrlRequest("image/jpg", 5000), HttpStatus.OK),
