@@ -17,6 +17,8 @@ public interface CampaignService {
 
     Page<CampaignResponse> getCampaigns(CampaignCategoryFilter category, Pageable pageable);
 
+    CampaignResponse getCampaign(UUID campaignId);
+
     Page<CampaignResponse> getFundraisingCampaigns(Pageable pageable);
 
     void update(UUID campaignId, UpdateCampaignRequest request, User authenticatedUser);

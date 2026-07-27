@@ -30,6 +30,11 @@ public class CampaignControllerImpl implements CampaignController {
     }
 
     @Override
+    public CampaignResponse getCampaign(UUID campaignId) {
+        return campaignService.getCampaign(campaignId);
+    }
+
+    @Override
     public Page<CampaignResponse> getFundraisingCampaigns(Pageable pageable) {
         return campaignService.getFundraisingCampaigns(pageable);
     }

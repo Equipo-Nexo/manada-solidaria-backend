@@ -24,6 +24,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
@@ -395,6 +397,57 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                         .content(toJson(
                                 MockCampaignDataUtils.buildDonationUpdateRequest()
                         )))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils#provideGetCampaignCases")
+    @Sql(
+            scripts="/sql/campaigns/get-campaigns.sql",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    void getCampaign(String testName, UUID id, String expectedType, String expectedTitle, Integer expectedItems) throws Exception {
+
+        ResultActions result = mockMvc.perform(
+                get("/campaigns/" + id)
+                        .header("Authorization", "Bearer " + accessToken)
+        );
+
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id.toString()))
+                .andExpect(jsonPath("$.type").value(expectedType))
+                .andExpect(jsonPath("$.title").value(expectedTitle));
+
+        if(expectedItems != null){
+            result.andExpect(jsonPath("$.items.length()").value(expectedItems));
+        }
+    }
+
+    @Test
+    @DisplayName("GET /campaigns/{id} inexistente devuelve 404")
+    void getCampaign_nonExisting_returnsNotFound() throws Exception {
+
+        mockMvc.perform(get("/campaigns/" + UUID.randomUUID())
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errors",
+                        hasItem(containsString("no existe"))));
+    }
+
+    @Test
+    @DisplayName("GET /campaigns/{id} sin token devuelve 401")
+    void getCampaign_withoutToken_returnsUnauthorized() throws Exception {
+
+        mockMvc.perform(get("/campaigns/" + UUID.randomUUID()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("GET /campaigns/{id} con token inválido devuelve 401")
+    void getCampaign_withInvalidToken_returnsUnauthorized() throws Exception {
+
+        mockMvc.perform(get("/campaigns/" + UUID.randomUUID())
+                        .header("Authorization", "Bearer " + INVALID_ACCESS_TOKEN))
                 .andExpect(status().isUnauthorized());
     }
 

@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 public class MockCampaignDataUtils {
@@ -501,6 +502,37 @@ public class MockCampaignDataUtils {
                 LocalDateTime.of(2026, 9, 1, 10, 0),
                 LocalDateTime.of(2026, 9, 5, 18, 0),
                 NewsCampaignCategory.OTHER
+        );
+    }
+
+    public static Stream<Arguments> provideGetCampaignCases() {
+
+        return Stream.of(
+
+                Arguments.of(
+                        "Donation Campaign",
+                        UUID.fromString("40000000-0000-0000-0000-000000000001"),
+                        "donation",
+                        "Título Donación Test",
+                        1
+                ),
+
+                Arguments.of(
+                        "News Campaign",
+                        UUID.fromString("40000000-0000-0000-0000-000000000002"),
+                        "vaccination",
+                        "Título Noticia Test",
+                        null
+                ),
+
+                Arguments.of(
+                        "Fundraising Campaign",
+                        UUID.fromString("40000000-0000-0000-0000-000000000003"),
+                        "fundraising",
+                        "Título Fundraising Test",
+                        null
+                )
+
         );
     }
 

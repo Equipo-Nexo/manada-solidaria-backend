@@ -52,6 +52,14 @@ public class CampaignServiceImpl implements CampaignService {
 
     @Override
     @Transactional(readOnly = true)
+    public CampaignResponse getCampaign(UUID campaignId) {
+        Campaign campaign = getCampaignOrThrowException(campaignId);
+
+        return CampaignResponse.from(campaign);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Page<CampaignResponse> getFundraisingCampaigns(Pageable pageable) {
         return toResponse(campaignRepository.findFundraisingCampaigns(pageable));
     }
@@ -96,13 +104,13 @@ public class CampaignServiceImpl implements CampaignService {
     }
 
     private Campaign getOwnedCampaignOrThrow(UUID campaignId, User authenticatedUser) {
-        Campaign campaign = getCampaignOrThrow(campaignId);
+        Campaign campaign = getCampaignOrThrowException(campaignId);
 
         validateOwner(campaign, authenticatedUser);
         return campaign;
     }
 
-    private Campaign getCampaignOrThrow(UUID campaignId) {
+    private Campaign getCampaignOrThrowException(UUID campaignId) {
         return campaignRepository.findById(campaignId)
                 .orElseThrow(() ->
                         new ResponseStatusException(

@@ -15,7 +15,7 @@ import lombok.Setter;
 public class FundraisingCampaignStatusHistory extends StatusHistory<CampaignStatus> {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "donation_campaign_id", nullable = false)
+    @JoinColumn(name = "fundraising_campaign_id", nullable = false)
     private FundraisingCampaign campaign;
 
     public FundraisingCampaignStatusHistory(
