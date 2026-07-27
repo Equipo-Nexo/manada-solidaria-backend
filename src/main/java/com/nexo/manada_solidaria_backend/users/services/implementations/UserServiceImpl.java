@@ -3,8 +3,10 @@ package com.nexo.manada_solidaria_backend.users.services.implementations;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
 import com.nexo.manada_solidaria_backend.auth.controllers.requests.CreateUserRequest;
 import com.nexo.manada_solidaria_backend.campaigns.services.interfaces.CampaignService;
+import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.AnimalUserPostResponse;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.CampaignUserPostResponse;
+import com.nexo.manada_solidaria_backend.users.controllers.responses.ProfileResponse;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.UserPostResponse;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.Profile;
@@ -67,6 +69,13 @@ public class UserServiceImpl implements UserService {
         return (requireAllPosts(type) ? getAllUserPosts(user) : getUserPostsByType(user, type))
                 .sorted(Comparator.comparingLong(UserPostResponse::getCreatedSince))
                 .toList();
+    }
+
+    @Override
+    public ProfileResponse updateProfile(UpdateProfileRequest request, User authenticatedUser) {
+        authenticatedUser.getProfile().update(request);
+        userRepository.save(authenticatedUser);
+        return ProfileResponse.from(authenticatedUser.getProfile());
     }
 
     private static boolean requireAllPosts(String type) {
