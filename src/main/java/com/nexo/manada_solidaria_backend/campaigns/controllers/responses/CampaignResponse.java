@@ -5,6 +5,7 @@ import com.nexo.manada_solidaria_backend.campaigns.data.models.Campaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationCampaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.FundraisingCampaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.NewsCampaign;
+import com.nexo.manada_solidaria_backend.locations.controllers.responses.LocationResponse;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 
@@ -123,25 +124,4 @@ public record CampaignResponse(
             boolean isCompleted,
             String category
     ) {}
-
-    public record LocationResponse(
-            UUID id,
-            String name,
-            String address,
-            Integer number,
-            Double latitude,
-            Double longitude
-    ) {
-
-        static LocationResponse from(Location location) {
-            return new LocationResponse(
-                    location.getId(),
-                    location.getName(),
-                    location.getAddress(),
-                    location.getNumber(),
-                    location.getLatitude(),
-                    location.getLongitude()
-            );
-        }
-    }
 }

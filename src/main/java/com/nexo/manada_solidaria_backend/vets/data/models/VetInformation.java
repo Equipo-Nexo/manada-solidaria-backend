@@ -1,15 +1,20 @@
-package com.nexo.manada_solidaria_backend.vets.models.data;
+package com.nexo.manada_solidaria_backend.vets.data.models;
 
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 import java.util.UUID;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class VetInformation {
     private String name;
     private String phone;
@@ -17,16 +22,16 @@ public class VetInformation {
     private String profilePictureUrl;
     private String vetPageUrl;
     private String description;
-    @OneToMany(mappedBy = "vet")
-    private List<Schedule> caledar;
+    @OneToMany(mappedBy = "vet", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Schedule> calendar;
     @ManyToOne
-    private final Location location;
+    private Location location;
     @Id
     private UUID id = UUID.randomUUID();
 
-    public VetInformation(Location location, List<Schedule> caledar, String description, String vetPageUrl, String profilePictureUrl, String email, String phone, String name) {
+    public VetInformation(Location location, List<Schedule> calendar, String description, String vetPageUrl, String profilePictureUrl, String email, String phone, String name) {
         this.location = location;
-        this.caledar = caledar;
+        this.calendar = calendar;
         this.description = description;
         this.vetPageUrl = vetPageUrl;
         this.profilePictureUrl = profilePictureUrl;
