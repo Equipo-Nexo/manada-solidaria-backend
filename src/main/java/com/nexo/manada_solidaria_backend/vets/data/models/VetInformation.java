@@ -24,7 +24,7 @@ public class VetInformation {
     private String description;
     @OneToMany(mappedBy = "vet", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Schedule> calendar;
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     private Location location;
     @Id
     private UUID id = UUID.randomUUID();
