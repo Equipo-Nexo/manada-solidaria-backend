@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.campaigns.services.implementations;
 
 import com.nexo.manada_solidaria_backend.campaigns.components.CampaignFactory;
+import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CampaignType;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.responses.CampaignResponse;
@@ -69,6 +70,7 @@ public class CampaignServiceImpl implements CampaignService {
     public void update(UUID campaignId, UpdateCampaignRequest request, User authenticatedUser) {
         Campaign campaign = getOwnedCampaignOrThrow(campaignId, authenticatedUser);
 
+        validateCampaignType(campaign, request.type());
         campaign.update(request);
         campaignRepository.save(campaign);
     }
@@ -125,6 +127,15 @@ public class CampaignServiceImpl implements CampaignService {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
                     "Solo el dueño puede editar la campaña"
+            );
+        }
+    }
+
+    private void validateCampaignType(Campaign<?> campaign, CampaignType requestType) {
+        if (!campaign.getCampaignType().equals(requestType)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "No se puede modificar el tipo de una campaña existente"
             );
         }
     }

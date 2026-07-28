@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.campaigns.data.models;
 
+import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CampaignType;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.CampaignStatus;
 import com.nexo.manada_solidaria_backend.common.utils.StatusHistoryUtils;
@@ -76,5 +77,10 @@ public class FundraisingCampaign extends Campaign<FundraisingCampaignStatusHisto
     public boolean isFinished() {
         CampaignStatus status = getCurrentStatus().getStatus();
         return status == CampaignStatus.FINISHED || status == CampaignStatus.COMPLETED;
+    }
+
+    @Override
+    public CampaignType getCampaignType() {
+        return CampaignType.FUNDRAISING;
     }
 }

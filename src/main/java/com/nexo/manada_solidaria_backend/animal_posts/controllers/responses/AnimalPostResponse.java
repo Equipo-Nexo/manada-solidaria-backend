@@ -8,6 +8,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.Animal;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
+import com.nexo.manada_solidaria_backend.locations.controllers.responses.LocationResponse;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 
@@ -71,23 +72,4 @@ public record AnimalPostResponse(
         }
     }
 
-    public record LocationResponse(
-            UUID id,
-            String name,
-            String address,
-            int number,
-            double latitude,
-            double longitude
-    ) {
-        static LocationResponse from(Location location) {
-            return new LocationResponse(
-                    location.getId(),
-                    location.getName(),
-                    location.getAddress(),
-                    location.getNumber(),
-                    location.getLatitude(),
-                    location.getLongitude()
-            );
-        }
-    }
 }

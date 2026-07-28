@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.locations.controllers.requests;
 
+import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import jakarta.validation.constraints.NotBlank;
 
 public record UpdateLocationRequest(
@@ -16,4 +17,14 @@ public record UpdateLocationRequest(
 
         double longitude
 ) {
+
+        public Location toDomain() {
+                return new Location(
+                        this.name,
+                        this.address,
+                        this.number,
+                        this.latitude,
+                        this.longitude
+                );
+        }
 }
