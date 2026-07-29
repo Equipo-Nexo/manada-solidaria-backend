@@ -1,6 +1,6 @@
 package com.nexo.manada_solidaria_backend.vets.controllers.responses;
 
-import com.nexo.manada_solidaria_backend.locations.controllers.responses.LocationResponse;
+import com.nexo.manada_solidaria_backend.common.controllers.responses.LocationResponse;
 import com.nexo.manada_solidaria_backend.vets.data.models.Schedule;
 import com.nexo.manada_solidaria_backend.vets.data.models.VetInformation;
 

@@ -1,7 +1,13 @@
 package com.nexo.manada_solidaria_backend.vets.utils;
 
+import com.nexo.manada_solidaria_backend.vets.controllers.requests.CreateVetInformationRequest;
+import com.nexo.manada_solidaria_backend.vets.controllers.requests.CreateVetInformationRequest.LocationRequest;
+import com.nexo.manada_solidaria_backend.vets.controllers.requests.CreateVetInformationRequest.ScheduleRequest;
 import org.junit.jupiter.params.provider.Arguments;
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.is;
@@ -9,93 +15,80 @@ import static org.hamcrest.Matchers.notNullValue;
 
 public class MockVetInformationDataUtils {
 
-    public static final String CREATE_VET_VALID = """
-            {
-              "name": "Veterinaria San Roque",
-              "phone": "3514567890",
-              "email": "contacto@sanroque.com",
-              "profilePictureUrl": "vet-profile-123",
-              "vetPageUrl": "https://veterinariasanroque.com",
-              "description": "Atención clínica, vacunación y cirugías.",
-              "location": {
-                "name": "Sede Central",
-                "address": "Av. Libertador",
-                "number": 1234,
-                "latitude": -32.4075,
-                "longitude": -63.2402
-              },
-              "calendar": [
-                {
-                  "dayOfWeek": "MONDAY",
-                  "openingTime": "08:00:00",
-                  "closingTime": "12:30:00"
-                },
-                {
-                  "dayOfWeek": "TUESDAY",
-                  "openingTime": "08:00:00",
-                  "closingTime": "18:00:00"
-                }
-              ]
-            }
-            """;
+    public static final CreateVetInformationRequest CREATE_VET_VALID = new CreateVetInformationRequest(
+            "Veterinaria San Roque",
+            "3514567890",
+            "contacto@sanroque.com",
+            "vet-profile-123",
+            "https://veterinariasanroque.com",
+            "Atención clínica, vacunación y cirugías.",
+            new LocationRequest(
+                    "Sede Central",
+                    "Av. Libertador",
+                    1234,
+                    -32.4075,
+                    -63.2402
+            ),
+            List.of(
+                    new ScheduleRequest(DayOfWeek.MONDAY, LocalTime.of(8, 0), LocalTime.of(12, 30)),
+                    new ScheduleRequest(DayOfWeek.TUESDAY, LocalTime.of(8, 0), LocalTime.of(18, 0))
+            )
+    );
 
-    private static final String CREATE_VET_WITHOUT_NAME = """
-            {
-              "phone": "3514567890",
-              "email": "contacto@sanroque.com",
-              "location": {
-                "name": "Sede Central",
-                "latitude": -32.4075,
-                "longitude": -63.2402
-              }
-            }
-            """;
+    private static final CreateVetInformationRequest CREATE_VET_WITHOUT_NAME = new CreateVetInformationRequest(
+            null,
+            "3514567890",
+            "contacto@sanroque.com",
+            null,
+            null,
+            null,
+            new LocationRequest("Sede Central", null, null, -32.4075, -63.2402),
+            null
+    );
 
-    private static final String CREATE_VET_INVALID_PHONE = """
-            {
-              "name": "Veterinaria San Roque",
-              "phone": "123",
-              "email": "contacto@sanroque.com",
-              "location": {
-                "name": "Sede Central",
-                "latitude": -32.4075,
-                "longitude": -63.2402
-              }
-            }
-            """;
+    private static final CreateVetInformationRequest CREATE_VET_INVALID_PHONE = new CreateVetInformationRequest(
+            "Veterinaria San Roque",
+            "123",
+            "contacto@sanroque.com",
+            null,
+            null,
+            null,
+            new LocationRequest("Sede Central", null, null, -32.4075, -63.2402),
+            null
+    );
 
-    private static final String CREATE_VET_INVALID_EMAIL = """
-            {
-              "name": "Veterinaria San Roque",
-              "phone": "3514567890",
-              "email": "email-invalido",
-              "location": {
-                "name": "Sede Central",
-                "latitude": -32.4075,
-                "longitude": -63.2402
-              }
-            }
-            """;
+    private static final CreateVetInformationRequest CREATE_VET_INVALID_EMAIL = new CreateVetInformationRequest(
+            "Veterinaria San Roque",
+            "3514567890",
+            "email-invalido",
+            null,
+            null,
+            null,
+            new LocationRequest("Sede Central", null, null, -32.4075, -63.2402),
+            null
+    );
 
-    private static final String CREATE_VET_WITHOUT_LOCATION = """
-            {
-              "name": "Veterinaria San Roque",
-              "phone": "3514567890",
-              "email": "contacto@sanroque.com"
-            }
-            """;
+    private static final CreateVetInformationRequest CREATE_VET_WITHOUT_LOCATION = new CreateVetInformationRequest(
+            "Veterinaria San Roque",
+            "3514567890",
+            "contacto@sanroque.com",
+            null,
+            null,
+            null,
+            null,
+            null
+    );
 
-    private static final String CREATE_VET_LOCATION_MISSING_NAME = """
-            {
-              "name": "Veterinaria San Roque",
-              "phone": "3514567890",
-              "email": "contacto@sanroque.com",
-              "location": {
-                "latitude": -32.4075,
-                "longitude": -63.2402
-              }
-            }
-            """;
+    private static final CreateVetInformationRequest CREATE_VET_LOCATION_MISSING_NAME = new CreateVetInformationRequest(
+            "Veterinaria San Roque",
+            "3514567890",
+            "contacto@sanroque.com",
+            null,
+            null,
+            null,
+            new LocationRequest(null, null, null, -32.4075, -63.2402),
+            null
+    );
 
     private static Stream<Arguments> provideCreateVetInformationResponseCases() {
         return Stream.of(

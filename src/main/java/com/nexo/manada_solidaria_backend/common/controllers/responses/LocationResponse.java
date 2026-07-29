@@ -1,4 +1,4 @@
-package com.nexo.manada_solidaria_backend.locations.controllers.responses;
+package com.nexo.manada_solidaria_backend.common.controllers.responses;
 
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 

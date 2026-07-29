@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 
-@RequestMapping("/vets-information")
+@RequestMapping("/vets")
 public interface VetInformationController {
 
     @PostMapping

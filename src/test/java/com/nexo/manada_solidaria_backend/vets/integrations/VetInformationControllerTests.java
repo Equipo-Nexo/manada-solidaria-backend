@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.vets.integrations;
 
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthenticatedIntegrationTest;
+import com.nexo.manada_solidaria_backend.vets.controllers.requests.CreateVetInformationRequest; // <-- 1. Importación necesaria
 import com.nexo.manada_solidaria_backend.vets.data.models.VetInformation;
 import com.nexo.manada_solidaria_backend.vets.data.repositories.VetInformationRepository;
 import com.nexo.manada_solidaria_backend.vets.utils.MockVetInformationDataUtils;
@@ -24,22 +25,22 @@ public class VetInformationControllerTests extends BaseAuthenticatedIntegrationT
     @Autowired
     private VetInformationRepository vetInformationRepository;
 
-    @DisplayName("POST /vets-information refleja en la response los datos enviados")
+    @DisplayName("POST /vets refleja en la response los datos enviados")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource("com.nexo.manada_solidaria_backend.vets.utils.MockVetInformationDataUtils#provideCreateVetInformationResponseCases")
     void createVetInformation_returnsCreatedData(
             String testName,
-            String body,
+            CreateVetInformationRequest request,
             String jsonPathExpression,
             Matcher<?> expected
     ) throws Exception {
-        postVetInformation(body)
+        postVetInformation(request)
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath(jsonPathExpression, expected));
     }
 
     @Test
-    @DisplayName("POST /vets-information persiste la información y sus relaciones (Location y Calendar)")
+    @DisplayName("POST /vets persiste la información y sus relaciones (Location y Calendar)")
     void createVetInformation_persistsEntity() throws Exception {
         postVetInformation(MockVetInformationDataUtils.CREATE_VET_VALID)
                 .andExpect(status().isCreated());
@@ -51,50 +52,51 @@ public class VetInformationControllerTests extends BaseAuthenticatedIntegrationT
         assertThat(savedVet.getPhone()).isEqualTo("3514567890");
         assertThat(savedVet.getEmail()).isEqualTo("contacto@sanroque.com");
 
-        // Verifica que la Location en cascada se guardó
         assertThat(savedVet.getLocation()).isNotNull();
         assertThat(savedVet.getLocation().getName()).isEqualTo("Sede Central");
 
-        // Verifica que el Calendar en cascada se guardó
         assertThat(savedVet.getCalendar()).hasSize(2);
     }
 
-    @DisplayName("POST /vets-information con payload inválido devuelve 400")
+    @DisplayName("POST /vets con payload inválido devuelve 400")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource("com.nexo.manada_solidaria_backend.vets.utils.MockVetInformationDataUtils#provideCreateVetInformationInvalidCases")
-    void createVetInformation_invalidPayload_returnsBadRequest(String testName, String body) throws Exception {
-        postVetInformation(body).andExpect(status().isBadRequest());
+    void createVetInformation_invalidPayload_returnsBadRequest(
+            String testName,
+            CreateVetInformationRequest request
+    ) throws Exception {
+        postVetInformation(request).andExpect(status().isBadRequest());
     }
 
     @Test
-    @DisplayName("POST /vets-information sin token devuelve 401")
+    @DisplayName("POST /vets sin token devuelve 401")
     void createVetInformation_withoutToken_returnsUnauthorized() throws Exception {
         mockMvc.perform(
-                        post("/vets-information")
+                        post("/vets")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(MockVetInformationDataUtils.CREATE_VET_VALID)
+                                .content(toJson(MockVetInformationDataUtils.CREATE_VET_VALID))
                 )
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
-    @DisplayName("POST /vets-information con token inválido devuelve 401")
+    @DisplayName("POST /vets con token inválido devuelve 401")
     void createVetInformation_withInvalidToken_returnsUnauthorized() throws Exception {
         mockMvc.perform(
-                        post("/vets-information")
+                        post("/vets")
                                 .header("Authorization", "Bearer " + INVALID_ACCESS_TOKEN)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(MockVetInformationDataUtils.CREATE_VET_VALID)
+                                .content(toJson(MockVetInformationDataUtils.CREATE_VET_VALID))
                 )
                 .andExpect(status().isUnauthorized());
     }
 
-    private ResultActions postVetInformation(String body) throws Exception {
+    private ResultActions postVetInformation(CreateVetInformationRequest request) throws Exception {
         return mockMvc.perform(
-                post("/vets-information")
+                post("/vets")
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(body)
+                        .content(toJson(request))
         );
     }
 }
