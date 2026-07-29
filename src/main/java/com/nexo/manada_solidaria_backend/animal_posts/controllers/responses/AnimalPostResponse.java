@@ -8,8 +8,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.Animal;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
-import com.nexo.manada_solidaria_backend.locations.controllers.responses.LocationResponse;
-import com.nexo.manada_solidaria_backend.locations.data.models.Location;
+import com.nexo.manada_solidaria_backend.common.controllers.responses.LocationResponse;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 
 import java.math.BigDecimal;
