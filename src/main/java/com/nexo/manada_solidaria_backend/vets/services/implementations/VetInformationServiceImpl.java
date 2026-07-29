@@ -27,6 +27,14 @@ public class VetInformationServiceImpl implements VetInformationService {
         return new VetInformationResponse(vet);
     }
 
+    @Override
+    public List<VetInformationResponse> getAll() {
+        return repository.findAllByOrderByNameAsc()
+                .stream()
+                .map(VetInformationResponse::new)
+                .toList();
+    }
+
     private VetInformation buildVetInformation(CreateVetInformationRequest request) {
 
         Location location = new Location(

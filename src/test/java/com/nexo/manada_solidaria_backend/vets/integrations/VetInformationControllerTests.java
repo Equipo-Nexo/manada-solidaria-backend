@@ -12,10 +12,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -87,6 +90,54 @@ public class VetInformationControllerTests extends BaseAuthenticatedIntegrationT
                                 .header("Authorization", "Bearer " + INVALID_ACCESS_TOKEN)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(toJson(MockVetInformationDataUtils.CREATE_VET_VALID))
+                )
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("GET /vets devuelve todas las veterinarias ordenadas alfabéticamente")
+    @Sql(
+            scripts = "/sql/vets/create-vets.sql",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    void getVetInformation_returnsAllVetsOrderedByName() throws Exception {
+        mockMvc.perform(
+                        get("/vets")
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(3)))
+                .andExpect(jsonPath("$[0].name").value("Veterinaria Animalia"))
+                .andExpect(jsonPath("$[1].name").value("Veterinaria El Sol"))
+                .andExpect(jsonPath("$[2].name").value("Veterinaria San Roque"));
+    }
+
+    @Test
+    @DisplayName("GET /vets sin veterinarias devuelve una lista vacía")
+    void getVetInformation_withoutVets_returnsEmptyList() throws Exception {
+        mockMvc.perform(
+                        get("/vets")
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    @Test
+    @DisplayName("GET /vets sin token devuelve 401")
+    void getVetInformation_withoutToken_returnsUnauthorized() throws Exception {
+        mockMvc.perform(
+                        get("/vets")
+                )
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("GET /vets con token inválido devuelve 401")
+    void getVetInformation_withInvalidToken_returnsUnauthorized() throws Exception {
+        mockMvc.perform(
+                        get("/vets")
+                                .header("Authorization", "Bearer " + INVALID_ACCESS_TOKEN)
                 )
                 .andExpect(status().isUnauthorized());
     }

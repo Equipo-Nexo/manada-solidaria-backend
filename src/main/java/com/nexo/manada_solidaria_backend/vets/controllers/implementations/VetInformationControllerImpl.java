@@ -7,6 +7,8 @@ import com.nexo.manada_solidaria_backend.vets.services.interfaces.VetInformation
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @AllArgsConstructor
 public class VetInformationControllerImpl implements VetInformationController {
@@ -16,5 +18,10 @@ public class VetInformationControllerImpl implements VetInformationController {
     @Override
     public VetInformationResponse create(CreateVetInformationRequest request) {
         return service.create(request);
+    }
+
+    @Override
+    public List<VetInformationResponse> getAll() {
+        return service.getAll();
     }
 }
