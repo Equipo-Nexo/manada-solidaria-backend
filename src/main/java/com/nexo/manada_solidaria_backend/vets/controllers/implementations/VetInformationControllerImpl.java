@@ -7,6 +7,8 @@ import com.nexo.manada_solidaria_backend.vets.services.interfaces.VetInformation
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.UUID;
+
 @RestController
 @AllArgsConstructor
 public class VetInformationControllerImpl implements VetInformationController {
@@ -17,4 +19,10 @@ public class VetInformationControllerImpl implements VetInformationController {
     public VetInformationResponse create(CreateVetInformationRequest request) {
         return service.create(request);
     }
+
+    @Override
+    public VetInformationResponse getById(UUID vetId) {
+        return service.getById(vetId);
+    }
+
 }

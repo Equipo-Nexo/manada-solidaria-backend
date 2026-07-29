@@ -12,10 +12,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -87,6 +89,55 @@ public class VetInformationControllerTests extends BaseAuthenticatedIntegrationT
                                 .header("Authorization", "Bearer " + INVALID_ACCESS_TOKEN)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(toJson(MockVetInformationDataUtils.CREATE_VET_VALID))
+                )
+                .andExpect(status().isUnauthorized());
+    }
+
+    @DisplayName("GET /vets/{vetId} devuelve los datos de la veterinaria")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource("com.nexo.manada_solidaria_backend.vets.utils.MockVetInformationDataUtils#provideGetVetInformationResponseCases")
+    @Sql(
+            scripts = "/sql/vets/create-vets.sql",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    void getVetInformationById_returnsVetInformation(
+            String testName,
+            String jsonPathExpression,
+            Matcher<?> expected
+    ) throws Exception {
+        mockMvc.perform(
+                        get("/vets/44444444-4444-4444-4444-444444444444")
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(jsonPathExpression, expected));
+    }
+
+    @Test
+    @DisplayName("GET /vets/{vetId} con ID inexistente devuelve 404")
+    void getVetInformationById_withNonExistingId_returnsNotFound() throws Exception {
+        mockMvc.perform(
+                        get("/vets/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("GET /vets/{vetId} sin token devuelve 401")
+    void getVetInformationById_withoutToken_returnsUnauthorized() throws Exception {
+        mockMvc.perform(
+                        get("/vets/44444444-4444-4444-4444-444444444444")
+                )
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("GET /vets/{vetId} con token inválido devuelve 401")
+    void getVetInformationById_withInvalidToken_returnsUnauthorized() throws Exception {
+        mockMvc.perform(
+                        get("/vets/44444444-4444-4444-4444-444444444444")
+                                .header("Authorization", "Bearer " + INVALID_ACCESS_TOKEN)
                 )
                 .andExpect(status().isUnauthorized());
     }
