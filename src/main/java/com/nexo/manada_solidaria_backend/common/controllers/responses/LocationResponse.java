@@ -2,6 +2,7 @@ package com.nexo.manada_solidaria_backend.common.controllers.responses;
 
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public record LocationResponse(
@@ -14,14 +15,16 @@ public record LocationResponse(
 ) {
 
     public static LocationResponse from(Location location) {
-        return new LocationResponse(
-                location.getId(),
-                location.getName(),
-                location.getAddress(),
-                location.getNumber(),
-                location.getLatitude(),
-                location.getLongitude()
-        );
+        return Optional.ofNullable(location)
+                .map(loc -> new LocationResponse(
+                        loc.getId(),
+                        loc.getName(),
+                        loc.getAddress(),
+                        loc.getNumber(),
+                        loc.getLatitude(),
+                        loc.getLongitude()
+                ))
+                .orElse(null);
     }
 
 }

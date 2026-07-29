@@ -2,20 +2,22 @@ package com.nexo.manada_solidaria_backend.locations.controllers.requests;
 
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public record UpdateLocationRequest(
 
         @NotBlank(message = "El nombre de la ubicación es obligatorio")
         String name,
 
-        @NotBlank(message = "La dirección es obligatoria")
         String address,
 
-        int number,
+        Integer number,
 
-        double latitude,
+        @NotNull(message = "La latitud es obligatoria")
+        Double latitude,
 
-        double longitude
+        @NotNull(message = "La longitud es obligatoria")
+        Double longitude
 ) {
 
         public Location toDomain() {
