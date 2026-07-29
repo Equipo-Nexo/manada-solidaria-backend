@@ -1,6 +1,8 @@
 package com.nexo.manada_solidaria_backend.users.integrations;
 
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthenticatedIntegrationTest;
+import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
+import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.Profile;
 import com.nexo.manada_solidaria_backend.users.data.repositories.UserRepository;
 import com.nexo.manada_solidaria_backend.users.utils.MockUserDataUtils;
@@ -14,22 +16,30 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.util.List;
+
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
 
+    private static final String MOCK_DATA =
+            "com.nexo.manada_solidaria_backend.users.utils.MockUserDataUtils#";
+
     @Autowired
     private UserRepository userRepository;
 
     @DisplayName("Get user posts")
     @ParameterizedTest(name = "{index} - {0}")
-    @MethodSource("com.nexo.manada_solidaria_backend.users.utils.MockUserDataUtils#provideGetUserPostsTestCases")
+    @MethodSource(MOCK_DATA + "provideGetUserPostsTestCases")
     @Sql(
             scripts = {
                     "/sql/users/create-campaigns.sql",
@@ -72,7 +82,7 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
 
     @DisplayName("PUT /users/profile refleja en la response los datos enviados")
     @ParameterizedTest(name = "{index} - {0}")
-    @MethodSource("com.nexo.manada_solidaria_backend.users.utils.MockUserDataUtils#provideUpdateProfileResponseCases")
+    @MethodSource(MOCK_DATA + "provideUpdateProfileResponseCases")
     void updateProfile_returnsUpdatedProfile(
             String testName,
             String body,
@@ -97,7 +107,7 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
 
     @DisplayName("PUT /users/profile con payload invalido devuelve 400")
     @ParameterizedTest(name = "{index} - {0}")
-    @MethodSource("com.nexo.manada_solidaria_backend.users.utils.MockUserDataUtils#provideUpdateProfileInvalidCases")
+    @MethodSource(MOCK_DATA + "provideUpdateProfileInvalidCases")
     void updateProfile_invalidPayload_returnsBadRequest(String testName, String body) throws Exception {
         putProfile(body).andExpect(status().isBadRequest());
     }
@@ -125,6 +135,55 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @DisplayName("PATCH /users/roles — COMMUNITY se agrega solo si no viene RESCUER")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideUpdateRolesCases")
+    void updateRolesTests(String testName, UpdateRolesRequest request, List<Rol> expectedRoles) throws Exception {
+        patchRoles(toJson(request))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", containsInAnyOrder(expectedRoles.stream().map(Rol::name).toArray())));
+
+        assertThat(rolesOfAdmin()).containsExactlyInAnyOrderElementsOf(expectedRoles);
+    }
+
+    @DisplayName("PATCH /users/roles con un rol no editable (VET/COMMUNITY) devuelve 400 con los valores permitidos")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideNonEditableRoleCases")
+    void updateRoles_nonEditableRole_returnsBadRequest(String testName, String body) throws Exception {
+        patchRoles(body)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0]", containsString("RESCUER")));
+    }
+
+    @Test
+    @DisplayName("PATCH /users/roles sin la clave roles devuelve 400")
+    void updateRoles_missingRolesKey_returnsBadRequest() throws Exception {
+        patchRoles(MockUserDataUtils.ROLES_MISSING_KEY).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("PATCH /users/roles sin token devuelve 401")
+    void updateRoles_withoutToken_returnsUnauthorized() throws Exception {
+        mockMvc.perform(
+                        patch("/users/roles")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(toJson(MockUserDataUtils.ROLES_WITH_RESCUER))
+                )
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("PATCH /users/roles con token invalido devuelve 401")
+    void updateRoles_withInvalidToken_returnsUnauthorized() throws Exception {
+        mockMvc.perform(
+                        patch("/users/roles")
+                                .header("Authorization", "Bearer " + INVALID_ACCESS_TOKEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(toJson(MockUserDataUtils.ROLES_WITH_RESCUER))
+                )
+                .andExpect(status().isUnauthorized());
+    }
+
     private ResultActions putProfile(String body) throws Exception {
         return mockMvc.perform(
                 put("/users/profile")
@@ -132,5 +191,18 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body)
         );
+    }
+
+    private ResultActions patchRoles(String body) throws Exception {
+        return mockMvc.perform(
+                patch("/users/roles")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body)
+        );
+    }
+
+    private List<Rol> rolesOfAdmin() {
+        return userRepository.findByUsername("admin").orElseThrow().getProfile().getRoles();
     }
 }

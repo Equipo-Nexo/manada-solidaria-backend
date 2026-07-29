@@ -1,7 +1,11 @@
 package com.nexo.manada_solidaria_backend.users.utils;
 
+import com.nexo.manada_solidaria_backend.users.controllers.requests.EditableRol;
+import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
+import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import org.junit.jupiter.params.provider.Arguments;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.is;
@@ -54,6 +58,27 @@ public class MockUserDataUtils {
             }
             """;
 
+    public static final UpdateRolesRequest ROLES_WITH_RESCUER =
+            new UpdateRolesRequest(List.of(EditableRol.RESCUER, EditableRol.TRANSITIONAL_HOME));
+
+    private static final UpdateRolesRequest ROLES_WITHOUT_RESCUER =
+            new UpdateRolesRequest(List.of(EditableRol.TRANSITIONAL_HOME));
+
+    private static final UpdateRolesRequest ROLES_EMPTY =
+            new UpdateRolesRequest(List.of());
+
+    private static final String ROLES_WITH_VET = """
+            { "roles": ["VET"] }
+            """;
+
+    private static final String ROLES_WITH_COMMUNITY = """
+            { "roles": ["COMMUNITY"] }
+            """;
+
+    public static final String ROLES_MISSING_KEY = """
+            { }
+            """;
+
     private static Stream<Arguments> provideGetUserPostsTestCases() {
         return Stream.of(
                 Arguments.of("Get all user posts", null, 3),
@@ -78,6 +103,24 @@ public class MockUserDataUtils {
                 Arguments.of("Devuelve el phoneNumber enviado", UPDATE_PROFILE_VALID, "$.phoneNumber", is("1133334444")),
                 Arguments.of("Devuelve el profileImageURL enviado", UPDATE_PROFILE_VALID, "$.profileImageURL", is("cf-profile-1")),
                 Arguments.of("Reemplazo total: el campo omitido queda null", UPDATE_PROFILE_WITHOUT_IMAGE, "$.profileImageURL", nullValue())
+        );
+    }
+
+    private static Stream<Arguments> provideUpdateRolesCases() {
+        return Stream.of(
+                Arguments.of("Con RESCUER no se agrega COMMUNITY", ROLES_WITH_RESCUER,
+                        List.of(Rol.RESCUER, Rol.TRANSITIONAL_HOME)),
+                Arguments.of("Sin RESCUER se agrega COMMUNITY", ROLES_WITHOUT_RESCUER,
+                        List.of(Rol.TRANSITIONAL_HOME, Rol.COMMUNITY)),
+                Arguments.of("Con la lista vacia queda solo COMMUNITY", ROLES_EMPTY,
+                        List.of(Rol.COMMUNITY))
+        );
+    }
+
+    private static Stream<Arguments> provideNonEditableRoleCases() {
+        return Stream.of(
+                Arguments.of("VET no es auto-asignable", ROLES_WITH_VET),
+                Arguments.of("COMMUNITY no es auto-asignable, lo deriva el back", ROLES_WITH_COMMUNITY)
         );
     }
 }
