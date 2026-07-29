@@ -46,6 +46,19 @@ public class MockGeolocationDataUtils {
         );
     }
 
+    private static Stream<Arguments> provideClientIpHeaderCases() {
+        return Stream.of(
+                Arguments.of("Solo X-Forwarded-For", "181.30.72.1", null, "181.30.72.1"),
+                Arguments.of("Solo X-Real-IP", null, "181.30.72.1", "181.30.72.1"),
+                Arguments.of("Con ambos headers gana X-Forwarded-For", "181.30.72.1", "10.0.0.5", "181.30.72.1"),
+                Arguments.of("X-Forwarded-For con cadena de proxies toma la primera IP",
+                        "181.30.72.1, 10.0.0.5, 172.17.0.1", null, "181.30.72.1"),
+                Arguments.of("IPv6 se envia URL-encodeada, sin corchetes",
+                        "2803:9800:9842:8267:1c5b:e0d3:6a6d:8e2c", null,
+                        "2803%3A9800%3A9842%3A8267%3A1c5b%3Ae0d3%3A6a6d%3A8e2c")
+        );
+    }
+
     private static Stream<Arguments> provideProviderErrorCases() {
         return Stream.of(
                 Arguments.of("4xx del proveedor devuelve 404",
