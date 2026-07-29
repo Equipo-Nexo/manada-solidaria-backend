@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.users.integrations;
 
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthenticatedIntegrationTest;
+import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.Profile;
 import com.nexo.manada_solidaria_backend.users.data.repositories.UserRepository;
@@ -137,8 +138,8 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
     @DisplayName("PATCH /users/roles — COMMUNITY se agrega solo si no viene RESCUER")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource(MOCK_DATA + "provideUpdateRolesCases")
-    void updateRolesTests(String testName, String body, List<Rol> expectedRoles) throws Exception {
-        patchRoles(body)
+    void updateRolesTests(String testName, UpdateRolesRequest request, List<Rol> expectedRoles) throws Exception {
+        patchRoles(toJson(request))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", containsInAnyOrder(expectedRoles.stream().map(Rol::name).toArray())));
 
@@ -166,7 +167,7 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
         mockMvc.perform(
                         patch("/users/roles")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(MockUserDataUtils.ROLES_WITH_RESCUER)
+                                .content(toJson(MockUserDataUtils.ROLES_WITH_RESCUER))
                 )
                 .andExpect(status().isUnauthorized());
     }
@@ -178,7 +179,7 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
                         patch("/users/roles")
                                 .header("Authorization", "Bearer " + INVALID_ACCESS_TOKEN)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(MockUserDataUtils.ROLES_WITH_RESCUER)
+                                .content(toJson(MockUserDataUtils.ROLES_WITH_RESCUER))
                 )
                 .andExpect(status().isUnauthorized());
     }

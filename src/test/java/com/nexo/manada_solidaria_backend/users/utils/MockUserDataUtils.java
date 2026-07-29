@@ -1,5 +1,7 @@
 package com.nexo.manada_solidaria_backend.users.utils;
 
+import com.nexo.manada_solidaria_backend.users.controllers.requests.EditableRol;
+import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import org.junit.jupiter.params.provider.Arguments;
 
@@ -56,19 +58,16 @@ public class MockUserDataUtils {
             }
             """;
 
-    public static final String ROLES_WITH_RESCUER = """
-            { "roles": ["RESCUER", "TRANSITIONAL_HOME"] }
-            """;
+    public static final UpdateRolesRequest ROLES_WITH_RESCUER =
+            new UpdateRolesRequest(List.of(EditableRol.RESCUER, EditableRol.TRANSITIONAL_HOME));
 
-    public static final String ROLES_WITHOUT_RESCUER = """
-            { "roles": ["TRANSITIONAL_HOME"] }
-            """;
+    private static final UpdateRolesRequest ROLES_WITHOUT_RESCUER =
+            new UpdateRolesRequest(List.of(EditableRol.TRANSITIONAL_HOME));
 
-    public static final String ROLES_EMPTY = """
-            { "roles": [] }
-            """;
+    private static final UpdateRolesRequest ROLES_EMPTY =
+            new UpdateRolesRequest(List.of());
 
-    public static final String ROLES_WITH_VET = """
+    private static final String ROLES_WITH_VET = """
             { "roles": ["VET"] }
             """;
 
