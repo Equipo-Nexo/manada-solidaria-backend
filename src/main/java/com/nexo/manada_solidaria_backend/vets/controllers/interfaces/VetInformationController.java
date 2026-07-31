@@ -6,6 +6,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 
 @RequestMapping("/vets")
 public interface VetInformationController {
@@ -15,5 +17,8 @@ public interface VetInformationController {
     VetInformationResponse create(
             @RequestBody @Valid CreateVetInformationRequest request
     );
+
+    @GetMapping
+    List<VetInformationResponse> getAll();
 
 }
