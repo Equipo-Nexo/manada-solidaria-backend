@@ -60,6 +60,20 @@ import java.util.List;
         rule = ConditionalField.Rule.REQUIRED_AND_ONLY_ALLOWED,
         message = "La categoría es obligatoria solo para campañas de tipo NEWS"
 )
+@ConditionalField(
+        field = "location",
+        dependsOn = "type",
+        expectedValue = "DONATION",
+        rule = ConditionalField.Rule.REQUIRED,
+        message = "La ubicación es obligatoria para campañas de tipo DONATION"
+)
+@ConditionalField(
+        field = "location",
+        dependsOn = "type",
+        expectedValue = "NEWS",
+        rule = ConditionalField.Rule.REQUIRED,
+        message = "La ubicación es obligatoria para campañas de tipo NEWS"
+)
 @DateRange(
         startField = "newsStartDateTime",
         endField = "newsEndDateTime",
@@ -87,7 +101,6 @@ public record CreateCampaignRequest(
         )
         String phoneNumber,
 
-        @NotNull(message = "La ubicación es obligatoria")
         @Valid
         LocationRequest location,
 

@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.campaigns.data.models;
 
+import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CampaignType;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.CampaignStatus;
 import com.nexo.manada_solidaria_backend.common.utils.StatusHistoryUtils;
@@ -79,5 +80,10 @@ public class DonationCampaign extends Campaign<DonationCampaignStatusHistory> {
             this.items.add(item);
             item.setCampaign(this);
         }
+    }
+
+    @Override
+    public CampaignType getCampaignType() {
+        return CampaignType.DONATION;
     }
 }

@@ -39,9 +39,11 @@ public class CampaignFactory {
         };
     }
 
-    private Location buildLocation(
-            CreateCampaignRequest.LocationRequest req
-    ) {
+    private Location buildLocation(CreateCampaignRequest.LocationRequest req) {
+
+        if (req == null) {
+            return null;
+        }
 
         return new Location(
                 req.name(),

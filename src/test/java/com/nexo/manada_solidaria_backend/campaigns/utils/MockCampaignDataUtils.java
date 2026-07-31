@@ -269,6 +269,54 @@ public class MockCampaignDataUtils {
             NewsCampaignCategory.VACCINATION
     );
 
+    public static final CreateCampaignRequest FUNDRAISING_VALID_WITHOUT_LOCATION = new CreateCampaignRequest(
+            CampaignType.FUNDRAISING,
+            "Fondo sin ubicación",
+            "Recaudación online sin punto físico.",
+            null,
+            "1234567891",
+            null,
+            "alias.sin.ubicacion",
+            100000L,
+            LocalDate.now().plusYears(1),
+            null,
+            null,
+            null,
+            null
+    );
+
+    public static final CreateCampaignRequest NEWS_WITHOUT_LOCATION = new CreateCampaignRequest(
+            CampaignType.NEWS,
+            "Noticia sin ubicación",
+            "Debería fallar porque la ubicación es requerida.",
+            null,
+            "154154154",
+            null,
+            null,
+            null,
+            null,
+            null,
+            NEWS_START_DATE,
+            NEWS_END_DATE,
+            NewsCampaignCategory.VACCINATION
+    );
+
+    public static final CreateCampaignRequest DONATION_WITHOUT_LOCATION = new CreateCampaignRequest(
+            CampaignType.DONATION,
+            "Donación sin ubicación",
+            "Debería fallar porque la ubicación es requerida.",
+            null,
+            "12345678912",
+            null,
+            null,
+            null,
+            null,
+            List.of(new CreateCampaignRequest.DonationItemRequest("Mantas", DonationCampaignCategory.CLOTHING_AND_BLANKETS)),
+            null,
+            null,
+            null
+    );
+
     private static Stream<Arguments> provideCreateCases() {
         return Stream.of(
                 Arguments.of(
@@ -296,10 +344,28 @@ public class MockCampaignDataUtils {
                         "fundraising"
                 ),
                 Arguments.of(
+                        "La campaña FUNDRAISING sin ubicación se crea correctamente",
+                        FUNDRAISING_VALID_WITHOUT_LOCATION,
+                        HttpStatus.CREATED,
+                        "fundraising"
+                ),
+                Arguments.of(
                         "La campaña DONATION con items se crea correctamente",
                         DONATION_VALID,
                         HttpStatus.CREATED,
                         "donation"
+                ),
+                Arguments.of(
+                        "La campaña NEWS sin ubicación falla (400)",
+                        NEWS_WITHOUT_LOCATION,
+                        HttpStatus.BAD_REQUEST,
+                        null
+                ),
+                Arguments.of(
+                        "La campaña DONATION sin ubicación falla (400)",
+                        DONATION_WITHOUT_LOCATION,
+                        HttpStatus.BAD_REQUEST,
+                        null
                 ),
                 Arguments.of(
                         "La campaña NEWS con alias falla",
@@ -434,6 +500,7 @@ public class MockCampaignDataUtils {
     public static UpdateCampaignRequest buildDonationUpdateRequest() {
 
         return new UpdateCampaignRequest(
+                CampaignType.DONATION,
                 "Título Donación Editado",
                 "Descripción editada",
                 "img-updated",
@@ -459,6 +526,7 @@ public class MockCampaignDataUtils {
     public static UpdateCampaignRequest buildFundraisingUpdateRequest() {
 
         return new UpdateCampaignRequest(
+                CampaignType.FUNDRAISING,
                 "Recaudación Editada",
                 "Nueva descripción",
                 "img-fundraising-updated",
@@ -480,10 +548,28 @@ public class MockCampaignDataUtils {
         );
     }
 
+    public static UpdateCampaignRequest buildFundraisingUpdateRequestWithoutLocation() {
+        return new UpdateCampaignRequest(
+                CampaignType.FUNDRAISING,
+                "Recaudación Editada Sin Ubicación",
+                "Nueva descripción sin lugar físico",
+                "img-fundraising-updated",
+                "111111111",
+                null, // Location en NULL
+                "nuevo.alias",
+                100000L,
+                25000L,
+                LocalDate.now().plusMonths(3),
+                null,
+                null,
+                null
+        );
+    }
 
     public static UpdateCampaignRequest buildNewsUpdateRequest() {
 
         return new UpdateCampaignRequest(
+                CampaignType.NEWS,
                 "Noticia Editada",
                 "Nueva descripción noticia",
                 "img-news-updated",
@@ -495,6 +581,24 @@ public class MockCampaignDataUtils {
                         -32.41,
                         -63.24
                 ),
+                null,
+                null,
+                null,
+                null,
+                LocalDateTime.of(2026, 9, 1, 10, 0),
+                LocalDateTime.of(2026, 9, 5, 18, 0),
+                NewsCampaignCategory.OTHER
+        );
+    }
+
+    public static UpdateCampaignRequest buildNewsUpdateRequestWithoutLocation() {
+        return new UpdateCampaignRequest(
+                CampaignType.NEWS,
+                "Noticia Editada Sin Ubicación",
+                "Esta actualización debe fallar",
+                "img-news-updated",
+                "222222222",
+                null, // Location en NULL (Inválido para NEWS)
                 null,
                 null,
                 null,

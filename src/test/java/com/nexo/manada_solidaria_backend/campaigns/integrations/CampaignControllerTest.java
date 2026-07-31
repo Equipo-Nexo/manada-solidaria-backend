@@ -400,6 +400,37 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    @DisplayName("PUT /campaigns/{id} actualiza recaudación quitando la ubicación exitosamente")
+    void update_fundraising_withoutLocation_success() throws Exception {
+        FundraisingCampaign campaign = campaignRepository.save(MockCampaignDataUtils.buildFundraisingModel(admin()));
+
+        mockMvc.perform(put("/campaigns/" + campaign.getId())
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(
+                                MockCampaignDataUtils.buildFundraisingUpdateRequestWithoutLocation()
+                        )))
+                .andExpect(status().isNoContent());
+
+        FundraisingCampaign updated = (FundraisingCampaign) campaignRepository.findById(campaign.getId()).orElseThrow();
+        assertThat(updated.getLocation()).isNull();
+    }
+
+    @Test
+    @DisplayName("PUT /campaigns/{id} en noticia sin ubicación falla con 400 Bad Request")
+    void update_news_withoutLocation_returnsBadRequest() throws Exception {
+        NewsCampaign campaign = campaignRepository.save(MockCampaignDataUtils.buildNewsModel(admin()));
+
+        mockMvc.perform(put("/campaigns/" + campaign.getId())
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(
+                                MockCampaignDataUtils.buildNewsUpdateRequestWithoutLocation()
+                        )))
+                .andExpect(status().isBadRequest());
+    }
+
     @ParameterizedTest(name = "{0}")
     @MethodSource("com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils#provideGetCampaignCases")
     @Sql(

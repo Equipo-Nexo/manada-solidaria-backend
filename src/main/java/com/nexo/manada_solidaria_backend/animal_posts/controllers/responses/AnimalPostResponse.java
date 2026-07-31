@@ -70,4 +70,5 @@ public record AnimalPostResponse(
             );
         }
     }
+
 }
