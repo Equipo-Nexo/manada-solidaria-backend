@@ -7,9 +7,9 @@ import com.nexo.manada_solidaria_backend.campaigns.data.enums.CampaignCategoryFi
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import java.util.UUID;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface CampaignService {
 
@@ -26,4 +26,6 @@ public interface CampaignService {
     void delete(UUID campaignId, User authenticatedUser);
 
     List<CampaignResponse> getUserCampaigns(User user);
+
+    List<CampaignResponse> getUserFundraisingCampaigns(User user);
 }

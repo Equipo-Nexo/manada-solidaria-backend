@@ -95,7 +95,16 @@ public class CampaignServiceImpl implements CampaignService {
     @Override
     public List<CampaignResponse> getUserCampaigns(User user) {
         return campaignRepository
-                .findAllByOwner(user)
+                .findCampaignsByOwner(user)
+                .stream()
+                .map(CampaignResponse::from)
+                .toList();
+    }
+
+    @Override
+    public List<CampaignResponse> getUserFundraisingCampaigns(User user) {
+        return campaignRepository
+                .findFundraisingCampaignsByOwner(user)
                 .stream()
                 .map(CampaignResponse::from)
                 .toList();
