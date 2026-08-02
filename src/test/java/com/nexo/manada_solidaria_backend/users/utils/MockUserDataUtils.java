@@ -81,9 +81,10 @@ public class MockUserDataUtils {
 
     private static Stream<Arguments> provideGetUserPostsTestCases() {
         return Stream.of(
-                Arguments.of("Get all user posts", null, 3),
-                Arguments.of("Get all user posts", "animal", 1),
-                Arguments.of("Get all user posts", "campaign", 2)
+                Arguments.of("Get all user posts", null, 4),
+                Arguments.of("Get all user animal posts", "animal", 1),
+                Arguments.of("Get all user campaign posts", "campaign", 2),
+                Arguments.of("Get all user fundraising posts", "fundraising", 1)
         );
     }
 
