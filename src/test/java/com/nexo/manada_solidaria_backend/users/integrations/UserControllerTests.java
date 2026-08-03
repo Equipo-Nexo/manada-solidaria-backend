@@ -20,12 +20,8 @@ import java.util.List;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.hamcrest.Matchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -39,11 +35,12 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
 
     @DisplayName("Get user posts")
     @ParameterizedTest(name = "{index} - {0}")
-    @MethodSource(MOCK_DATA + "provideGetUserPostsTestCases")
+    @MethodSource("com.nexo.manada_solidaria_backend.users.utils.MockUserDataUtils#provideGetUserPostsTestCases")
     @Sql(
             scripts = {
                     "/sql/users/create-campaigns.sql",
-                    "/sql/users/create-animal-posts.sql"
+                    "/sql/users/create-animal-posts.sql",
+                    "/sql/users/create-fundraising.sql"
             },
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
     )

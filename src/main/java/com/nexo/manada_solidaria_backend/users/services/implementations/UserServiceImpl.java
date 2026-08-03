@@ -5,10 +5,7 @@ import com.nexo.manada_solidaria_backend.auth.controllers.requests.CreateUserReq
 import com.nexo.manada_solidaria_backend.campaigns.services.interfaces.CampaignService;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
-import com.nexo.manada_solidaria_backend.users.controllers.responses.AnimalUserPostResponse;
-import com.nexo.manada_solidaria_backend.users.controllers.responses.CampaignUserPostResponse;
-import com.nexo.manada_solidaria_backend.users.controllers.responses.ProfileResponse;
-import com.nexo.manada_solidaria_backend.users.controllers.responses.UserPostResponse;
+import com.nexo.manada_solidaria_backend.users.controllers.responses.*;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.Profile;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -26,6 +23,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static org.springframework.http.HttpStatus.*;
@@ -91,13 +89,15 @@ public class UserServiceImpl implements UserService {
     }
 
     private Stream<UserPostResponse> getAllUserPosts(User user) {
-        return Stream.concat(getUserAnimalPosts(user), getUserCampaigns(user));
+        return Stream.of(getUserAnimalPosts(user), getUserCampaigns(user), getUserFundraisingCampaigns(user))
+                .flatMap(Function.identity());
     }
 
     private Stream<UserPostResponse> getUserPostsByType(User user, String type) {
         return switch (type) {
             case "campaign" -> getUserCampaigns(user);
             case "animal" -> getUserAnimalPosts(user);
+            case "fundraising" -> getUserFundraisingCampaigns(user);
             default -> throw new ResponseStatusException(BAD_REQUEST, "requested type is not supported");
         };
     }
@@ -106,6 +106,12 @@ public class UserServiceImpl implements UserService {
         return animalPostService.getUserAnimalPosts(user)
                 .stream()
                 .map(AnimalUserPostResponse::new);
+    }
+
+    private Stream<UserPostResponse> getUserFundraisingCampaigns(User user) {
+        return campaignService.getUserFundraisingCampaigns(user)
+                .stream()
+                .map(FundraisingCampaignResponse::new);
     }
 
     private Stream<UserPostResponse> getUserCampaigns(User user) {
