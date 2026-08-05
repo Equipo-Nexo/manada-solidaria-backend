@@ -142,6 +142,55 @@ public class VetInformationControllerTests extends BaseAuthenticatedIntegrationT
                 .andExpect(status().isUnauthorized());
     }
 
+    @DisplayName("GET /vets/{vetId} devuelve los datos de la veterinaria")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource("com.nexo.manada_solidaria_backend.vets.utils.MockVetInformationDataUtils#provideGetVetInformationResponseCases")
+    @Sql(
+            scripts = "/sql/vets/create-vets.sql",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    void getVetInformationById_returnsVetInformation(
+            String testName,
+            String jsonPathExpression,
+            Matcher<?> expected
+    ) throws Exception {
+        mockMvc.perform(
+                        get("/vets/44444444-4444-4444-4444-444444444444")
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(jsonPathExpression, expected));
+    }
+
+    @Test
+    @DisplayName("GET /vets/{vetId} con ID inexistente devuelve 404")
+    void getVetInformationById_withNonExistingId_returnsNotFound() throws Exception {
+        mockMvc.perform(
+                        get("/vets/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("GET /vets/{vetId} sin token devuelve 401")
+    void getVetInformationById_withoutToken_returnsUnauthorized() throws Exception {
+        mockMvc.perform(
+                        get("/vets/44444444-4444-4444-4444-444444444444")
+                )
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("GET /vets/{vetId} con token inválido devuelve 401")
+    void getVetInformationById_withInvalidToken_returnsUnauthorized() throws Exception {
+        mockMvc.perform(
+                        get("/vets/44444444-4444-4444-4444-444444444444")
+                                .header("Authorization", "Bearer " + INVALID_ACCESS_TOKEN)
+                )
+                .andExpect(status().isUnauthorized());
+    }
+
     private ResultActions postVetInformation(CreateVetInformationRequest request) throws Exception {
         return mockMvc.perform(
                 post("/vets")

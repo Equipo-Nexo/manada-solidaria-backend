@@ -110,4 +110,54 @@ public class MockVetInformationDataUtils {
                 Arguments.of("Ubicación sin nombre devuelve BAD_REQUEST", CREATE_VET_LOCATION_MISSING_NAME)
         );
     }
+
+    private static Stream<Arguments> provideGetVetInformationResponseCases() {
+        return Stream.of(
+                Arguments.of(
+                        "Devuelve el nombre",
+                        "$.name",
+                        is("Veterinaria San Roque")
+                ),
+                Arguments.of(
+                        "Devuelve el teléfono",
+                        "$.phone",
+                        is("3514567890")
+                ),
+                Arguments.of(
+                        "Devuelve el email",
+                        "$.email",
+                        is("contacto@sanroque.com")
+                ),
+                Arguments.of(
+                        "Devuelve la imagen de perfil",
+                        "$.profilePictureUrl",
+                        is("vet-profile-san-roque")
+                ),
+                Arguments.of(
+                        "Devuelve la URL de la veterinaria",
+                        "$.vetPageUrl",
+                        is("https://veterinariasanroque.com")
+                ),
+                Arguments.of(
+                        "Devuelve la descripción",
+                        "$.description",
+                        is("Atención clínica, vacunación y cirugías.")
+                ),
+                Arguments.of(
+                        "Devuelve el nombre de la ubicación",
+                        "$.location.name",
+                        is("Sede San Roque")
+                ),
+                Arguments.of(
+                        "Devuelve la dirección de la ubicación",
+                        "$.location.address",
+                        is("Av. España")
+                ),
+                Arguments.of(
+                        "Devuelve dos días de atención",
+                        "$.calendar.length()",
+                        is(2)
+                )
+        );
+    }
 }

@@ -5,10 +5,13 @@ import com.nexo.manada_solidaria_backend.vets.controllers.responses.VetInformati
 
 import java.util.List;
 
+import java.util.UUID;
+
 public interface VetInformationService {
 
     VetInformationResponse create(CreateVetInformationRequest request);
 
     List<VetInformationResponse> getAll();
 
+    VetInformationResponse getById(UUID vetId);
 }

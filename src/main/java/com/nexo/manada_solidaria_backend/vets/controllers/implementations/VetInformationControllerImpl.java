@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+import java.util.UUID;
+
 @RestController
 @AllArgsConstructor
 public class VetInformationControllerImpl implements VetInformationController {
@@ -24,4 +26,10 @@ public class VetInformationControllerImpl implements VetInformationController {
     public List<VetInformationResponse> getAll() {
         return service.getAll();
     }
+
+    @Override
+    public VetInformationResponse getById(UUID vetId) {
+        return service.getById(vetId);
+    }
+
 }

@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import java.util.UUID;
+
 
 @RequestMapping("/vets")
 public interface VetInformationController {
@@ -20,5 +22,10 @@ public interface VetInformationController {
 
     @GetMapping
     List<VetInformationResponse> getAll();
+
+    @GetMapping("/{vetId}")
+    VetInformationResponse getById(
+            @PathVariable UUID vetId
+    );
 
 }
