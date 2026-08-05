@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.campaigns.data.models;
 
+import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CampaignType;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaginStatus;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCategory;
@@ -77,5 +78,10 @@ public class NewsCampaign extends Campaign<NewsCampaignStatusHistory> {
     @Override
     public boolean isFinished() {
         return getCurrentStatus().getStatus() == NewsCampaginStatus.FINISHED;
+    }
+
+    @Override
+    public CampaignType getCampaignType() {
+        return CampaignType.NEWS;
     }
 }

@@ -43,5 +43,19 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
     """)
     Page<Campaign<?>> findFundraisingCampaigns(Pageable pageable);
 
-    List<Campaign<?>> findAllByOwner(User user);
+    @Query("""
+        SELECT c
+        FROM Campaign c
+        WHERE TYPE(c) <> FundraisingCampaign
+        AND c.owner = :owner
+    """)
+    List<Campaign<?>> findCampaignsByOwner(@Param("owner") User user);
+
+    @Query("""
+        SELECT c
+        FROM Campaign c
+        WHERE TYPE(c) = FundraisingCampaign
+        AND c.owner = :owner
+    """)
+    List<Campaign<?>> findFundraisingCampaignsByOwner(@Param("owner") User user);
 }

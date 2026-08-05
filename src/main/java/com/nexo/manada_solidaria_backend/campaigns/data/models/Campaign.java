@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.campaigns.data.models;
 
+import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CampaignType;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
 import com.nexo.manada_solidaria_backend.common.data.models.StatusHistory;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
@@ -28,7 +29,7 @@ public abstract class Campaign<T extends StatusHistory<?>> {
     private String phoneNumber;
     private LocalDateTime updatedAt = null;
     private final LocalDateTime createdAt = LocalDateTime.now();
-    @ManyToOne(optional = false, cascade = CascadeType.ALL)
+    @ManyToOne(optional = true, cascade = CascadeType.ALL)
     private Location location;
     @ManyToOne(optional = false)
     private User owner;
@@ -59,10 +60,25 @@ public abstract class Campaign<T extends StatusHistory<?>> {
         this.imageId = request.imageId();
         this.phoneNumber = request.phoneNumber();
         this.updatedAt = LocalDateTime.now();
-        this.location.update(request.location());
+        updateLocation(request);
+    }
+
+    private void updateLocation(UpdateCampaignRequest request) {
+        if (request.location() == null) {
+            this.location = null;
+            return;
+        }
+
+        if (this.location != null) {
+            this.location.update(request.location());
+        } else {
+            this.location = request.location().toDomain();
+        }
     }
 
     public abstract T getCurrentStatus();
 
     public abstract boolean isFinished();
+
+    public abstract CampaignType getCampaignType();
 }

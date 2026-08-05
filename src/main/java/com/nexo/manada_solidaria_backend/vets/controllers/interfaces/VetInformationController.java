@@ -6,6 +6,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 import java.util.UUID;
 
 
@@ -17,6 +19,9 @@ public interface VetInformationController {
     VetInformationResponse create(
             @RequestBody @Valid CreateVetInformationRequest request
     );
+
+    @GetMapping
+    List<VetInformationResponse> getAll();
 
     @GetMapping("/{vetId}")
     VetInformationResponse getById(
