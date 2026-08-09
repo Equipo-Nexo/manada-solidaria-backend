@@ -10,6 +10,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
@@ -157,6 +158,32 @@ public class MockVetInformationDataUtils {
                         "Devuelve dos días de atención",
                         "$.calendar.length()",
                         is(2)
+                )
+        );
+    }
+
+    public static Stream<Arguments> provideDeleteVetInformationAuthenticationCases() {
+        return Stream.of(
+                Arguments.of(
+                        "Sin token",
+                        null
+                ),
+                Arguments.of(
+                        "Token inválido",
+                        INVALID_ACCESS_TOKEN
+                )
+        );
+    }
+
+    public static Stream<Arguments> provideDeleteVetInformationInvalidIdCases() {
+        return Stream.of(
+                Arguments.of(
+                        "ID inexistente",
+                        "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+                ),
+                Arguments.of(
+                        "Otro ID inexistente",
+                        "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
                 )
         );
     }

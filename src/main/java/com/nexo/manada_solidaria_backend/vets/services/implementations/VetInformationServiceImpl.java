@@ -38,6 +38,17 @@ public class VetInformationServiceImpl implements VetInformationService {
                 .toList();
     }
 
+    @Override
+    public VetInformationResponse getById(UUID vetId) {
+        return new VetInformationResponse(getVetInformationOrThrow(vetId));
+    }
+
+    @Override
+    public void delete(UUID vetId) {
+        VetInformation vet = getVetInformationOrThrow(vetId);
+        repository.delete(vet);
+    }
+
     private VetInformation buildVetInformation(CreateVetInformationRequest request) {
 
         Location location = new Location(
@@ -67,10 +78,6 @@ public class VetInformationServiceImpl implements VetInformationService {
         vet.setCalendar(schedules);
 
         return vet;
-    }
-    @Override
-    public VetInformationResponse getById(UUID vetId) {
-        return new VetInformationResponse(getVetInformationOrThrow(vetId));
     }
 
     private Schedule buildSchedule(CreateVetInformationRequest.ScheduleRequest request, VetInformation vet) {
