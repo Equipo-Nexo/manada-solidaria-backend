@@ -32,4 +32,7 @@ public class VetInformationControllerImpl implements VetInformationController {
         return service.getById(vetId);
     }
 
+    @Override
+    public void delete(UUID vetId) { service.delete(vetId); }
+
 }

@@ -14,4 +14,6 @@ public interface VetInformationService {
     List<VetInformationResponse> getAll();
 
     VetInformationResponse getById(UUID vetId);
+
+    void delete(UUID vetId);
 }
