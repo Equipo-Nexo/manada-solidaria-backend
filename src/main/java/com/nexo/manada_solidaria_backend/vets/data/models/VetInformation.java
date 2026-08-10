@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.vets.data.models;
 
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
+import com.nexo.manada_solidaria_backend.vets.controllers.requests.UpdateVetInformationRequest;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -38,5 +39,34 @@ public class VetInformation {
         this.email = email;
         this.phone = phone;
         this.name = name;
+    }
+
+    public void update(UpdateVetInformationRequest request) {
+        this.name = request.name();
+        this.phone = request.phone();
+        this.email = request.email();
+        this.profilePictureUrl = request.profilePictureUrl();
+        this.vetPageUrl = request.vetPageUrl();
+        this.description = request.description();
+
+        this.location.update(request.location());
+
+        updateCalendar(request);
+    }
+
+    private void updateCalendar(UpdateVetInformationRequest request) {
+        this.calendar.clear();
+
+        List<Schedule> schedules = request.calendar()
+                .stream()
+                .map(schedule -> new Schedule(
+                        this,
+                        schedule.dayOfWeek(),
+                        schedule.openingTime(),
+                        schedule.closingTime()
+                ))
+                .toList();
+
+        this.calendar.addAll(schedules);
     }
 }

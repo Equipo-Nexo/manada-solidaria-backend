@@ -1,8 +1,10 @@
 package com.nexo.manada_solidaria_backend.vets.utils;
 
+import com.nexo.manada_solidaria_backend.locations.controllers.requests.UpdateLocationRequest;
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.CreateVetInformationRequest;
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.CreateVetInformationRequest.LocationRequest;
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.CreateVetInformationRequest.ScheduleRequest;
+import com.nexo.manada_solidaria_backend.vets.controllers.requests.UpdateVetInformationRequest;
 import org.junit.jupiter.params.provider.Arguments;
 
 import java.time.DayOfWeek;
@@ -90,6 +92,161 @@ public class MockVetInformationDataUtils {
             null
     );
 
+    public static final UpdateVetInformationRequest UPDATE_VET_VALID =
+            new UpdateVetInformationRequest(
+                    "Veterinaria San Roque Actualizada",
+                    "3514567899",
+                    "nuevo@sanroque.com",
+                    "vet-profile-updated",
+                    "https://veterinariasanroque.com/nueva",
+                    "Nueva descripción de la veterinaria.",
+                    new UpdateLocationRequest(
+                            "Nueva Sede San Roque",
+                            "Av. Nueva",
+                            500,
+                            -32.4000,
+                            -63.2300
+                    ),
+                    List.of(
+                            new UpdateVetInformationRequest.ScheduleRequest(
+                                    DayOfWeek.MONDAY,
+                                    LocalTime.of(9, 0),
+                                    LocalTime.of(13, 0)
+                            ),
+                            new UpdateVetInformationRequest.ScheduleRequest(
+                                    DayOfWeek.FRIDAY,
+                                    LocalTime.of(14, 0),
+                                    LocalTime.of(19, 0)
+                            )
+                    )
+            );
+
+    private static final UpdateVetInformationRequest UPDATE_VET_WITHOUT_NAME =
+            new UpdateVetInformationRequest(
+                    null,
+                    "3514567899",
+                    "nuevo@sanroque.com",
+                    null,
+                    null,
+                    null,
+                    new UpdateLocationRequest(
+                            "Nueva Sede",
+                            null,
+                            null,
+                            -32.4000,
+                            -63.2300
+                    ),
+                    List.of(
+                            new UpdateVetInformationRequest.ScheduleRequest(
+                                    DayOfWeek.MONDAY,
+                                    LocalTime.of(9, 0),
+                                    LocalTime.of(13, 0)
+                            )
+                    )
+            );
+
+    private static final UpdateVetInformationRequest UPDATE_VET_INVALID_PHONE =
+            new UpdateVetInformationRequest(
+                    "Veterinaria San Roque",
+                    "123",
+                    "nuevo@sanroque.com",
+                    null,
+                    null,
+                    null,
+                    new UpdateLocationRequest(
+                            "Nueva Sede",
+                            null,
+                            null,
+                            -32.4000,
+                            -63.2300
+                    ),
+                    List.of(
+                            new UpdateVetInformationRequest.ScheduleRequest(
+                                    DayOfWeek.MONDAY,
+                                    LocalTime.of(9, 0),
+                                    LocalTime.of(13, 0)
+                            )
+                    )
+            );
+
+    private static final UpdateVetInformationRequest UPDATE_VET_INVALID_EMAIL =
+            new UpdateVetInformationRequest(
+                    "Veterinaria San Roque",
+                    "3514567899",
+                    "email-invalido",
+                    null,
+                    null,
+                    null,
+                    new UpdateLocationRequest(
+                            "Nueva Sede",
+                            null,
+                            null,
+                            -32.4000,
+                            -63.2300
+                    ),
+                    List.of(
+                            new UpdateVetInformationRequest.ScheduleRequest(
+                                    DayOfWeek.MONDAY,
+                                    LocalTime.of(9, 0),
+                                    LocalTime.of(13, 0)
+                            )
+                    )
+            );
+
+    private static final UpdateVetInformationRequest UPDATE_VET_WITHOUT_LOCATION =
+            new UpdateVetInformationRequest(
+                    "Veterinaria San Roque",
+                    "3514567899",
+                    "nuevo@sanroque.com",
+                    null,
+                    null,
+                    null,
+                    null,
+                    List.of(
+                            new UpdateVetInformationRequest.ScheduleRequest(
+                                    DayOfWeek.MONDAY,
+                                    LocalTime.of(9, 0),
+                                    LocalTime.of(13, 0)
+                            )
+                    )
+            );
+
+    private static final UpdateVetInformationRequest UPDATE_VET_WITHOUT_CALENDAR =
+            new UpdateVetInformationRequest(
+                    "Veterinaria San Roque",
+                    "3514567899",
+                    "nuevo@sanroque.com",
+                    null,
+                    null,
+                    null,
+                    new UpdateLocationRequest(
+                            "Nueva Sede",
+                            null,
+                            null,
+                            -32.4000,
+                            -63.2300
+                    ),
+                    null
+            );
+
+    private static final UpdateVetInformationRequest UPDATE_VET_EMPTY_CALENDAR =
+            new UpdateVetInformationRequest(
+                    "Veterinaria San Roque",
+                    "3514567899",
+                    "nuevo@sanroque.com",
+                    null,
+                    null,
+                    null,
+                    new UpdateLocationRequest(
+                            "Nueva Sede",
+                            null,
+                            null,
+                            -32.4000,
+                            -63.2300
+                    ),
+                    List.of()
+            );
+
     private static Stream<Arguments> provideCreateVetInformationResponseCases() {
         return Stream.of(
                 Arguments.of("Devuelve id generado", CREATE_VET_VALID, "$.id", notNullValue()),
@@ -155,6 +312,100 @@ public class MockVetInformationDataUtils {
                 ),
                 Arguments.of(
                         "Devuelve dos días de atención",
+                        "$.calendar.length()",
+                        is(2)
+                )
+        );
+    }
+
+    private static Stream<Arguments> provideUpdateVetInformationInvalidCases() {
+        return Stream.of(
+                Arguments.of(
+                        "Sin nombre devuelve BAD_REQUEST",
+                        UPDATE_VET_WITHOUT_NAME
+                ),
+                Arguments.of(
+                        "Teléfono inválido devuelve BAD_REQUEST",
+                        UPDATE_VET_INVALID_PHONE
+                ),
+                Arguments.of(
+                        "Email inválido devuelve BAD_REQUEST",
+                        UPDATE_VET_INVALID_EMAIL
+                ),
+                Arguments.of(
+                        "Sin ubicación devuelve BAD_REQUEST",
+                        UPDATE_VET_WITHOUT_LOCATION
+                ),
+                Arguments.of(
+                        "Sin calendario devuelve BAD_REQUEST",
+                        UPDATE_VET_WITHOUT_CALENDAR
+                ),
+                Arguments.of(
+                        "Calendario vacío devuelve BAD_REQUEST",
+                        UPDATE_VET_EMPTY_CALENDAR
+                )
+        );
+    }
+
+    private static Stream<Arguments> provideUpdateVetInformationResponseCases() {
+        return Stream.of(
+                Arguments.of(
+                        "Actualiza el nombre",
+                        UPDATE_VET_VALID,
+                        "$.name",
+                        is("Veterinaria San Roque Actualizada")
+                ),
+                Arguments.of(
+                        "Actualiza el teléfono",
+                        UPDATE_VET_VALID,
+                        "$.phone",
+                        is("3514567899")
+                ),
+                Arguments.of(
+                        "Actualiza el email",
+                        UPDATE_VET_VALID,
+                        "$.email",
+                        is("nuevo@sanroque.com")
+                ),
+                Arguments.of(
+                        "Actualiza la imagen de perfil",
+                        UPDATE_VET_VALID,
+                        "$.profilePictureUrl",
+                        is("vet-profile-updated")
+                ),
+                Arguments.of(
+                        "Actualiza la URL de la veterinaria",
+                        UPDATE_VET_VALID,
+                        "$.vetPageUrl",
+                        is("https://veterinariasanroque.com/nueva")
+                ),
+                Arguments.of(
+                        "Actualiza la descripción",
+                        UPDATE_VET_VALID,
+                        "$.description",
+                        is("Nueva descripción de la veterinaria.")
+                ),
+                Arguments.of(
+                        "Actualiza el nombre de la ubicación",
+                        UPDATE_VET_VALID,
+                        "$.location.name",
+                        is("Nueva Sede San Roque")
+                ),
+                Arguments.of(
+                        "Actualiza la dirección de la ubicación",
+                        UPDATE_VET_VALID,
+                        "$.location.address",
+                        is("Av. Nueva")
+                ),
+                Arguments.of(
+                        "Actualiza el número de la ubicación",
+                        UPDATE_VET_VALID,
+                        "$.location.number",
+                        is(500)
+                ),
+                Arguments.of(
+                        "Actualiza la cantidad de días de atención",
+                        UPDATE_VET_VALID,
                         "$.calendar.length()",
                         is(2)
                 )

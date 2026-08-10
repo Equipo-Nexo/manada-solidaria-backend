@@ -2,6 +2,7 @@ package com.nexo.manada_solidaria_backend.vets.services.implementations;
 
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.CreateVetInformationRequest;
+import com.nexo.manada_solidaria_backend.vets.controllers.requests.UpdateVetInformationRequest;
 import com.nexo.manada_solidaria_backend.vets.controllers.responses.VetInformationResponse;
 import com.nexo.manada_solidaria_backend.vets.data.models.Schedule;
 import com.nexo.manada_solidaria_backend.vets.data.models.VetInformation;
@@ -38,6 +39,21 @@ public class VetInformationServiceImpl implements VetInformationService {
                 .toList();
     }
 
+    @Override
+    public VetInformationResponse getById(UUID vetId) {
+        return new VetInformationResponse(getVetInformationOrThrow(vetId));
+    }
+
+    @Override
+    public VetInformationResponse update(UUID vetId, UpdateVetInformationRequest request) {
+        VetInformation vet = getVetInformationOrThrow(vetId);
+
+        vet.update(request);
+        repository.save(vet);
+        return new VetInformationResponse(vet);
+    }
+
+
     private VetInformation buildVetInformation(CreateVetInformationRequest request) {
 
         Location location = new Location(
@@ -67,10 +83,6 @@ public class VetInformationServiceImpl implements VetInformationService {
         vet.setCalendar(schedules);
 
         return vet;
-    }
-    @Override
-    public VetInformationResponse getById(UUID vetId) {
-        return new VetInformationResponse(getVetInformationOrThrow(vetId));
     }
 
     private Schedule buildSchedule(CreateVetInformationRequest.ScheduleRequest request, VetInformation vet) {
