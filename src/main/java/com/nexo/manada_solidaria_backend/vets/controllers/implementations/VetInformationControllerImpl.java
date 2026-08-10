@@ -2,6 +2,7 @@ package com.nexo.manada_solidaria_backend.vets.controllers.implementations;
 
 import com.nexo.manada_solidaria_backend.vets.controllers.interfaces.VetInformationController;
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.CreateVetInformationRequest;
+import com.nexo.manada_solidaria_backend.vets.controllers.requests.UpdateVetInformationRequest;
 import com.nexo.manada_solidaria_backend.vets.controllers.responses.VetInformationResponse;
 import com.nexo.manada_solidaria_backend.vets.services.interfaces.VetInformationService;
 import lombok.AllArgsConstructor;
@@ -34,5 +35,10 @@ public class VetInformationControllerImpl implements VetInformationController {
 
     @Override
     public void delete(UUID vetId) { service.delete(vetId); }
+
+    @Override
+    public VetInformationResponse update(UUID vetId, UpdateVetInformationRequest request) {
+        return service.update(vetId, request);
+    }
 
 }

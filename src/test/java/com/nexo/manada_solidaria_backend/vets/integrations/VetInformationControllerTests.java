@@ -2,10 +2,12 @@ package com.nexo.manada_solidaria_backend.vets.integrations;
 
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthenticatedIntegrationTest;
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.CreateVetInformationRequest;
+import com.nexo.manada_solidaria_backend.vets.controllers.requests.UpdateVetInformationRequest;
 import com.nexo.manada_solidaria_backend.vets.data.models.VetInformation;
 import com.nexo.manada_solidaria_backend.vets.data.repositories.ScheduleRepository;
 import com.nexo.manada_solidaria_backend.vets.data.repositories.VetInformationRepository;
 import com.nexo.manada_solidaria_backend.vets.utils.MockVetInformationDataUtils;
+import com.nexo.manada_solidaria_backend.vets.data.models.Schedule;
 import org.hamcrest.Matcher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,6 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.time.DayOfWeek;
 import java.util.UUID;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
@@ -262,9 +265,130 @@ public class VetInformationControllerTests extends BaseAuthenticatedIntegrationT
                 .andExpect(status().isNotFound());
     }
 
+    @DisplayName("PUT /vets/{vetId} refleja en la response los datos actualizados")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource("com.nexo.manada_solidaria_backend.vets.utils.MockVetInformationDataUtils#provideUpdateVetInformationResponseCases")
+    @Sql(
+            scripts = "/sql/vets/create-vets.sql",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    void updateVetInformation_returnsUpdatedData(
+            String testName,
+            UpdateVetInformationRequest request,
+            String jsonPathExpression,
+            Matcher<?> expected
+    ) throws Exception {
+        updateVetInformation(
+                "44444444-4444-4444-4444-444444444444",
+                request
+        )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(jsonPathExpression, expected));
+    }
+
+    @Test
+    @DisplayName("PUT /vets/{vetId} persiste la información actualizada y sus relaciones")
+    @Sql(
+            scripts = "/sql/vets/create-vets.sql",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    void updateVetInformation_persistsUpdatedEntity() throws Exception {
+        updateVetInformation(
+                "44444444-4444-4444-4444-444444444444",
+                MockVetInformationDataUtils.UPDATE_VET_VALID
+        )
+                .andExpect(status().isOk());
+
+        VetInformation updatedVet = vetInformationRepository
+                .findById(UUID.fromString("44444444-4444-4444-4444-444444444444"))
+                .orElseThrow();
+
+        assertThat(updatedVet.getName()).isEqualTo("Veterinaria San Roque Actualizada");
+        assertThat(updatedVet.getPhone()).isEqualTo("3514567899");
+        assertThat(updatedVet.getEmail()).isEqualTo("nuevo@sanroque.com");
+        assertThat(updatedVet.getDescription()).isEqualTo("Nueva descripción de la veterinaria.");
+
+        assertThat(updatedVet.getLocation()).isNotNull();
+        assertThat(updatedVet.getLocation().getName()).isEqualTo("Nueva Sede San Roque");
+        assertThat(updatedVet.getLocation().getAddress()).isEqualTo("Av. Nueva");
+        assertThat(updatedVet.getLocation().getNumber()).isEqualTo(500);
+
+        assertThat(updatedVet.getCalendar()).hasSize(2);
+
+        assertThat(updatedVet.getCalendar())
+                .extracting(Schedule::getDayOfWeek)
+                .containsExactlyInAnyOrder(
+                        DayOfWeek.MONDAY,
+                        DayOfWeek.FRIDAY
+                );
+    }
+
+    @DisplayName("PUT /vets/{vetId} con payload inválido devuelve 400")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource("com.nexo.manada_solidaria_backend.vets.utils.MockVetInformationDataUtils#provideUpdateVetInformationInvalidCases")
+    @Sql(
+            scripts = "/sql/vets/create-vets.sql",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    void updateVetInformation_invalidPayload_returnsBadRequest(
+            String testName,
+            UpdateVetInformationRequest request
+    ) throws Exception {
+        updateVetInformation(
+                "44444444-4444-4444-4444-444444444444",
+                request
+        )
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("PUT /vets/{vetId} con ID inexistente devuelve 404")
+    void updateVetInformation_withNonExistingId_returnsNotFound() throws Exception {
+        updateVetInformation(
+                "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                MockVetInformationDataUtils.UPDATE_VET_VALID
+        )
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("PUT /vets/{vetId} sin token devuelve 401")
+    void updateVetInformation_withoutToken_returnsUnauthorized() throws Exception {
+        mockMvc.perform(
+                        put("/vets/44444444-4444-4444-4444-444444444444")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(toJson(MockVetInformationDataUtils.UPDATE_VET_VALID))
+                )
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("PUT /vets/{vetId} con token inválido devuelve 401")
+    void updateVetInformation_withInvalidToken_returnsUnauthorized() throws Exception {
+        mockMvc.perform(
+                        put("/vets/44444444-4444-4444-4444-444444444444")
+                                .header("Authorization", "Bearer " + INVALID_ACCESS_TOKEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(toJson(MockVetInformationDataUtils.UPDATE_VET_VALID))
+                )
+                .andExpect(status().isUnauthorized());
+    }
+
     private ResultActions postVetInformation(CreateVetInformationRequest request) throws Exception {
         return mockMvc.perform(
                 post("/vets")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(request))
+        );
+    }
+
+    private ResultActions updateVetInformation(
+            String vetId,
+            UpdateVetInformationRequest request
+    ) throws Exception {
+        return mockMvc.perform(
+                put("/vets/{vetId}", vetId)
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(toJson(request))

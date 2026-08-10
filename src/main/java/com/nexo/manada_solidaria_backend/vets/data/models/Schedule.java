@@ -24,5 +24,4 @@ public class Schedule {
     private LocalTime closingTime;
     @Id
     private final UUID id = UUID.randomUUID();
-
 }
