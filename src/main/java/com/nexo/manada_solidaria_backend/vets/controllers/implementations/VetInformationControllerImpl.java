@@ -34,6 +34,9 @@ public class VetInformationControllerImpl implements VetInformationController {
     }
 
     @Override
+    public void delete(UUID vetId) { service.delete(vetId); }
+
+    @Override
     public VetInformationResponse update(UUID vetId, UpdateVetInformationRequest request) {
         return service.update(vetId, request);
     }

@@ -45,6 +45,12 @@ public class VetInformationServiceImpl implements VetInformationService {
     }
 
     @Override
+    public void delete(UUID vetId) {
+        VetInformation vet = getVetInformationOrThrow(vetId);
+        repository.delete(vet);
+    }
+
+    @Override
     public VetInformationResponse update(UUID vetId, UpdateVetInformationRequest request) {
         VetInformation vet = getVetInformationOrThrow(vetId);
 

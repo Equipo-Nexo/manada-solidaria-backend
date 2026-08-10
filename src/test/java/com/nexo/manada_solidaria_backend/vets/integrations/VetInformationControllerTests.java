@@ -4,6 +4,7 @@ import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthentica
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.CreateVetInformationRequest;
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.UpdateVetInformationRequest;
 import com.nexo.manada_solidaria_backend.vets.data.models.VetInformation;
+import com.nexo.manada_solidaria_backend.vets.data.repositories.ScheduleRepository;
 import com.nexo.manada_solidaria_backend.vets.data.repositories.VetInformationRepository;
 import com.nexo.manada_solidaria_backend.vets.utils.MockVetInformationDataUtils;
 import com.nexo.manada_solidaria_backend.vets.data.models.Schedule;
@@ -31,6 +32,9 @@ public class VetInformationControllerTests extends BaseAuthenticatedIntegrationT
 
     @Autowired
     private VetInformationRepository vetInformationRepository;
+
+    @Autowired
+    private ScheduleRepository scheduleRepository;
 
     @DisplayName("POST /vets refleja en la response los datos enviados")
     @ParameterizedTest(name = "{index} - {0}")
@@ -193,6 +197,72 @@ public class VetInformationControllerTests extends BaseAuthenticatedIntegrationT
                                 .header("Authorization", "Bearer " + INVALID_ACCESS_TOKEN)
                 )
                 .andExpect(status().isUnauthorized());
+    }
+
+    @DisplayName("DELETE /vets/{vetId} sin autenticación válida devuelve 401")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource("com.nexo.manada_solidaria_backend.vets.utils.MockVetInformationDataUtils#provideDeleteVetInformationAuthenticationCases")
+    void deleteVetInformation_withoutValidAuthentication_returnsUnauthorized(
+            String testName,
+            String token
+    ) throws Exception {
+
+        var request = delete("/vets/44444444-4444-4444-4444-444444444444");
+
+        if (token != null) {
+            request.header("Authorization", "Bearer " + token);
+        }
+
+        mockMvc.perform(request)
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("DELETE /vets/{vetId} elimina la veterinaria")
+    @Sql(
+            scripts = "/sql/vets/create-vets.sql",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    void deleteVetInformation_deletesVet() throws Exception {
+
+        UUID vetId = UUID.fromString(
+                "44444444-4444-4444-4444-444444444444"
+        );
+
+        mockMvc.perform(
+                        delete("/vets/" + vetId)
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isNoContent());
+
+        assertThat(vetInformationRepository.findById(vetId))
+                .isEmpty();
+    }
+
+    @Test
+    @DisplayName("DELETE /vets/{vetId} con ID inexistente devuelve 404")
+    void deleteVetInformation_withNonExistingId_returnsNotFound() throws Exception {
+
+        mockMvc.perform(
+                        delete("/vets/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isNotFound());
+    }
+
+    @DisplayName("DELETE /vets/{vetId} con ID inexistente devuelve 404")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource("com.nexo.manada_solidaria_backend.vets.utils.MockVetInformationDataUtils#provideDeleteVetInformationInvalidIdCases")
+    void deleteVetInformation_withNonExistingId_returnsNotFound(
+            String testName,
+            String vetId
+    ) throws Exception {
+
+        mockMvc.perform(
+                        delete("/vets/" + vetId)
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isNotFound());
     }
 
     @DisplayName("PUT /vets/{vetId} refleja en la response los datos actualizados")

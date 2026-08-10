@@ -16,5 +16,7 @@ public interface VetInformationService {
 
     VetInformationResponse getById(UUID vetId);
 
+    void delete(UUID vetId);
+
     VetInformationResponse update(UUID vetId, UpdateVetInformationRequest request);
 }

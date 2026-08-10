@@ -29,6 +29,9 @@ public interface VetInformationController {
             @PathVariable UUID vetId
     );
 
+    @DeleteMapping("/{vetId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void delete(@PathVariable UUID vetId);
     @PutMapping("/{vetId}")
     VetInformationResponse update(
             @PathVariable UUID vetId,
