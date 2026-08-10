@@ -1,8 +1,25 @@
 spring:
+  profiles:
+    active: test
   datasource:
-    url: jdbc:h2:mem:testdb
-    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:mydb
     username: sa
     password: password
+    driverClassName: org.h2.Driver
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: false
+    hibernate:
+      ddl-auto: update
+security:
+  access-token-expiration: 60
+  refresh-token-expiration: 120
+  secret: D8B3B7BA8B42E5BFA6896FC4811127724A982FAF1446DB85BCFB89C82F
+  cors:
+    allowed-origins: http://localhost:5173
+cloudflare:
+  r2:
+    account-id: test
+    access-key-id: test
+    secret-access-key: test
+    bucket: test
+    public-url: test

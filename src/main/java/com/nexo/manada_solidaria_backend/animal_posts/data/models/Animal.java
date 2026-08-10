@@ -1,0 +1,44 @@
+package com.nexo.manada_solidaria_backend.animal_posts.data.models;
+
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalAge;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalGender;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalSize;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.UUID;
+
+@Entity
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class Animal {
+    private String color;
+    @Enumerated(EnumType.STRING)
+    private AnimalAge age;
+    @Enumerated(EnumType.STRING)
+    private AnimalSize size;
+    @Enumerated(EnumType.STRING)
+    private AnimalGender gender;
+    @Enumerated(EnumType.STRING)
+    private AnimalType type;
+    @Id
+    private final UUID id = UUID.randomUUID();
+
+    public void update(UpdateAnimalPostRequest.AnimalUpdate request) {
+        this.type = request.type();
+        this.size = request.size();
+        this.gender = request.gender();
+        this.age = request.age();
+        this.color = request.color();
+    }
+}
