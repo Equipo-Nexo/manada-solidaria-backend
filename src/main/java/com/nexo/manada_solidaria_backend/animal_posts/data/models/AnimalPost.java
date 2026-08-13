@@ -78,4 +78,6 @@ public abstract class AnimalPost<T extends StatusHistory> {
     public abstract T getCurrentStatus();
     
     public abstract AnimalPostFilter getType();
+
+    public abstract void transitionTo(String targetStatus);
 }

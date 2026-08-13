@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.animal_posts.utils;
 
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
 import org.junit.jupiter.params.provider.Arguments;
 import org.springframework.http.HttpStatus;
 
@@ -380,6 +381,30 @@ public class MockAnimalPostDataUtils {
         return Stream.of(
                 Arguments.of("Una adopcion con inTransit=true (transito ya resuelto) queda en SEARCHING_ADOPT", ADOPTION_IN_TRANSIT, "SEARCHING_ADOPT"),
                 Arguments.of("Una adopcion con inTransit=false (sin transito) queda en SEARCHING_ADOPT_AND_TRANSIT", ADOPTION_VALID, "SEARCHING_ADOPT_AND_TRANSIT")
+        );
+    }
+
+    private static Stream<Arguments> provideStatusTransitionCases() {
+        return Stream.of(
+                Arguments.of("Un perdido en busqueda pasa a encontrado", AnimalPostFilter.LOST, "SEARCHING", "FOUND", HttpStatus.OK),
+                Arguments.of("Uno de la calle para rescatar pasa a encontrado", AnimalPostFilter.IN_STREET, "TO_RESCUE", "FOUND", HttpStatus.OK),
+                Arguments.of("Una adopcion con transito pasa a adoptada", AnimalPostFilter.ADOPTION, "SEARCHING_ADOPT", "ADOPTED", HttpStatus.OK),
+                Arguments.of("Una adopcion sin transito pasa a adoptada", AnimalPostFilter.ADOPTION, "SEARCHING_ADOPT_AND_TRANSIT", "ADOPTED", HttpStatus.OK),
+                Arguments.of("Una adopcion que consigue transito deja de buscarlo", AnimalPostFilter.ADOPTION, "SEARCHING_ADOPT_AND_TRANSIT", "SEARCHING_ADOPT", HttpStatus.OK),
+                Arguments.of("Una adopcion que pierde el transito vuelve a buscarlo", AnimalPostFilter.ADOPTION, "SEARCHING_ADOPT", "SEARCHING_ADOPT_AND_TRANSIT", HttpStatus.OK),
+                Arguments.of("ADOPTED no es un estado valido para un perdido", AnimalPostFilter.LOST, "SEARCHING", "ADOPTED", HttpStatus.BAD_REQUEST),
+                Arguments.of("FOUND no es un estado valido para una adopcion", AnimalPostFilter.ADOPTION, "SEARCHING_ADOPT", "FOUND", HttpStatus.BAD_REQUEST),
+                Arguments.of("Un estado inexistente devuelve BAD_REQUEST", AnimalPostFilter.LOST, "SEARCHING", "NO_EXISTE", HttpStatus.BAD_REQUEST),
+                Arguments.of("Un perdido ya encontrado no puede volver a transicionar", AnimalPostFilter.LOST, "FOUND", "FOUND", HttpStatus.CONFLICT),
+                Arguments.of("Una adopcion ya adoptada no puede volver a transicionar", AnimalPostFilter.ADOPTION, "ADOPTED", "ADOPTED", HttpStatus.CONFLICT),
+                Arguments.of("No se puede transicionar desde CREATED", AnimalPostFilter.LOST, "CREATED", "FOUND", HttpStatus.CONFLICT)
+        );
+    }
+
+    private static Stream<Arguments> provideTransitionUnauthorizedCases() {
+        return Stream.of(
+                Arguments.of("Sin token", null),
+                Arguments.of("Con token invalido", INVALID_ACCESS_TOKEN)
         );
     }
 

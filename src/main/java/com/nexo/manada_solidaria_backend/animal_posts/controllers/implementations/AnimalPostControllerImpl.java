@@ -3,6 +3,7 @@ package com.nexo.manada_solidaria_backend.animal_posts.controllers.implementatio
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.interfaces.AnimalPostController;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAnimalPostRequest;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AnimalPostResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
@@ -38,6 +39,11 @@ public class AnimalPostControllerImpl implements AnimalPostController {
     @Override
     public void update(UUID animalPostId, UpdateAnimalPostRequest request, User authenticatedUser) {
         animalPostService.update(animalPostId, request, authenticatedUser);
+    }
+
+    @Override
+    public AnimalPostResponse transitionStatus(UUID animalPostId, TransitionStatusRequest request, User authenticatedUser) {
+        return animalPostService.transitionStatus(animalPostId, request, authenticatedUser);
     }
 
     @Override

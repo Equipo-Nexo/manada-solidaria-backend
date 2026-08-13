@@ -3,6 +3,7 @@ package com.nexo.manada_solidaria_backend.animal_posts.services.implementations;
 import com.nexo.manada_solidaria_backend.animal_posts.components.AnimalPostFactory;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAnimalPostRequest;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AnimalPostResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
@@ -54,21 +55,28 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     public void update(UUID animalPostId, UpdateAnimalPostRequest request, User authenticatedUser) {
         AnimalPost post = getAnimalPostOrThrow(animalPostId);
 
-        if (!post.getOwner().getId().equals(authenticatedUser.getId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo el dueño puede editar la publicación");
-        }
+        validateOwner(post, authenticatedUser, "editar");
 
         post.update(request);
         animalPostRepository.save(post);
     }
 
     @Override
+    @Transactional
+    public AnimalPostResponse transitionStatus(UUID animalPostId, TransitionStatusRequest request, User authenticatedUser) {
+        AnimalPost post = getAnimalPostOrThrow(animalPostId);
+
+        validateOwner(post, authenticatedUser, "cambiar el estado de");
+        post.transitionTo(request.status());
+
+        return AnimalPostResponse.from(animalPostRepository.save(post));
+    }
+
+    @Override
     public void delete(UUID animalPostId, User authenticatedUser) {
         AnimalPost post = getAnimalPostOrThrow(animalPostId);
 
-        if (!post.getOwner().getId().equals(authenticatedUser.getId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo el dueño puede eliminar la publicación");
-        }
+        validateOwner(post, authenticatedUser, "eliminar");
 
         animalPostRepository.delete(post);
     }
@@ -79,6 +87,15 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                 .stream()
                 .map(AnimalPostResponse::from)
                 .toList();
+    }
+
+    private void validateOwner(AnimalPost post, User authenticatedUser, String action) {
+        if (!post.getOwner().getId().equals(authenticatedUser.getId())) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Solo el dueño puede " + action + " la publicación"
+            );
+        }
     }
 
     private AnimalPost getAnimalPostOrThrow(UUID animalPostId) {
