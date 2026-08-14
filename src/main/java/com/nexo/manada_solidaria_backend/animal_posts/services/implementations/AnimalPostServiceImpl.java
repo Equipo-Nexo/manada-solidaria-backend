@@ -55,7 +55,7 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     public void update(UUID animalPostId, UpdateAnimalPostRequest request, User authenticatedUser) {
         AnimalPost post = getAnimalPostOrThrow(animalPostId);
 
-        validateOwner(post, authenticatedUser, "editar");
+        validateOwner(post, authenticatedUser);
 
         post.update(request);
         animalPostRepository.save(post);
@@ -66,7 +66,7 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     public AnimalPostResponse transitionStatus(UUID animalPostId, TransitionStatusRequest request, User authenticatedUser) {
         AnimalPost post = getAnimalPostOrThrow(animalPostId);
 
-        validateOwner(post, authenticatedUser, "cambiar el estado de");
+        validateOwner(post, authenticatedUser);
         post.transitionTo(request.status());
 
         return AnimalPostResponse.from(animalPostRepository.save(post));
@@ -76,7 +76,7 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     public void delete(UUID animalPostId, User authenticatedUser) {
         AnimalPost post = getAnimalPostOrThrow(animalPostId);
 
-        validateOwner(post, authenticatedUser, "eliminar");
+        validateOwner(post, authenticatedUser);
 
         animalPostRepository.delete(post);
     }
@@ -89,11 +89,11 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                 .toList();
     }
 
-    private void validateOwner(AnimalPost post, User authenticatedUser, String action) {
+    private void validateOwner(AnimalPost post, User authenticatedUser) {
         if (!post.getOwner().getId().equals(authenticatedUser.getId())) {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
-                    "Solo el dueño puede " + action + " la publicación"
+                    "Solo el dueño puede modificar la publicación"
             );
         }
     }
