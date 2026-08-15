@@ -20,7 +20,7 @@ public class MockAnimalPostDataUtils {
               "name": "Perdí a mi perro",
               "description": "Se escapó en el parque",
               "imageId": "cf-image-123",
-              "phoneNumber": "1122334455",
+              "areaCode": "3533", "phoneNumber": "436249",
               "hasOwner": true,
               "reward": 5000,
               "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE", "age": "ADULT" },
@@ -34,7 +34,7 @@ public class MockAnimalPostDataUtils {
               "name": "Busco hogar para gata",
               "description": "Rescatada de la calle",
               "imageId": "cf-image-456",
-              "phoneNumber": "1122334455",
+              "areaCode": "3533", "phoneNumber": "436249",
               "inTransit": false,
               "animal": { "type": "CAT", "size": "SMALL", "gender": "FEMALE", "age": "PUPPY" },
               "location": { "name": "Refugio Norte", "address": "Calle Falsa", "number": 123, "latitude": -34.5, "longitude": -58.5 }
@@ -47,7 +47,7 @@ public class MockAnimalPostDataUtils {
               "name": "Gata en tránsito",
               "description": "En hogar de tránsito",
               "imageId": "cf-image-555",
-              "phoneNumber": "1122334455",
+              "areaCode": "3533", "phoneNumber": "436249",
               "inTransit": true,
               "animal": { "type": "CAT", "size": "SMALL", "gender": "FEMALE", "age": "PUPPY" },
               "location": { "name": "Refugio", "address": "Calle", "number": 1, "latitude": -34.5, "longitude": -58.5 }
@@ -132,7 +132,7 @@ public class MockAnimalPostDataUtils {
               "name": "Sin edad",
               "description": "Falta la edad",
               "imageId": "cf-image-666",
-              "phoneNumber": "1122334455",
+              "areaCode": "3533", "phoneNumber": "436249",
               "hasOwner": true,
               "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE" },
               "location": { "name": "Plaza", "address": "Corrientes", "number": 1, "latitude": -34.6, "longitude": -58.4 }
@@ -145,7 +145,7 @@ public class MockAnimalPostDataUtils {
               "name": "Edad invalida",
               "description": "La edad no es un valor valido",
               "imageId": "cf-image-badage",
-              "phoneNumber": "1122334455",
+              "areaCode": "3533", "phoneNumber": "436249",
               "hasOwner": true,
               "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE", "age": "OLD" },
               "location": { "name": "Plaza", "address": "Corrientes", "number": 1, "latitude": -34.6, "longitude": -58.4 }
@@ -158,9 +158,22 @@ public class MockAnimalPostDataUtils {
               "name": "Edad desconocida",
               "description": "No se sabe la edad",
               "imageId": "cf-image-unk",
-              "phoneNumber": "1122334455",
+              "areaCode": "3533", "phoneNumber": "436249",
               "hasOwner": true,
               "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE", "age": "UNKNOWN" },
+              "location": { "name": "Plaza", "address": "Corrientes", "number": 1, "latitude": -34.6, "longitude": -58.4 }
+            }
+            """;
+
+    private static final String WITHOUT_AREA_CODE = """
+            {
+              "type": "LOST",
+              "name": "Sin codigo de area",
+              "description": "Falta el codigo de area",
+              "imageId": "cf-image-888",
+              "phoneNumber": "436249",
+              "hasOwner": true,
+              "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE", "age": "ADULT" },
               "location": { "name": "Plaza", "address": "Corrientes", "number": 1, "latitude": -34.6, "longitude": -58.4 }
             }
             """;
@@ -208,7 +221,7 @@ public class MockAnimalPostDataUtils {
               "name": "Adopción sin inTransit",
               "description": "Falta inTransit",
               "imageId": "cf-image-888",
-              "phoneNumber": "1122334455",
+              "areaCode": "3533", "phoneNumber": "436249",
               "animal": { "type": "CAT", "size": "SMALL", "gender": "FEMALE", "age": "PUPPY" },
               "location": { "name": "Refugio", "address": "Calle", "number": 1, "latitude": -34.5, "longitude": -58.5 }
             }
@@ -220,7 +233,7 @@ public class MockAnimalPostDataUtils {
               "name": "Adopción con reward",
               "description": "El reward no aplica a adopción",
               "imageId": "cf-image-999a",
-              "phoneNumber": "1122334455",
+              "areaCode": "3533", "phoneNumber": "436249",
               "inTransit": false,
               "reward": 5000,
               "animal": { "type": "CAT", "size": "SMALL", "gender": "FEMALE", "age": "PUPPY" },
@@ -233,7 +246,7 @@ public class MockAnimalPostDataUtils {
               "name": "Titulo actualizado",
               "description": "Descripcion actualizada",
               "imageId": "cf-image-put",
-              "phoneNumber": "1199887766",
+              "areaCode": "3511", "phoneNumber": "998877",
               "reward": 7500,
               "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE", "age": "SENIOR", "color": "negro" },
               "location": { "name": "Refugio Nuevo", "address": "Nueva direccion 456", "number": 999, "latitude": -34.7, "longitude": -58.7 }
@@ -283,7 +296,7 @@ public class MockAnimalPostDataUtils {
     // Cada uno es un PUT completo al que le falta UN campo obligatorio -> 400. (reward es opcional, se omite.)
     private static final String PUT_WITHOUT_DESCRIPTION = """
             {
-              "name": "t", "imageId": "i", "phoneNumber": "1122334455",
+              "name": "t", "imageId": "i", "areaCode": "3533", "phoneNumber": "436249",
               "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE", "age": "SENIOR" },
               "location": { "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
             }
@@ -291,7 +304,7 @@ public class MockAnimalPostDataUtils {
 
     private static final String PUT_WITHOUT_IMAGE_ID = """
             {
-              "name": "t", "description": "d", "phoneNumber": "1122334455",
+              "name": "t", "description": "d", "areaCode": "3533", "phoneNumber": "436249",
               "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE", "age": "SENIOR" },
               "location": { "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
             }
@@ -299,21 +312,21 @@ public class MockAnimalPostDataUtils {
 
     private static final String PUT_WITHOUT_ANIMAL = """
             {
-              "name": "t", "description": "d", "imageId": "i", "phoneNumber": "1122334455",
+              "name": "t", "description": "d", "imageId": "i", "areaCode": "3533", "phoneNumber": "436249",
               "location": { "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
             }
             """;
 
     private static final String PUT_WITHOUT_LOCATION = """
             {
-              "name": "t", "description": "d", "imageId": "i", "phoneNumber": "1122334455",
+              "name": "t", "description": "d", "imageId": "i", "areaCode": "3533", "phoneNumber": "436249",
               "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE", "age": "SENIOR" }
             }
             """;
 
     private static final String PUT_ANIMAL_WITHOUT_TYPE = """
             {
-              "name": "t", "description": "d", "imageId": "i", "phoneNumber": "1122334455",
+              "name": "t", "description": "d", "imageId": "i", "areaCode": "3533", "phoneNumber": "436249",
               "animal": { "size": "LARGE", "gender": "FEMALE", "age": "SENIOR" },
               "location": { "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
             }
@@ -321,7 +334,7 @@ public class MockAnimalPostDataUtils {
 
     private static final String PUT_ANIMAL_WITHOUT_AGE = """
             {
-              "name": "t", "description": "d", "imageId": "i", "phoneNumber": "1122334455",
+              "name": "t", "description": "d", "imageId": "i", "areaCode": "3533", "phoneNumber": "436249",
               "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE" },
               "location": { "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
             }
@@ -329,7 +342,7 @@ public class MockAnimalPostDataUtils {
 
     private static final String PUT_LOCATION_WITHOUT_NAME = """
             {
-              "name": "t", "description": "d", "imageId": "i", "phoneNumber": "1122334455",
+              "name": "t", "description": "d", "imageId": "i", "areaCode": "3533", "phoneNumber": "436249",
               "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE", "age": "SENIOR" },
               "location": { "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
             }
@@ -347,6 +360,7 @@ public class MockAnimalPostDataUtils {
                 Arguments.of("Se envia una request sin description, devuelve BAD_REQUEST", WITHOUT_DESCRIPTION, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Se envia una request sin imageId, devuelve BAD_REQUEST", WITHOUT_IMAGE_ID, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Una request LOST con dueno sin phoneNumber, devuelve BAD_REQUEST", WITHOUT_PHONE, HttpStatus.BAD_REQUEST, null),
+                Arguments.of("Una request LOST con dueno sin areaCode, devuelve BAD_REQUEST", WITHOUT_AREA_CODE, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Una request ADOPTION sin phoneNumber, devuelve BAD_REQUEST", ADOPTION_WITHOUT_PHONE, HttpStatus.BAD_REQUEST, null),
                 Arguments.of("Una request LOST en la calle (hasOwner=false) sin phoneNumber se crea igual y vuelve como IN_STREET", LOST_STREET_WITHOUT_PHONE, HttpStatus.CREATED, "IN_STREET"),
                 Arguments.of("Se envia una request sin age, devuelve BAD_REQUEST", WITHOUT_AGE, HttpStatus.BAD_REQUEST, null),

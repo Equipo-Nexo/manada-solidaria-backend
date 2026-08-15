@@ -43,12 +43,13 @@ public class DonationCampaign extends Campaign<DonationCampaignStatusHistory> {
             String description,
             String imageId,
             String shareCampaignUrl,
+            String areaCode,
             String phoneNumber,
             Location location,
             User owner,
             LocalDate campaignEndDate
     ) {
-        super(title, description, imageId, shareCampaignUrl, phoneNumber, location, owner);
+        super(title, description, imageId, shareCampaignUrl, areaCode, phoneNumber, location, owner);
 
         this.campaignEndDate = campaignEndDate;
         this.statusHistory = new ArrayList<>(

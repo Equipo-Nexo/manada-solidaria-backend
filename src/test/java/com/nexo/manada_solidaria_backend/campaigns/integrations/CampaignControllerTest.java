@@ -294,7 +294,8 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
 
         assertThat(updated.getTitle()).isEqualTo("Título Donación Editado");
         assertThat(updated.getDescription()).isEqualTo("Descripción editada");
-        assertThat(updated.getPhoneNumber()).isEqualTo("999999999");
+        assertThat(updated.getAreaCode()).isEqualTo("3533");
+        assertThat(updated.getPhoneNumber()).isEqualTo("436249");
         assertThat(updated.getCampaignEndDate()).isEqualTo(LocalDate.now().plusMonths(2));
     }
 
@@ -487,7 +488,7 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     private Campaign saveCampaignOwnedByOtherUser() {
-        User other = new User("otro-campaign-user", "x", new Profile("otro@mail.com", "111", List.of(Rol.COMMUNITY)));
+        User other = new User("otro-campaign-user", "x", new Profile("otro@mail.com", "3533", "436249", List.of(Rol.COMMUNITY)));
         userRepository.save(other);
         return campaignRepository.save(MockCampaignDataUtils.buildDonationModel(other));
     }

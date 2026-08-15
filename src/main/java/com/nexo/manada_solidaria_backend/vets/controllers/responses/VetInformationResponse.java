@@ -15,6 +15,8 @@ public record VetInformationResponse(
 
         String name,
 
+        String areaCode,
+
         String phone,
 
         String email,
@@ -35,6 +37,7 @@ public record VetInformationResponse(
         this(
                 vet.getId(),
                 vet.getName(),
+                vet.getAreaCode(),
                 vet.getPhone(),
                 vet.getEmail(),
                 vet.getProfilePictureUrl(),

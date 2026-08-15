@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.vets.controllers.requests;
 
+import com.nexo.manada_solidaria_backend.common.controllers.validations.PhoneValidation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
@@ -12,10 +13,17 @@ public record CreateVetInformationRequest(
         @NotBlank(message = "El nombre es obligatorio")
         String name,
 
+        @NotBlank(message = "El código de área es obligatorio")
+        @Pattern(
+                regexp = PhoneValidation.AREA_CODE_REGEX,
+                message = PhoneValidation.AREA_CODE_MESSAGE
+        )
+        String areaCode,
+
         @NotBlank(message = "El teléfono es obligatorio")
         @Pattern(
-                regexp = "^[0-9]{8,15}$",
-                message = "El teléfono debe contener entre 8 y 15 dígitos numéricos"
+                regexp = PhoneValidation.PHONE_NUMBER_REGEX,
+                message = PhoneValidation.PHONE_NUMBER_MESSAGE
         )
         String phone,
 

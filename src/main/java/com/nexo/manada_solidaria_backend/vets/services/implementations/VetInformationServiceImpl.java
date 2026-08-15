@@ -77,6 +77,7 @@ public class VetInformationServiceImpl implements VetInformationService {
                 request.vetPageUrl(),
                 request.profilePictureUrl(),
                 request.email(),
+                request.areaCode(),
                 request.phone(),
                 request.name()
         );

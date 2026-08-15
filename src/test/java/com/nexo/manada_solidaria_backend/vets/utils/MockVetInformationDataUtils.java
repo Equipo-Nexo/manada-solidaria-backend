@@ -20,7 +20,8 @@ public class MockVetInformationDataUtils {
 
     public static final CreateVetInformationRequest CREATE_VET_VALID = new CreateVetInformationRequest(
             "Veterinaria San Roque",
-            "3514567890",
+            "3514",
+            "567890",
             "contacto@sanroque.com",
             "vet-profile-123",
             "https://veterinariasanroque.com",
@@ -40,7 +41,8 @@ public class MockVetInformationDataUtils {
 
     private static final CreateVetInformationRequest CREATE_VET_WITHOUT_NAME = new CreateVetInformationRequest(
             null,
-            "3514567890",
+            "3514",
+            "567890",
             "contacto@sanroque.com",
             null,
             null,
@@ -49,8 +51,33 @@ public class MockVetInformationDataUtils {
             null
     );
 
+    private static final CreateVetInformationRequest CREATE_VET_WITHOUT_PHONE = new CreateVetInformationRequest(
+            "Veterinaria San Roque",
+            "3514",
+            null,
+            "contacto@sanroque.com",
+            null,
+            null,
+            null,
+            new LocationRequest("Sede Central", null, null, -32.4075, -63.2402),
+            List.of(new ScheduleRequest(DayOfWeek.MONDAY, LocalTime.of(8, 0), LocalTime.of(12, 30)))
+    );
+
+    private static final CreateVetInformationRequest CREATE_VET_WITHOUT_AREA_CODE = new CreateVetInformationRequest(
+            "Veterinaria San Roque",
+            null,
+            "567890",
+            "contacto@sanroque.com",
+            null,
+            null,
+            null,
+            new LocationRequest("Sede Central", null, null, -32.4075, -63.2402),
+            List.of(new ScheduleRequest(DayOfWeek.MONDAY, LocalTime.of(8, 0), LocalTime.of(12, 30)))
+    );
+
     private static final CreateVetInformationRequest CREATE_VET_INVALID_PHONE = new CreateVetInformationRequest(
             "Veterinaria San Roque",
+            "3514",
             "123",
             "contacto@sanroque.com",
             null,
@@ -62,7 +89,8 @@ public class MockVetInformationDataUtils {
 
     private static final CreateVetInformationRequest CREATE_VET_INVALID_EMAIL = new CreateVetInformationRequest(
             "Veterinaria San Roque",
-            "3514567890",
+            "3514",
+            "567890",
             "email-invalido",
             null,
             null,
@@ -73,7 +101,8 @@ public class MockVetInformationDataUtils {
 
     private static final CreateVetInformationRequest CREATE_VET_WITHOUT_LOCATION = new CreateVetInformationRequest(
             "Veterinaria San Roque",
-            "3514567890",
+            "3514",
+            "567890",
             "contacto@sanroque.com",
             null,
             null,
@@ -84,7 +113,8 @@ public class MockVetInformationDataUtils {
 
     private static final CreateVetInformationRequest CREATE_VET_LOCATION_MISSING_NAME = new CreateVetInformationRequest(
             "Veterinaria San Roque",
-            "3514567890",
+            "3514",
+            "567890",
             "contacto@sanroque.com",
             null,
             null,
@@ -96,7 +126,8 @@ public class MockVetInformationDataUtils {
     public static final UpdateVetInformationRequest UPDATE_VET_VALID =
             new UpdateVetInformationRequest(
                     "Veterinaria San Roque Actualizada",
-                    "3514567899",
+                    "3514",
+                    "567899",
                     "nuevo@sanroque.com",
                     "vet-profile-updated",
                     "https://veterinariasanroque.com/nueva",
@@ -125,7 +156,8 @@ public class MockVetInformationDataUtils {
     private static final UpdateVetInformationRequest UPDATE_VET_WITHOUT_NAME =
             new UpdateVetInformationRequest(
                     null,
-                    "3514567899",
+                    "3514",
+                    "567899",
                     "nuevo@sanroque.com",
                     null,
                     null,
@@ -149,6 +181,7 @@ public class MockVetInformationDataUtils {
     private static final UpdateVetInformationRequest UPDATE_VET_INVALID_PHONE =
             new UpdateVetInformationRequest(
                     "Veterinaria San Roque",
+                    "3514",
                     "123",
                     "nuevo@sanroque.com",
                     null,
@@ -173,7 +206,8 @@ public class MockVetInformationDataUtils {
     private static final UpdateVetInformationRequest UPDATE_VET_INVALID_EMAIL =
             new UpdateVetInformationRequest(
                     "Veterinaria San Roque",
-                    "3514567899",
+                    "3514",
+                    "567899",
                     "email-invalido",
                     null,
                     null,
@@ -197,7 +231,8 @@ public class MockVetInformationDataUtils {
     private static final UpdateVetInformationRequest UPDATE_VET_WITHOUT_LOCATION =
             new UpdateVetInformationRequest(
                     "Veterinaria San Roque",
-                    "3514567899",
+                    "3514",
+                    "567899",
                     "nuevo@sanroque.com",
                     null,
                     null,
@@ -215,7 +250,8 @@ public class MockVetInformationDataUtils {
     private static final UpdateVetInformationRequest UPDATE_VET_WITHOUT_CALENDAR =
             new UpdateVetInformationRequest(
                     "Veterinaria San Roque",
-                    "3514567899",
+                    "3514",
+                    "567899",
                     "nuevo@sanroque.com",
                     null,
                     null,
@@ -233,7 +269,8 @@ public class MockVetInformationDataUtils {
     private static final UpdateVetInformationRequest UPDATE_VET_EMPTY_CALENDAR =
             new UpdateVetInformationRequest(
                     "Veterinaria San Roque",
-                    "3514567899",
+                    "3514",
+                    "567899",
                     "nuevo@sanroque.com",
                     null,
                     null,
@@ -252,7 +289,8 @@ public class MockVetInformationDataUtils {
         return Stream.of(
                 Arguments.of("Devuelve id generado", CREATE_VET_VALID, "$.id", notNullValue()),
                 Arguments.of("Devuelve el name enviado", CREATE_VET_VALID, "$.name", is("Veterinaria San Roque")),
-                Arguments.of("Devuelve el phone enviado", CREATE_VET_VALID, "$.phone", is("3514567890")),
+                Arguments.of("Devuelve el areaCode enviado", CREATE_VET_VALID, "$.areaCode", is("3514")),
+                Arguments.of("Devuelve el phone enviado", CREATE_VET_VALID, "$.phone", is("567890")),
                 Arguments.of("Devuelve el email enviado", CREATE_VET_VALID, "$.email", is("contacto@sanroque.com")),
                 Arguments.of("Devuelve el nombre de la ubicación", CREATE_VET_VALID, "$.location.name", is("Sede Central")),
                 Arguments.of("Devuelve la cantidad correcta de días de atención", CREATE_VET_VALID, "$.calendar.length()", is(2))
@@ -263,6 +301,8 @@ public class MockVetInformationDataUtils {
         return Stream.of(
                 Arguments.of("Sin nombre devuelve BAD_REQUEST", CREATE_VET_WITHOUT_NAME),
                 Arguments.of("Teléfono fuera del rango (8-15) devuelve BAD_REQUEST", CREATE_VET_INVALID_PHONE),
+                Arguments.of("Sin teléfono devuelve BAD_REQUEST", CREATE_VET_WITHOUT_PHONE),
+                Arguments.of("Sin código de área devuelve BAD_REQUEST", CREATE_VET_WITHOUT_AREA_CODE),
                 Arguments.of("Email inválido devuelve BAD_REQUEST", CREATE_VET_INVALID_EMAIL),
                 Arguments.of("Sin ubicación devuelve BAD_REQUEST", CREATE_VET_WITHOUT_LOCATION),
                 Arguments.of("Ubicación sin nombre devuelve BAD_REQUEST", CREATE_VET_LOCATION_MISSING_NAME)
@@ -277,9 +317,14 @@ public class MockVetInformationDataUtils {
                         is("Veterinaria San Roque")
                 ),
                 Arguments.of(
+                        "Devuelve el código de área",
+                        "$.areaCode",
+                        is("3514")
+                ),
+                Arguments.of(
                         "Devuelve el teléfono",
                         "$.phone",
-                        is("3514567890")
+                        is("567890")
                 ),
                 Arguments.of(
                         "Devuelve el email",
@@ -383,10 +428,16 @@ public class MockVetInformationDataUtils {
                         is("Veterinaria San Roque Actualizada")
                 ),
                 Arguments.of(
+                        "Actualiza el código de área",
+                        UPDATE_VET_VALID,
+                        "$.areaCode",
+                        is("3514")
+                ),
+                Arguments.of(
                         "Actualiza el teléfono",
                         UPDATE_VET_VALID,
                         "$.phone",
-                        is("3514567899")
+                        is("567899")
                 ),
                 Arguments.of(
                         "Actualiza el email",

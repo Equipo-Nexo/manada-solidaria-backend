@@ -40,6 +40,7 @@ public class NewsCampaign extends Campaign<NewsCampaignStatusHistory> {
             String description,
             String imageId,
             String shareCampaignUrl,
+            String areaCode,
             String phoneNumber,
             Location location,
             User owner,
@@ -47,7 +48,7 @@ public class NewsCampaign extends Campaign<NewsCampaignStatusHistory> {
             LocalDateTime endDateTime,
             NewsCampaignCategory category
     ) {
-        super(title, description, imageId, shareCampaignUrl, phoneNumber, location, owner);
+        super(title, description, imageId, shareCampaignUrl, areaCode, phoneNumber, location, owner);
 
         this.newsStartDateTime = startDateTime != null
                 ? startDateTime

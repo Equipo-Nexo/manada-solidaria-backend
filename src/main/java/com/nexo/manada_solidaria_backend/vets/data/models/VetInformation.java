@@ -18,6 +18,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class VetInformation {
     private String name;
+    private String areaCode;
     private String phone;
     private String email;
     private String profilePictureUrl;
@@ -30,7 +31,8 @@ public class VetInformation {
     @Id
     private UUID id = UUID.randomUUID();
 
-    public VetInformation(Location location, List<Schedule> calendar, String description, String vetPageUrl, String profilePictureUrl, String email, String phone, String name) {
+    public VetInformation(Location location, List<Schedule> calendar, String description, String vetPageUrl, String profilePictureUrl, String email, String areaCode, String phone, String name) {
+        this.areaCode = areaCode;
         this.location = location;
         this.calendar = calendar;
         this.description = description;
@@ -43,6 +45,7 @@ public class VetInformation {
 
     public void update(UpdateVetInformationRequest request) {
         this.name = request.name();
+        this.areaCode = request.areaCode();
         this.phone = request.phone();
         this.email = request.email();
         this.profilePictureUrl = request.profilePictureUrl();

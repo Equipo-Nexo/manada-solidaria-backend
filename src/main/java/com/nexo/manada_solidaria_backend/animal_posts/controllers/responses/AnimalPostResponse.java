@@ -28,6 +28,7 @@ public record AnimalPostResponse(
         String status,
         LocalDateTime createdAt,
         UUID ownerId,
+        String areaCode,
         String phoneNumber,
         BigDecimal reward
 ) {
@@ -46,6 +47,7 @@ public record AnimalPostResponse(
                 Optional.ofNullable(post.getOwner())
                         .map(User::getId)
                         .orElse(null),
+                post.getAreaCode(),
                 post.getPhoneNumber(),
                 post instanceof LostPost lost ? lost.getReward() : null
         );

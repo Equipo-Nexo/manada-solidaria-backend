@@ -2,6 +2,7 @@ package com.nexo.manada_solidaria_backend.campaigns.controllers.requests;
 
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCategory;
 import com.nexo.manada_solidaria_backend.common.controllers.validations.ConditionalField;
+import com.nexo.manada_solidaria_backend.common.controllers.validations.PhoneValidation;
 import com.nexo.manada_solidaria_backend.locations.controllers.requests.UpdateLocationRequest;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import jakarta.validation.Valid;
@@ -39,10 +40,17 @@ public record UpdateCampaignRequest(
 
         String imageId,
 
-        @NotBlank
+        @NotBlank(message = "El código de área es obligatorio")
         @Pattern(
-                regexp = "^[0-9]{8,15}$",
-                message = "El teléfono debe contener entre 8 y 15 dígitos"
+                regexp = PhoneValidation.AREA_CODE_REGEX,
+                message = PhoneValidation.AREA_CODE_MESSAGE
+        )
+        String areaCode,
+
+        @NotBlank(message = "El teléfono es obligatorio")
+        @Pattern(
+                regexp = PhoneValidation.PHONE_NUMBER_REGEX,
+                message = PhoneValidation.PHONE_NUMBER_MESSAGE
         )
         String phoneNumber,
 

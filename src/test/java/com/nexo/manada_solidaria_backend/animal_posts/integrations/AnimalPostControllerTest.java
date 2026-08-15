@@ -104,7 +104,8 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.location.name").value("Parque Centenario"))
                 .andExpect(jsonPath("$.location.address").value("Av. Patricias"))
                 .andExpect(jsonPath("$.location.number").value(100))
-                .andExpect(jsonPath("$.phoneNumber").value("1122334455"))
+                .andExpect(jsonPath("$.areaCode").value("3533"))
+                .andExpect(jsonPath("$.phoneNumber").value("436249"))
                 .andExpect(jsonPath("$.reward").value(5000))
                 // El owner NO viene en el payload: se resuelve del JWT autenticado.
                 .andExpect(jsonPath("$.ownerId").value(adminId.toString()));
@@ -382,7 +383,8 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         assertThat(updated.getName()).isEqualTo("Titulo actualizado");
         assertThat(updated.getDescription()).isEqualTo("Descripcion actualizada");
         assertThat(updated.getImageUrl()).isEqualTo("cf-image-put");
-        assertThat(updated.getPhoneNumber()).isEqualTo("1199887766");
+        assertThat(updated.getAreaCode()).isEqualTo("3511");
+        assertThat(updated.getPhoneNumber()).isEqualTo("998877");
         assertThat(updated.getReward()).isEqualByComparingTo("7500");
         assertThat(updated.getUpdatedAt()).isNotNull();
         assertThat(updated.getAnimal().getType()).isEqualTo(AnimalType.CAT);
@@ -574,10 +576,10 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     private LostPost saveLostPostOwnedByOtherUser() {
-        User other = new User("otro-usuario", "x", new Profile("otro@mail.com", "111", List.of(Rol.COMMUNITY)));
+        User other = new User("otro-usuario", "x", new Profile("otro@mail.com", "3533", "436249", List.of(Rol.COMMUNITY)));
         userRepository.save(other);
 
-        LostPost post = new LostPost("De otro", "Descripcion", "cf-img", null, "111", true, other, location(), animal(), null);
+        LostPost post = new LostPost("De otro", "Descripcion", "cf-img", null, "3533", "436249", true, other, location(), animal(), null);
         return animalPostRepository.save(post);
     }
 
@@ -586,13 +588,13 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     private void saveLostPost(String name, StatusLostPost status, boolean hasOwner) {
-        LostPost post = new LostPost(name, "Descripción", "cf-img", null, null, hasOwner, null, location(), animal(), null);
+        LostPost post = new LostPost(name, "Descripción", "cf-img", null, "3533", "436249", hasOwner, null, location(), animal(), null);
         post.setStatusHistory(new ArrayList<>(List.of(new LostPostStatusHistory(status, post))));
         animalPostRepository.save(post);
     }
 
     private void saveAdoptionPost(String name, StatusAdoptionPost status) {
-        AdoptionPost post = new AdoptionPost(name, "Descripción", "cf-img", null, null, null, animal(), location(), false);
+        AdoptionPost post = new AdoptionPost(name, "Descripción", "cf-img", null, "3533", "436249", null, animal(), location(), false);
         post.setStatusHistory(new ArrayList<>(List.of(new AdoptionPostStatusHistory(status, post))));
         animalPostRepository.save(post);
     }

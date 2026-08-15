@@ -18,7 +18,7 @@ public class MockUserDataUtils {
               "name": "Elian",
               "lastname": "Enria",
               "email": "nuevo@mail.com",
-              "phoneNumber": "1133334444",
+              "areaCode": "3533", "phoneNumber": "436249",
               "profileImageURL": "cf-profile-1"
             }
             """;
@@ -28,7 +28,7 @@ public class MockUserDataUtils {
               "name": "Elian",
               "lastname": "Enria",
               "email": "nuevo@mail.com",
-              "phoneNumber": "1133334444"
+              "areaCode": "3533", "phoneNumber": "436249"
             }
             """;
 
@@ -36,7 +36,7 @@ public class MockUserDataUtils {
             {
               "name": "Elian",
               "lastname": "Enria",
-              "phoneNumber": "1133334444"
+              "areaCode": "3533", "phoneNumber": "436249"
             }
             """;
 
@@ -45,7 +45,7 @@ public class MockUserDataUtils {
               "name": "Elian",
               "lastname": "Enria",
               "email": "no-es-un-email",
-              "phoneNumber": "1133334444"
+              "areaCode": "3533", "phoneNumber": "436249"
             }
             """;
 
@@ -101,7 +101,8 @@ public class MockUserDataUtils {
                 Arguments.of("Devuelve el name enviado", UPDATE_PROFILE_VALID, "$.name", is("Elian")),
                 Arguments.of("Devuelve el lastname enviado", UPDATE_PROFILE_VALID, "$.lastname", is("Enria")),
                 Arguments.of("Devuelve el email enviado", UPDATE_PROFILE_VALID, "$.email", is("nuevo@mail.com")),
-                Arguments.of("Devuelve el phoneNumber enviado", UPDATE_PROFILE_VALID, "$.phoneNumber", is("1133334444")),
+                Arguments.of("Devuelve el areaCode enviado", UPDATE_PROFILE_VALID, "$.areaCode", is("3533")),
+                Arguments.of("Devuelve el phoneNumber enviado", UPDATE_PROFILE_VALID, "$.phoneNumber", is("436249")),
                 Arguments.of("Devuelve el profileImageURL enviado", UPDATE_PROFILE_VALID, "$.profileImageURL", is("cf-profile-1")),
                 Arguments.of("Reemplazo total: el campo omitido queda null", UPDATE_PROFILE_WITHOUT_IMAGE, "$.profileImageURL", nullValue())
         );

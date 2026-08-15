@@ -60,7 +60,8 @@ public class VetInformationControllerTests extends BaseAuthenticatedIntegrationT
 
         VetInformation savedVet = vetInformationRepository.findAll().get(0);
         assertThat(savedVet.getName()).isEqualTo("Veterinaria San Roque");
-        assertThat(savedVet.getPhone()).isEqualTo("3514567890");
+        assertThat(savedVet.getAreaCode()).isEqualTo("3514");
+        assertThat(savedVet.getPhone()).isEqualTo("567890");
         assertThat(savedVet.getEmail()).isEqualTo("contacto@sanroque.com");
 
         assertThat(savedVet.getLocation()).isNotNull();
@@ -304,7 +305,8 @@ public class VetInformationControllerTests extends BaseAuthenticatedIntegrationT
                 .orElseThrow();
 
         assertThat(updatedVet.getName()).isEqualTo("Veterinaria San Roque Actualizada");
-        assertThat(updatedVet.getPhone()).isEqualTo("3514567899");
+        assertThat(updatedVet.getAreaCode()).isEqualTo("3514");
+        assertThat(updatedVet.getPhone()).isEqualTo("567899");
         assertThat(updatedVet.getEmail()).isEqualTo("nuevo@sanroque.com");
         assertThat(updatedVet.getDescription()).isEqualTo("Nueva descripción de la veterinaria.");
 

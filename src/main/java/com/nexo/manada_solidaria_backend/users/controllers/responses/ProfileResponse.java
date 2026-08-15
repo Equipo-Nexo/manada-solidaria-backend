@@ -6,6 +6,7 @@ public record ProfileResponse(
         String name,
         String lastname,
         String email,
+        String areaCode,
         String phoneNumber,
         String profileImageURL
 ) {
@@ -15,6 +16,7 @@ public record ProfileResponse(
                 profile.getName(),
                 profile.getLastname(),
                 profile.getEmail(),
+                profile.getAreaCode(),
                 profile.getPhoneNumber(),
                 profile.getProfileImageURL()
         );

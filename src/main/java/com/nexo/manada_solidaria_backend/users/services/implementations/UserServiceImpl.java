@@ -126,6 +126,7 @@ public class UserServiceImpl implements UserService {
                 passwordEncoder.encode(createUserRequest.getPassword()),
                 new Profile(
                         createUserRequest.getEmail(),
+                        createUserRequest.getAreaCode(),
                         createUserRequest.getPhoneNumber(),
                         Optional.ofNullable(createUserRequest.getRoles())
                                 .orElse(List.of(Rol.COMMUNITY))

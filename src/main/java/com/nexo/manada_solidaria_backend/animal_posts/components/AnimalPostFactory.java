@@ -47,6 +47,7 @@ public class AnimalPostFactory {
                 request.description(),
                 request.imageId(),
                 null, //TODO definir una nueva card en jira nos limitamos al post en ms-30
+                request.areaCode(),
                 request.phoneNumber(),
                 request.hasOwner(),
                 owner,
@@ -62,6 +63,7 @@ public class AnimalPostFactory {
                 request.description(),
                 request.imageId(),
                 null, //TODO definir una nueva card en jira nos limitamos al post en ms-30
+                request.areaCode(),
                 request.phoneNumber(),
                 owner,
                 animal,

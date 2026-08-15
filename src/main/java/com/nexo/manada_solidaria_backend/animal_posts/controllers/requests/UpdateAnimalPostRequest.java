@@ -4,6 +4,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalAge;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalGender;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalSize;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
+import com.nexo.manada_solidaria_backend.common.controllers.validations.PhoneValidation;
 import com.nexo.manada_solidaria_backend.locations.controllers.requests.UpdateLocationRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -24,8 +25,14 @@ public record UpdateAnimalPostRequest(
 
         // Opcional: un post "en la calle" (LOST sin dueño) no tiene teléfono y debe poder editarse.
         @Pattern(
-                regexp = "^[0-9]{8,15}$",
-                message = "El teléfono debe contener entre 8 y 15 dígitos numéricos"
+                regexp = PhoneValidation.AREA_CODE_REGEX,
+                message = PhoneValidation.AREA_CODE_MESSAGE
+        )
+        String areaCode,
+
+        @Pattern(
+                regexp = PhoneValidation.PHONE_NUMBER_REGEX,
+                message = PhoneValidation.PHONE_NUMBER_MESSAGE
         )
         String phoneNumber,
 
