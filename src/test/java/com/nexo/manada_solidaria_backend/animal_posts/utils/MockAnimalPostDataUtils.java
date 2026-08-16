@@ -387,7 +387,7 @@ public class MockAnimalPostDataUtils {
     private static Stream<Arguments> provideStatusTransitionCases() {
         return Stream.of(
                 Arguments.of("Un perdido en busqueda pasa a encontrado", AnimalPostFilter.LOST, "SEARCHING", "FOUND", HttpStatus.OK),
-                Arguments.of("Uno de la calle para rescatar pasa a encontrado", AnimalPostFilter.IN_STREET, "TO_RESCUE", "FOUND", HttpStatus.OK),
+                Arguments.of("Uno de la calle para rescatar pasa a rescatado", AnimalPostFilter.IN_STREET, "TO_RESCUE", "RESCUED", HttpStatus.OK),
                 Arguments.of("Una adopcion con transito pasa a adoptada", AnimalPostFilter.ADOPTION, "SEARCHING_ADOPT", "ADOPTED", HttpStatus.OK),
                 Arguments.of("Una adopcion sin transito pasa a adoptada", AnimalPostFilter.ADOPTION, "SEARCHING_ADOPT_AND_TRANSIT", "ADOPTED", HttpStatus.OK),
                 Arguments.of("Una adopcion que consigue transito deja de buscarlo", AnimalPostFilter.ADOPTION, "SEARCHING_ADOPT_AND_TRANSIT", "SEARCHING_ADOPT", HttpStatus.OK),
@@ -397,6 +397,9 @@ public class MockAnimalPostDataUtils {
                 Arguments.of("Un estado inexistente devuelve BAD_REQUEST", AnimalPostFilter.LOST, "SEARCHING", "NO_EXISTE", HttpStatus.BAD_REQUEST),
                 Arguments.of("Un perdido ya encontrado no puede volver a transicionar", AnimalPostFilter.LOST, "FOUND", "FOUND", HttpStatus.CONFLICT),
                 Arguments.of("Una adopcion ya adoptada no puede volver a transicionar", AnimalPostFilter.ADOPTION, "ADOPTED", "ADOPTED", HttpStatus.CONFLICT),
+                Arguments.of("Uno de la calle NO puede pasar a encontrado", AnimalPostFilter.IN_STREET, "TO_RESCUE", "FOUND", HttpStatus.CONFLICT),
+                Arguments.of("Un perdido con dueno NO puede pasar a rescatado", AnimalPostFilter.LOST, "SEARCHING", "RESCUED", HttpStatus.CONFLICT),
+                Arguments.of("Uno de la calle ya rescatado no puede volver a transicionar", AnimalPostFilter.IN_STREET, "RESCUED", "RESCUED", HttpStatus.CONFLICT),
                 Arguments.of("No se puede transicionar desde CREATED", AnimalPostFilter.LOST, "CREATED", "FOUND", HttpStatus.CONFLICT)
         );
     }

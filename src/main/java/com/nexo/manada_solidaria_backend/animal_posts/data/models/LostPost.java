@@ -73,8 +73,9 @@ public class LostPost extends AnimalPost<StatusLostPost, LostPostStatusHistory> 
     @Override
     protected boolean isTransitionAllowed(StatusLostPost current, StatusLostPost target) {
         return switch (current) {
-            case SEARCHING, TO_RESCUE -> target == StatusLostPost.FOUND;
-            case CREATED, FOUND -> false;
+            case SEARCHING -> target == StatusLostPost.FOUND;
+            case TO_RESCUE -> target == StatusLostPost.RESCUED;
+            case CREATED, FOUND, RESCUED -> false;
         };
     }
 
