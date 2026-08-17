@@ -13,7 +13,9 @@ public interface GeolocationController {
     @GetMapping
     List<GeolocationResponse> getGeolocations(
             @RequestParam String text,
-            @RequestParam(defaultValue = "5") int limit
+            @RequestParam(defaultValue = "5", required = false) Integer limit,
+            @RequestParam(required = false) Double longitude,
+            @RequestParam(required = false) Double latitude
     );
 
     @GetMapping("/reverse")

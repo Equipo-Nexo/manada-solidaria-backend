@@ -38,5 +38,5 @@ clients:
         api-key: ${GEOAPIFY_APIKEY}
         host: https://api.geoapify.com
         paths:
-          geocode-autocomplete: ${clients.rest.apis.geoapify.host}/v1/geocode/autocomplete?apiKey={apiKey}&text={text}&limit={limit}
+          geocode-autocomplete: ${clients.rest.apis.geoapify.host}/v1/geocode/autocomplete?apiKey={apiKey}&text={text}&limit={limit}&bias=proximity:{longitude},{latitude}
           geocode-reverse: ${clients.rest.apis.geoapify.host}/v1/geocode/reverse?apiKey={apiKey}&lat={latitude}&lon={longitude}

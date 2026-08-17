@@ -18,9 +18,9 @@ public class GeolocationServiceImpl implements GeolocationService {
     private final GeoapifyRestClient geoapifyRestClient;
 
     @Override
-    public List<GeolocationResponse> getGeolocations(String text, int limit) {
+    public List<GeolocationResponse> getGeolocations(String text, Integer limit, Double longitude, Double latitude) {
         try {
-            GeoapifyResponse geoapifyResponse = geoapifyRestClient.getGeocodeAutocomplete(text, limit);
+            GeoapifyResponse geoapifyResponse = geoapifyRestClient.getGeocodeAutocomplete(text, limit, longitude, latitude);
             return geoapifyResponse
                     .features()
                     .stream()

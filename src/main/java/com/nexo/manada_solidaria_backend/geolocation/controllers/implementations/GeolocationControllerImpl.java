@@ -15,8 +15,8 @@ public class GeolocationControllerImpl implements GeolocationController {
     private final GeolocationService geolocationService;
 
     @Override
-    public List<GeolocationResponse> getGeolocations(String text, int limit) {
-        return geolocationService.getGeolocations(text, limit);
+    public List<GeolocationResponse> getGeolocations(String text, Integer limit, Double longitude, Double latitude) {
+        return geolocationService.getGeolocations(text, limit, longitude, latitude);
     }
 
     @Override

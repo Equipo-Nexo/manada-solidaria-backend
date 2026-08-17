@@ -13,13 +13,15 @@ public class GeoapifyRestClient {
     private final RestTemplate restTemplate;
     private final GeoapifyProperties geoapifyProperties;
 
-    public GeoapifyResponse getGeocodeAutocomplete(String text, int limit) {
+    public GeoapifyResponse getGeocodeAutocomplete(String text, Integer limit, Double longitude, Double latitude) {
         return restTemplate.getForEntity(
                 geoapifyProperties.paths().geocodeAutocomplete(),
                 GeoapifyResponse.class,
                 geoapifyProperties.apiKey(),
                 text,
-                limit
+                limit,
+                longitude,
+                latitude
         ).getBody();
     }
 
