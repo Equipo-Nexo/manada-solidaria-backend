@@ -4,12 +4,11 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalAge;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalGender;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalSize;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
+import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import com.nexo.manada_solidaria_backend.common.controllers.validations.ConditionalField;
-import com.nexo.manada_solidaria_backend.common.controllers.validations.PhoneValidation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;
 
 import java.math.BigDecimal;
@@ -35,16 +34,16 @@ import java.math.BigDecimal;
         message = "La recompensa solo aplica a publicaciones de tipo LOST"
 )
 @ConditionalField(
-        fields = {"areaCode", "phoneNumber"},
+        field = "phoneNumber",
         dependsOn = "type",
         expectedValue = "ADOPTION",
-        message = "El teléfono (código de área y número) es obligatorio en publicaciones de adopción"
+        message = "El número de teléfono es obligatorio en publicaciones de adopción"
 )
 @ConditionalField(
-        fields = {"areaCode", "phoneNumber"},
+        field = "phoneNumber",
         dependsOn = "hasOwner",
         expectedValue = "true",
-        message = "El teléfono (código de área y número) es obligatorio cuando el animal tiene dueño"
+        message = "El número de teléfono es obligatorio cuando el animal tiene dueño"
 )
 public record CreateAnimalPostRequest(
         @NotNull(message = "El tipo de publicación es obligatorio (LOST o ADOPTION)")
@@ -59,17 +58,8 @@ public record CreateAnimalPostRequest(
         String imageId,
 
         // Obligatorio salvo LOST con hasOwner=false ("en la calle"): lo resuelven los @ConditionalField de arriba.
-        @Pattern(
-                regexp = PhoneValidation.AREA_CODE_REGEX,
-                message = PhoneValidation.AREA_CODE_MESSAGE
-        )
-        String areaCode,
-
-        @Pattern(
-                regexp = PhoneValidation.PHONE_NUMBER_REGEX,
-                message = PhoneValidation.PHONE_NUMBER_MESSAGE
-        )
-        String phoneNumber,
+        @Valid
+        PhoneNumberRequest phoneNumber,
 
         Boolean hasOwner,
 

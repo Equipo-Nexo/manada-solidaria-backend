@@ -1,6 +1,6 @@
 package com.nexo.manada_solidaria_backend.vets.controllers.requests;
 
-import com.nexo.manada_solidaria_backend.common.controllers.validations.PhoneValidation;
+import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
@@ -13,19 +13,9 @@ public record CreateVetInformationRequest(
         @NotBlank(message = "El nombre es obligatorio")
         String name,
 
-        @NotBlank(message = "El código de área es obligatorio")
-        @Pattern(
-                regexp = PhoneValidation.AREA_CODE_REGEX,
-                message = PhoneValidation.AREA_CODE_MESSAGE
-        )
-        String areaCode,
-
-        @NotBlank(message = "El teléfono es obligatorio")
-        @Pattern(
-                regexp = PhoneValidation.PHONE_NUMBER_REGEX,
-                message = PhoneValidation.PHONE_NUMBER_MESSAGE
-        )
-        String phone,
+        @NotNull(message = "El teléfono es obligatorio")
+        @Valid
+        PhoneNumberRequest phoneNumber,
 
         @NotBlank(message = "El email es obligatorio")
         @Email(message = "El email no es válido")

@@ -2,6 +2,7 @@ package com.nexo.manada_solidaria_backend.animal_posts.data.models;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusAdoptionPost;
+import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.common.utils.StatusHistoryUtils;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -29,8 +30,8 @@ public class AdoptionPost extends AnimalPost<AdoptionPostStatusHistory> {
             List.of(new AdoptionPostStatusHistory(StatusAdoptionPost.CREATED, this))
     );
 
-    public AdoptionPost(String name, String description, String imageUrl, String sharePostUrl, String areaCode, String phoneNumber, User owner, Animal animal, Location location, boolean inTransit) {
-        super(name, description, imageUrl, sharePostUrl, areaCode, phoneNumber, owner, animal, location);
+    public AdoptionPost(String name, String description, String imageUrl, String sharePostUrl, PhoneNumber phoneNumber, User owner, Animal animal, Location location, boolean inTransit) {
+        super(name, description, imageUrl, sharePostUrl, phoneNumber, owner, animal, location);
         startSearching(inTransit);
     }
     private void startSearching(boolean inTransit) {

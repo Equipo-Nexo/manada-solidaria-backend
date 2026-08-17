@@ -48,7 +48,7 @@ INSERT INTO vet_information (
     email,
     name,
     area_code,
-    phone,
+    phone_number,
     profile_picture_url,
     vet_page_url
 )

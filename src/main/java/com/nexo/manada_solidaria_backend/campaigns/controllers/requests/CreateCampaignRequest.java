@@ -2,9 +2,9 @@ package com.nexo.manada_solidaria_backend.campaigns.controllers.requests;
 
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationCampaignCategory;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCategory;
+import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import com.nexo.manada_solidaria_backend.common.controllers.validations.ConditionalField;
 import com.nexo.manada_solidaria_backend.common.controllers.validations.DateRange;
-import com.nexo.manada_solidaria_backend.common.controllers.validations.PhoneValidation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
@@ -95,19 +95,9 @@ public record CreateCampaignRequest(
 
         String imageId,
 
-        @NotBlank(message = "El código de área es obligatorio")
-        @Pattern(
-                regexp = PhoneValidation.AREA_CODE_REGEX,
-                message = PhoneValidation.AREA_CODE_MESSAGE
-        )
-        String areaCode,
-
-        @NotBlank(message = "El teléfono es obligatorio")
-        @Pattern(
-                regexp = PhoneValidation.PHONE_NUMBER_REGEX,
-                message = PhoneValidation.PHONE_NUMBER_MESSAGE
-        )
-        String phoneNumber,
+        @NotNull(message = "El teléfono es obligatorio")
+        @Valid
+        PhoneNumberRequest phoneNumber,
 
         @Valid
         LocationRequest location,

@@ -1,8 +1,11 @@
 package com.nexo.manada_solidaria_backend.users.data.models;
 
+import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
+import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -27,16 +30,15 @@ public class Profile {
     private String userNotificationURL;
     private String profileImageURL;
     private String email;
-    private String areaCode;
-    private String phoneNumber;
+    @Embedded
+    private PhoneNumber phoneNumber;
     @Enumerated(EnumType.STRING)
     private List<Rol> roles = new ArrayList<>();
     @Id
     private UUID id = UUID.randomUUID();
 
-    public Profile(String email, String areaCode, String phoneNumber, List<Rol> roles) {
+    public Profile(String email, PhoneNumber phoneNumber, List<Rol> roles) {
         this.email = email;
-        this.areaCode = areaCode;
         this.phoneNumber = phoneNumber;
         this.roles = roles;
     }
@@ -45,8 +47,7 @@ public class Profile {
         this.name = request.name();
         this.lastname = request.lastname();
         this.email = request.email();
-        this.areaCode = request.areaCode();
-        this.phoneNumber = request.phoneNumber();
+        this.phoneNumber = PhoneNumberRequest.toDomain(request.phoneNumber());
         this.profileImageURL = request.profileImageURL();
     }
 

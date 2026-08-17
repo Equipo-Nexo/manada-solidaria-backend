@@ -4,6 +4,7 @@ import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.Campaign
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaginStatus;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCategory;
+import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.common.utils.StatusHistoryUtils;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -40,15 +41,14 @@ public class NewsCampaign extends Campaign<NewsCampaignStatusHistory> {
             String description,
             String imageId,
             String shareCampaignUrl,
-            String areaCode,
-            String phoneNumber,
+            PhoneNumber phoneNumber,
             Location location,
             User owner,
             LocalDateTime startDateTime,
             LocalDateTime endDateTime,
             NewsCampaignCategory category
     ) {
-        super(title, description, imageId, shareCampaignUrl, areaCode, phoneNumber, location, owner);
+        super(title, description, imageId, shareCampaignUrl, phoneNumber, location, owner);
 
         this.newsStartDateTime = startDateTime != null
                 ? startDateTime

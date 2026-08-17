@@ -2,6 +2,8 @@ package com.nexo.manada_solidaria_backend.campaigns.data.models;
 
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CampaignType;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
+import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
+import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.common.data.models.StatusHistory;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -26,8 +28,8 @@ public abstract class Campaign<T extends StatusHistory<?>> {
     private String description;
     private String imageId;
     private String shareCampaignUrl;
-    private String areaCode;
-    private String phoneNumber;
+    @Embedded
+    private PhoneNumber phoneNumber;
     private LocalDateTime updatedAt = null;
     private final LocalDateTime createdAt = LocalDateTime.now();
     @ManyToOne(optional = true, cascade = CascadeType.ALL)
@@ -42,8 +44,7 @@ public abstract class Campaign<T extends StatusHistory<?>> {
             String description,
             String imageId,
             String shareCampaignUrl,
-            String areaCode,
-            String phoneNumber,
+            PhoneNumber phoneNumber,
             Location location,
             User owner
     ) {
@@ -51,7 +52,6 @@ public abstract class Campaign<T extends StatusHistory<?>> {
         this.description = description;
         this.imageId = imageId;
         this.shareCampaignUrl = shareCampaignUrl;
-        this.areaCode = areaCode;
         this.phoneNumber = phoneNumber;
         this.location = location;
         this.owner = owner;
@@ -61,8 +61,7 @@ public abstract class Campaign<T extends StatusHistory<?>> {
         this.title = request.title();
         this.description = request.description();
         this.imageId = request.imageId();
-        this.areaCode = request.areaCode();
-        this.phoneNumber = request.phoneNumber();
+        this.phoneNumber = PhoneNumberRequest.toDomain(request.phoneNumber());
         this.updatedAt = LocalDateTime.now();
         updateLocation(request);
     }

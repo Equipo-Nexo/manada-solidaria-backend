@@ -3,11 +3,11 @@ package com.nexo.manada_solidaria_backend.vets.integrations;
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthenticatedIntegrationTest;
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.CreateVetInformationRequest;
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.UpdateVetInformationRequest;
+import com.nexo.manada_solidaria_backend.vets.data.models.Schedule;
 import com.nexo.manada_solidaria_backend.vets.data.models.VetInformation;
 import com.nexo.manada_solidaria_backend.vets.data.repositories.ScheduleRepository;
 import com.nexo.manada_solidaria_backend.vets.data.repositories.VetInformationRepository;
 import com.nexo.manada_solidaria_backend.vets.utils.MockVetInformationDataUtils;
-import com.nexo.manada_solidaria_backend.vets.data.models.Schedule;
 import org.hamcrest.Matcher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -60,8 +60,8 @@ public class VetInformationControllerTests extends BaseAuthenticatedIntegrationT
 
         VetInformation savedVet = vetInformationRepository.findAll().get(0);
         assertThat(savedVet.getName()).isEqualTo("Veterinaria San Roque");
-        assertThat(savedVet.getAreaCode()).isEqualTo("3514");
-        assertThat(savedVet.getPhone()).isEqualTo("567890");
+        assertThat(savedVet.getPhoneNumber().areaCode()).isEqualTo("3514");
+        assertThat(savedVet.getPhoneNumber().number()).isEqualTo("567890");
         assertThat(savedVet.getEmail()).isEqualTo("contacto@sanroque.com");
 
         assertThat(savedVet.getLocation()).isNotNull();
@@ -305,8 +305,8 @@ public class VetInformationControllerTests extends BaseAuthenticatedIntegrationT
                 .orElseThrow();
 
         assertThat(updatedVet.getName()).isEqualTo("Veterinaria San Roque Actualizada");
-        assertThat(updatedVet.getAreaCode()).isEqualTo("3514");
-        assertThat(updatedVet.getPhone()).isEqualTo("567899");
+        assertThat(updatedVet.getPhoneNumber().areaCode()).isEqualTo("3514");
+        assertThat(updatedVet.getPhoneNumber().number()).isEqualTo("567899");
         assertThat(updatedVet.getEmail()).isEqualTo("nuevo@sanroque.com");
         assertThat(updatedVet.getDescription()).isEqualTo("Nueva descripción de la veterinaria.");
 

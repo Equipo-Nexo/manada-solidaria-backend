@@ -14,9 +14,7 @@ import java.lang.annotation.Target;
 @Repeatable(ConditionalField.List.class)
 @Constraint(validatedBy = ConditionalFieldValidator.class)
 public @interface ConditionalField {
-    String field() default "";
-
-    String[] fields() default {};
+    String field();
 
     String dependsOn();
 

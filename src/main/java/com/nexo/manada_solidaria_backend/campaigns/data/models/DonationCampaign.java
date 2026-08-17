@@ -3,6 +3,7 @@ package com.nexo.manada_solidaria_backend.campaigns.data.models;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CampaignType;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.CampaignStatus;
+import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.common.utils.StatusHistoryUtils;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -43,13 +44,12 @@ public class DonationCampaign extends Campaign<DonationCampaignStatusHistory> {
             String description,
             String imageId,
             String shareCampaignUrl,
-            String areaCode,
-            String phoneNumber,
+            PhoneNumber phoneNumber,
             Location location,
             User owner,
             LocalDate campaignEndDate
     ) {
-        super(title, description, imageId, shareCampaignUrl, areaCode, phoneNumber, location, owner);
+        super(title, description, imageId, shareCampaignUrl, phoneNumber, location, owner);
 
         this.campaignEndDate = campaignEndDate;
         this.statusHistory = new ArrayList<>(

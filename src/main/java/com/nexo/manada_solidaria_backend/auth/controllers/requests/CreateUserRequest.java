@@ -1,8 +1,9 @@
 package com.nexo.manada_solidaria_backend.auth.controllers.requests;
 
 import com.nexo.manada_solidaria_backend.auth.validations.annotations.PasswordMatches;
-import com.nexo.manada_solidaria_backend.common.controllers.validations.PhoneValidation;
+import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,14 +28,6 @@ public class CreateUserRequest {
     @Email
     @NotNull(message = "Debe ingresar un correo electrónico")
     private String email;
-    @Pattern(
-            regexp = PhoneValidation.AREA_CODE_REGEX,
-            message = PhoneValidation.AREA_CODE_MESSAGE
-    )
-    private String areaCode;
-    @Pattern(
-            regexp = PhoneValidation.PHONE_NUMBER_REGEX,
-            message = PhoneValidation.PHONE_NUMBER_MESSAGE
-    )
-    private String phoneNumber;
+    @Valid
+    private PhoneNumberRequest phoneNumber;
 }

@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.vets.services.implementations;
 
+import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.CreateVetInformationRequest;
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.UpdateVetInformationRequest;
@@ -77,8 +78,7 @@ public class VetInformationServiceImpl implements VetInformationService {
                 request.vetPageUrl(),
                 request.profilePictureUrl(),
                 request.email(),
-                request.areaCode(),
-                request.phone(),
+                PhoneNumberRequest.toDomain(request.phoneNumber()),
                 request.name()
         );
 

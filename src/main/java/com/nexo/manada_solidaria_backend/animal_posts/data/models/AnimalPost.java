@@ -2,6 +2,8 @@ package com.nexo.manada_solidaria_backend.animal_posts.data.models;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
+import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
+import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.common.data.models.StatusHistory;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -25,8 +27,8 @@ public abstract class AnimalPost<T extends StatusHistory> {
     private String description;
     private String imageUrl;
     private String sharePostUrl;
-    private String areaCode;
-    private String phoneNumber;
+    @Embedded
+    private PhoneNumber phoneNumber;
     private LocalDateTime updatedAt = null;
     @Column(updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -54,12 +56,11 @@ public abstract class AnimalPost<T extends StatusHistory> {
     @Id
     private UUID id = UUID.randomUUID();
 
-    public AnimalPost(String name, String description, String imageUrl, String sharePostUrl, String areaCode, String phoneNumber, User owner, Animal animal, Location location) {
+    public AnimalPost(String name, String description, String imageUrl, String sharePostUrl, PhoneNumber phoneNumber, User owner, Animal animal, Location location) {
         this.name = name;
         this.description = description;
         this.imageUrl = imageUrl;
         this.sharePostUrl = sharePostUrl;
-        this.areaCode = areaCode;
         this.phoneNumber = phoneNumber;
         this.owner = owner;
         this.animal = animal;
@@ -71,8 +72,7 @@ public abstract class AnimalPost<T extends StatusHistory> {
         this.name = request.name();
         this.description = request.description();
         this.imageUrl = request.imageId();
-        this.areaCode = request.areaCode();
-        this.phoneNumber = request.phoneNumber();
+        this.phoneNumber = PhoneNumberRequest.toDomain(request.phoneNumber());
         this.updatedAt = LocalDateTime.now();
         this.animal.update(request.animal());
         this.location.update(request.location());

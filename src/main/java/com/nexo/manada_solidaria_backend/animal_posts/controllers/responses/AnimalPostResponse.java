@@ -9,6 +9,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.models.Animal;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
 import com.nexo.manada_solidaria_backend.common.controllers.responses.LocationResponse;
+import com.nexo.manada_solidaria_backend.common.controllers.responses.PhoneNumberResponse;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 
 import java.math.BigDecimal;
@@ -28,8 +29,7 @@ public record AnimalPostResponse(
         String status,
         LocalDateTime createdAt,
         UUID ownerId,
-        String areaCode,
-        String phoneNumber,
+        PhoneNumberResponse phoneNumber,
         BigDecimal reward
 ) {
 
@@ -47,8 +47,7 @@ public record AnimalPostResponse(
                 Optional.ofNullable(post.getOwner())
                         .map(User::getId)
                         .orElse(null),
-                post.getAreaCode(),
-                post.getPhoneNumber(),
+                PhoneNumberResponse.from(post.getPhoneNumber()),
                 post instanceof LostPost lost ? lost.getReward() : null
         );
     }
