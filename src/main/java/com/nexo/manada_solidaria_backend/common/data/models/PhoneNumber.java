@@ -5,9 +5,10 @@ import jakarta.persistence.Embeddable;
 
 @Embeddable
 public record PhoneNumber(
+        @Column(length = 4)
         String areaCode,
 
-        @Column(name = "phone_number")
+        @Column(name = "phone_number", length = 7)
         String number
 ) {
 }
