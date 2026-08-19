@@ -4,5 +4,6 @@ public enum StatusLostPost {
     CREATED,
     SEARCHING,
     TO_RESCUE,
-    FOUND
+    FOUND,
+    RESCUED
 }

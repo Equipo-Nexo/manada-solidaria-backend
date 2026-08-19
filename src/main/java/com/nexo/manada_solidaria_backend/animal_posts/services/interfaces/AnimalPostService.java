@@ -2,6 +2,7 @@ package com.nexo.manada_solidaria_backend.animal_posts.services.interfaces;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAnimalPostRequest;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AnimalPostResponse;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -19,6 +20,8 @@ public interface AnimalPostService {
     AnimalPostResponse getAnimalPost(UUID animalPostId);
 
     void update(UUID animalPostId, UpdateAnimalPostRequest request, User authenticatedUser);
+
+    AnimalPostResponse transitionStatus(UUID animalPostId, TransitionStatusRequest request, User authenticatedUser);
 
     void delete(UUID animalPostId, User authenticatedUser);
 
