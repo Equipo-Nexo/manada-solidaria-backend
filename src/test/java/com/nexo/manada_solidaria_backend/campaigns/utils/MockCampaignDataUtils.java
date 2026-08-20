@@ -4,7 +4,7 @@ import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.Campaign
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest.LocationRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
-import com.nexo.manada_solidaria_backend.campaigns.data.enums.CampaignStatus;
+import com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationFundraisingCampaignStatus;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationCampaignCategory;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCategory;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationCampaign;
@@ -642,8 +642,8 @@ public class MockCampaignDataUtils {
 
     private static Stream<Arguments> provideFinalDonationStatuses() {
         return Stream.of(
-                Arguments.of("Una donacion en estado FINISHED no se puede eliminar", CampaignStatus.FINISHED),
-                Arguments.of("Una donacion en estado COMPLETED tampoco se puede eliminar", CampaignStatus.COMPLETED)
+                Arguments.of("Una donacion en estado FINISHED no se puede eliminar", DonationFundraisingCampaignStatus.FINISHED),
+                Arguments.of("Una donacion en estado COMPLETED tampoco se puede eliminar", DonationFundraisingCampaignStatus.COMPLETED)
         );
     }
 }

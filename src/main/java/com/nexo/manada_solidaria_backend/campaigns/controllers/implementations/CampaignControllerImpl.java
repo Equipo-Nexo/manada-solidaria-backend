@@ -2,6 +2,7 @@ package com.nexo.manada_solidaria_backend.campaigns.controllers.implementations;
 
 import com.nexo.manada_solidaria_backend.campaigns.controllers.interfaces.CampaignController;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest;
+import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.TransitionCampaignStatusRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.responses.CampaignResponse;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.CampaignCategoryFilter;
@@ -48,4 +49,13 @@ public class CampaignControllerImpl implements CampaignController {
     public void delete(UUID campaignId, User authenticatedUser) {
         campaignService.delete(campaignId, authenticatedUser);
     }
+
+    @Override
+    public CampaignResponse transitionStatus(UUID campaignId, TransitionCampaignStatusRequest request, User authenticatedUser){
+        return campaignService.transitionStatus(
+                campaignId,
+                request,
+                authenticatedUser
+        );
+    };
 }

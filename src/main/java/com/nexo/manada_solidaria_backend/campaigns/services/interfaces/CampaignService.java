@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.campaigns.services.interfaces;
 
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest;
+import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.TransitionCampaignStatusRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.responses.CampaignResponse;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.CampaignCategoryFilter;
@@ -28,4 +29,6 @@ public interface CampaignService {
     List<CampaignResponse> getUserCampaigns(User user);
 
     List<CampaignResponse> getUserFundraisingCampaigns(User user);
+
+    CampaignResponse transitionStatus(UUID campaignId, TransitionCampaignStatusRequest request, User authenticatedUser);
 }
