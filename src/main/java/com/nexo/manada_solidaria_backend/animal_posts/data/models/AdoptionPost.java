@@ -14,12 +14,15 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 public class AdoptionPost extends AnimalPost<StatusAdoptionPost, AdoptionPostStatusHistory> {
+
+    public static final Set<StatusAdoptionPost> HAPPY_STATUSES = Set.of(StatusAdoptionPost.ADOPTED);
     @OneToMany(
             mappedBy = "post",
             cascade = CascadeType.ALL,
@@ -71,10 +74,7 @@ public class AdoptionPost extends AnimalPost<StatusAdoptionPost, AdoptionPostSta
     }
 
     @Override
-    public boolean isFinished() {
-        return switch (getCurrentStatus().getStatus()) {
-            case ADOPTED -> true;
-            case CREATED, SEARCHING_ADOPT, SEARCHING_ADOPT_AND_TRANSIT -> false;
-        };
+    protected Set<StatusAdoptionPost> happyStatuses() {
+        return HAPPY_STATUSES;
     }
 }
