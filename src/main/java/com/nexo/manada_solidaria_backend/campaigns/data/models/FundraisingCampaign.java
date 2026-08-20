@@ -66,6 +66,14 @@ public class FundraisingCampaign extends Campaign<DonationFundraisingCampaignSta
         this.amountToBeCollected = request.amountToBeCollected();
         this.amountCollected = request.amountCollected();
         this.campaignEndDate = request.campaignEndDate();
+
+        if (this.amountCollected != null
+                && this.amountToBeCollected != null
+                && this.amountCollected >= this.amountToBeCollected
+                && getCurrentStatus().getStatus() == DonationFundraisingCampaignStatus.CREATED) {
+
+            transitionTo(DonationFundraisingCampaignStatus.COMPLETED.name());
+        }
     }
 
     @Override
