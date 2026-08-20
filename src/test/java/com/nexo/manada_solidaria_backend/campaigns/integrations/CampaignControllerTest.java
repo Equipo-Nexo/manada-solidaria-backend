@@ -27,10 +27,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils.NEWS_UPDATE_END_DATE;
+import static com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils.NEWS_UPDATE_START_DATE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -337,8 +339,8 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
         NewsCampaign updated = (NewsCampaign) campaignRepository.findById(campaignId).orElseThrow();
 
         assertThat(updated.getCategory()).isEqualTo(NewsCampaignCategory.OTHER);
-        assertThat(updated.getNewsStartDateTime()).isEqualTo(LocalDateTime.of(2026,9,1,10,0));
-        assertThat(updated.getNewsEndDateTime()).isEqualTo(LocalDateTime.of(2026,9,5,18,0));
+        assertThat(updated.getNewsStartDateTime()).isEqualTo(NEWS_UPDATE_START_DATE);
+        assertThat(updated.getNewsEndDateTime()).isEqualTo(NEWS_UPDATE_END_DATE);
     }
 
     @Test
