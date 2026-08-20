@@ -35,11 +35,16 @@ public class MockCampaignDataUtils {
     );
 
     private static final LocalDateTime NEWS_START_DATE =
-            LocalDateTime.of(2026, 8, 1, 10, 0);
+            LocalDateTime.now().plusDays(1);
 
     private static final LocalDateTime NEWS_END_DATE =
-            LocalDateTime.of(2026, 8, 10, 18, 0);
+            LocalDateTime.now().plusDays(10);
 
+    public static final LocalDateTime NEWS_UPDATE_START_DATE =
+            LocalDateTime.now().plusDays(2);
+
+    public static final LocalDateTime NEWS_UPDATE_END_DATE =
+            LocalDateTime.now().plusDays(6);
 
     public static final CreateCampaignRequest NEWS_VALID = new CreateCampaignRequest(
             CampaignType.NEWS,
@@ -585,8 +590,8 @@ public class MockCampaignDataUtils {
                 null,
                 null,
                 null,
-                LocalDateTime.of(2026, 9, 1, 10, 0),
-                LocalDateTime.of(2026, 9, 5, 18, 0),
+                NEWS_UPDATE_START_DATE,
+                NEWS_UPDATE_END_DATE,
                 NewsCampaignCategory.OTHER
         );
     }
@@ -603,8 +608,8 @@ public class MockCampaignDataUtils {
                 null,
                 null,
                 null,
-                LocalDateTime.of(2026, 9, 1, 10, 0),
-                LocalDateTime.of(2026, 9, 5, 18, 0),
+                NEWS_UPDATE_START_DATE,
+                NEWS_UPDATE_END_DATE,
                 NewsCampaignCategory.OTHER
         );
     }

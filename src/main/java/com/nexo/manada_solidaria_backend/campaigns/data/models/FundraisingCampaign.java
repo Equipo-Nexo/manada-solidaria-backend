@@ -26,7 +26,7 @@ import java.util.List;
 public class FundraisingCampaign extends Campaign<DonationFundraisingCampaignStatus, FundraisingCampaignStatusHistory> {
     private String accountAlias;
     private Long amountToBeCollected;
-    private long amountCollected;
+    private Long amountCollected;
     private LocalDate campaignEndDate;
     @OneToMany(
             mappedBy = "campaign",
