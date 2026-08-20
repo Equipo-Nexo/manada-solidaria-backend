@@ -26,4 +26,6 @@ public interface AnimalPostService {
     void delete(UUID animalPostId, User authenticatedUser);
 
     List<AnimalPostResponse> getUserAnimalPosts(User user);
+
+    long countFinishedUserAnimalPosts(User user);
 }

@@ -58,4 +58,6 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
         AND c.owner = :owner
     """)
     List<Campaign<?>> findFundraisingCampaignsByOwner(@Param("owner") User user);
+
+    List<Campaign<?>> findAllByOwner(User user);
 }

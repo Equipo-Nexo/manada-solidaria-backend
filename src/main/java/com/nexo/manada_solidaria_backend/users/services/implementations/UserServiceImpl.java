@@ -17,6 +17,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Comparator;
@@ -64,6 +65,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public UserDetailResponse getUser(UUID userId, User authenticatedUser) {
+        User user = Optional.ofNullable(userId)
+                .map(this::getUserById)
+                .orElse(authenticatedUser);
+        return UserDetailResponse.from(user, getUserPosts(user, null), countCompletedPosts(user));
+    }
+
+    @Override
     public List<UserPostResponse> getUserPosts(User user, String type) {
         return (requireAllPosts(type) ? getAllUserPosts(user) : getUserPostsByType(user, type))
                 .sorted(Comparator.comparingLong(UserPostResponse::getCreatedSince))
@@ -82,6 +92,11 @@ public class UserServiceImpl implements UserService {
         authenticatedUser.getProfile().updateRoles(request);
         userRepository.save(authenticatedUser);
         return authenticatedUser.getProfile().getRoles();
+    }
+
+    private long countCompletedPosts(User user) {
+        return animalPostService.countFinishedUserAnimalPosts(user)
+                + campaignService.countFinishedUserCampaigns(user);
     }
 
     private static boolean requireAllPosts(String type) {

@@ -1,9 +1,16 @@
 package com.nexo.manada_solidaria_backend.users.integrations;
 
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusLostPost;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.Animal;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPostStatusHistory;
+import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthenticatedIntegrationTest;
+import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.Profile;
+import com.nexo.manada_solidaria_backend.users.data.models.User;
 import com.nexo.manada_solidaria_backend.users.data.repositories.UserRepository;
 import com.nexo.manada_solidaria_backend.users.utils.MockUserDataUtils;
 import org.hamcrest.Matcher;
@@ -15,8 +22,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,6 +42,79 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private AnimalPostRepository animalPostRepository;
+
+    @DisplayName("GET /users devuelve perfil, publicaciones y metricas")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideUserDetailFieldCases")
+    @Sql(
+            scripts = {
+                    "/sql/users/user-profile-data.sql",
+                    "/sql/users/create-campaigns.sql",
+                    "/sql/users/create-animal-posts.sql",
+                    "/sql/users/create-fundraising.sql"
+            },
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    void getUser_returnsFullDetail(
+            String testName,
+            String jsonPathExpression,
+            Matcher<?> expected
+    ) throws Exception {
+        getUser(adminId())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(jsonPathExpression, expected));
+    }
+
+    @DisplayName("GET /users — completedPosts cuenta solo las publicaciones finalizadas")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideCompletedPostsCases")
+    void getUser_completedPostsMetric(
+            String testName,
+            StatusLostPost status,
+            int expectedCompleted
+    ) throws Exception {
+        saveLostPost(userRepository.findByUsername("admin").orElseThrow(), status);
+
+        getUser(adminId())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.metrics.totalPosts").value(1))
+                .andExpect(jsonPath("$.metrics.completedPosts").value(expectedCompleted));
+    }
+
+    @Test
+    @DisplayName("GET /users de un usuario inexistente devuelve 404")
+    void getUser_whenUserDoesNotExist_returnsNotFound() throws Exception {
+        getUser(UUID.randomUUID()).andExpect(status().isNotFound());
+    }
+
+    @DisplayName("GET /users resuelve el usuario objetivo")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideUserResolutionCases")
+    void getUser_resolvesTarget(
+            String testName,
+            boolean sendUserId,
+            String expectedUsername
+    ) throws Exception {
+        User other = saveUser("otro");
+
+        getUser(sendUserId ? other.getId() : null)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value(expectedUsername));
+    }
+
+    @DisplayName("GET del detalle de usuario sin autenticacion valida devuelve 401")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideUnauthorizedTokenCases")
+    void getUser_unauthorized(String testName, String path, String token) throws Exception {
+        MockHttpServletRequestBuilder request = get(path);
+        if (token != null) {
+            request = request.header("Authorization", "Bearer " + token);
+        }
+
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
+    }
 
     @DisplayName("Get user posts")
     @ParameterizedTest(name = "{index} - {0}")
@@ -197,6 +280,35 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body)
         );
+    }
+
+    private ResultActions getUser(UUID userId) throws Exception {
+        MockHttpServletRequestBuilder request = get("/users")
+                .header("Authorization", "Bearer " + accessToken);
+        if (userId != null) {
+            request = request.param("userId", userId.toString());
+        }
+        return mockMvc.perform(request);
+    }
+
+    private User saveUser(String username) {
+        return userRepository.save(
+                new User(username, "irrelevante",
+                        new Profile("otro@mail.com", "1122223333", List.of(Rol.COMMUNITY)))
+        );
+    }
+
+    private UUID adminId() {
+        return userRepository.findByUsername("admin").orElseThrow().getId();
+    }
+
+    private void saveLostPost(User owner, StatusLostPost status) {
+        LostPost post = new LostPost(
+                "Publicacion de prueba", "Descripcion", "cf-img", null, null, true,
+                owner, new Location("Parque", "Av. Patricias", 100, -34.6, -58.4), new Animal(), null
+        );
+        post.setStatusHistory(new ArrayList<>(List.of(new LostPostStatusHistory(status, post))));
+        animalPostRepository.save(post);
     }
 
     private List<Rol> rolesOfAdmin() {

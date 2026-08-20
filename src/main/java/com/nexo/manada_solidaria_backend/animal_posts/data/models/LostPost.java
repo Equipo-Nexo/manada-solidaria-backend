@@ -83,4 +83,12 @@ public class LostPost extends AnimalPost<StatusLostPost, LostPostStatusHistory> 
     protected void addStatus(StatusLostPost status) {
         this.statusHistory.add(new LostPostStatusHistory(status, this));
     }
+
+    @Override
+    public boolean isFinished() {
+        return switch (getCurrentStatus().getStatus()) {
+            case FOUND, RESCUED -> true;
+            case CREATED, SEARCHING, TO_RESCUE -> false;
+        };
+    }
 }

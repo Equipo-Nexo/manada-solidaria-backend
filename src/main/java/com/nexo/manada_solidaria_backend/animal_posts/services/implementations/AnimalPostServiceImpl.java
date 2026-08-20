@@ -89,6 +89,14 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                 .toList();
     }
 
+    @Override
+    public long countFinishedUserAnimalPosts(User user) {
+        return animalPostRepository.findAllByOwner(user)
+                .stream()
+                .filter(AnimalPost::isFinished)
+                .count();
+    }
+
     private void validateOwner(AnimalPost post, User authenticatedUser) {
         if (!post.getOwner().getId().equals(authenticatedUser.getId())) {
             throw new ResponseStatusException(

@@ -4,6 +4,7 @@ import com.nexo.manada_solidaria_backend.users.controllers.interfaces.UserContro
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.ProfileResponse;
+import com.nexo.manada_solidaria_backend.users.controllers.responses.UserDetailResponse;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.UserPostResponse;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -12,12 +13,18 @@ import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @AllArgsConstructor
 public class UserControllerImpl implements UserController {
 
     private final UserService userService;
+
+    @Override
+    public UserDetailResponse getUser(UUID userId, User authenticatedUser) {
+        return userService.getUser(userId, authenticatedUser);
+    }
 
     @Override
     public List<UserPostResponse> getUserPosts(User user, String type) {

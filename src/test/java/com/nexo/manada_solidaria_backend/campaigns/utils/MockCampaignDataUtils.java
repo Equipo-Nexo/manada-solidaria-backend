@@ -35,10 +35,10 @@ public class MockCampaignDataUtils {
     );
 
     private static final LocalDateTime NEWS_START_DATE =
-            LocalDateTime.of(2026, 8, 1, 10, 0);
+            LocalDateTime.now().plusDays(1);
 
     private static final LocalDateTime NEWS_END_DATE =
-            LocalDateTime.of(2026, 8, 10, 18, 0);
+            LocalDateTime.now().plusDays(10);
 
 
     public static final CreateCampaignRequest NEWS_VALID = new CreateCampaignRequest(

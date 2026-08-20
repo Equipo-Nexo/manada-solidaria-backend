@@ -69,4 +69,12 @@ public class AdoptionPost extends AnimalPost<StatusAdoptionPost, AdoptionPostSta
     protected void addStatus(StatusAdoptionPost status) {
         this.statusHistory.add(new AdoptionPostStatusHistory(status, this));
     }
+
+    @Override
+    public boolean isFinished() {
+        return switch (getCurrentStatus().getStatus()) {
+            case ADOPTED -> true;
+            case CREATED, SEARCHING_ADOPT, SEARCHING_ADOPT_AND_TRANSIT -> false;
+        };
+    }
 }

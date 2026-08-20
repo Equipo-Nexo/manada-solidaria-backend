@@ -110,6 +110,14 @@ public class CampaignServiceImpl implements CampaignService {
                 .toList();
     }
 
+    @Override
+    public long countFinishedUserCampaigns(User user) {
+        return campaignRepository.findAllByOwner(user)
+                .stream()
+                .filter(Campaign::isFinished)
+                .count();
+    }
+
     private <T extends Campaign<?>> Page<CampaignResponse> toResponse(Page<T> campaigns) {
         return campaigns.map(CampaignResponse::from);
     }
