@@ -17,12 +17,15 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 public class LostPost extends AnimalPost<StatusLostPost, LostPostStatusHistory> {
+
+    public static final Set<StatusLostPost> HAPPY_STATUSES = Set.of(StatusLostPost.FOUND, StatusLostPost.RESCUED);
     @Column(nullable = false, updatable = false)
     private boolean hasOwner;
     @Column(precision = 12, scale = 2)

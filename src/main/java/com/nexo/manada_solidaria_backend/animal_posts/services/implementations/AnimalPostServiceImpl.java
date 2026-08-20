@@ -6,7 +6,10 @@ import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.Creat
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AnimalPostResponse;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.HappyCaseResponse;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
 import com.nexo.manada_solidaria_backend.common.utils.EnumUtils;
@@ -79,6 +82,13 @@ public class AnimalPostServiceImpl implements AnimalPostService {
         validateOwner(post, authenticatedUser);
 
         animalPostRepository.delete(post);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<HappyCaseResponse> getHappyCases(Pageable pageable) {
+        return animalPostRepository.findHappyCases(LostPost.HAPPY_STATUSES, AdoptionPost.HAPPY_STATUSES, pageable)
+                .map(HappyCaseResponse::from);
     }
 
     @Override

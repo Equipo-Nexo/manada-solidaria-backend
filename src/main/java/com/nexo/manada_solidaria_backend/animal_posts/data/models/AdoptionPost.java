@@ -14,12 +14,15 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 public class AdoptionPost extends AnimalPost<StatusAdoptionPost, AdoptionPostStatusHistory> {
+
+    public static final Set<StatusAdoptionPost> HAPPY_STATUSES = Set.of(StatusAdoptionPost.ADOPTED);
     @OneToMany(
             mappedBy = "post",
             cascade = CascadeType.ALL,

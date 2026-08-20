@@ -672,6 +672,63 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         return UUID.fromString(mapper.readTree(responseBody).get("id").asText());
     }
 
+    @DisplayName("GET /animal-posts/happy-cases devuelve los casos finales, ordenados, con el dueno y marcando los recientes")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideHappyCaseFieldCases")
+    @Sql("/sql/animal_posts/happy-cases.sql")
+    void happyCases_returnsHappyPostsWithOwner(
+            String testName,
+            String jsonPathExpression,
+            Matcher<?> expected
+    ) throws Exception {
+        getHappyCases()
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(jsonPathExpression, expected));
+    }
+
+    @DisplayName("GET /animal-posts/happy-cases solo incluye publicaciones en estado feliz")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideHappyCaseStatusCases")
+    void happyCases_onlyIncludesHappyStatuses(
+            String testName,
+            AnimalPostFilter postType,
+            String status,
+            int expectedTotal
+    ) throws Exception {
+        seedPostInStatus(postType, status);
+
+        getHappyCases()
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(expectedTotal));
+    }
+
+    @DisplayName("GET /animal-posts/happy-cases sin autenticacion valida devuelve 401")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideHappyCasesUnauthorizedCases")
+    void happyCases_unauthorized(String testName, String token) throws Exception {
+        MockHttpServletRequestBuilder request = get("/animal-posts/happy-cases");
+        if (token != null) {
+            request = request.header("Authorization", "Bearer " + token);
+        }
+
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
+    }
+
+    private ResultActions getHappyCases() throws Exception {
+        return mockMvc.perform(
+                get("/animal-posts/happy-cases")
+                        .header("Authorization", "Bearer " + accessToken)
+        );
+    }
+
+    private void seedPostInStatus(AnimalPostFilter postType, String status) {
+        switch (postType) {
+            case LOST -> saveLostPost("Perdido", StatusLostPost.valueOf(status), true);
+            case IN_STREET -> saveLostPost("En la calle", StatusLostPost.valueOf(status), false);
+            case ADOPTION -> saveAdoptionPost("Adopcion", StatusAdoptionPost.valueOf(status));
+        }
+    }
+
     private LostPost saveLostPostOwnedByOtherUser() {
         User other = new User("otro-usuario", "x", new Profile("otro@mail.com", "111", List.of(Rol.COMMUNITY)));
         userRepository.save(other);
