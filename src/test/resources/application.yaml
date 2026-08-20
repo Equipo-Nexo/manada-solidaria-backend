@@ -1,4 +1,6 @@
 spring:
+  flyway:
+    enabled: false
   profiles:
     active: test
   datasource:
@@ -16,6 +18,7 @@ security:
   secret: D8B3B7BA8B42E5BFA6896FC4811127724A982FAF1446DB85BCFB89C82F
   cors:
     allowed-origins: http://localhost:5173
+    allowed-credentials: true
 cloudflare:
   r2:
     account-id: test

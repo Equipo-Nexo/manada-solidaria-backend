@@ -1,3 +1,4 @@
 security:
   cors:
     allowed-origins: http://manada-solidaria.duckdns.org, https://manada-solidaria.duckdns.org
+    allowed-credentials: true

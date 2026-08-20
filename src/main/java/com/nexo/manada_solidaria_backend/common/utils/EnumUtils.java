@@ -21,7 +21,6 @@ public class EnumUtils {
                 ));
     }
 
-
     /**
      * Devuelve el name() del enum, o null si el enum es null.
      *

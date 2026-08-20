@@ -25,7 +25,7 @@ public interface AnimalPostRepository extends JpaRepository<AnimalPost, UUID> {
                 OR EXISTS (SELECT 1 FROM AdoptionPostStatusHistory h
                            WHERE h.post.id = p.id AND h.finishedAt IS NULL AND cast(h.status as string) = :status))
             """)
-    Page<AnimalPost<?>> findAllFiltered(@Param("type") String type, @Param("status") String status, Pageable pageable);
+    Page<AnimalPost<?, ?>> findAllFiltered(@Param("type") String type, @Param("status") String status, Pageable pageable);
 
-    List<AnimalPost<?>> findAllByOwner(User user);
+    List<AnimalPost<?, ?>> findAllByOwner(User user);
 }
