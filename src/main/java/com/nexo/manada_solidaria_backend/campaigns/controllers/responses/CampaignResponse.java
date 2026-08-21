@@ -6,6 +6,7 @@ import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationCampaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.FundraisingCampaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.NewsCampaign;
 import com.nexo.manada_solidaria_backend.common.controllers.responses.LocationResponse;
+import com.nexo.manada_solidaria_backend.common.controllers.responses.PhoneNumberResponse;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 
 import java.time.LocalDate;
@@ -20,7 +21,7 @@ public record CampaignResponse(
         String title,
         String description,
         String imageId,
-        String phoneNumber,
+        PhoneNumberResponse phoneNumber,
         LocationResponse location,
         String status,
         LocalDateTime createdAt,
@@ -50,7 +51,7 @@ public record CampaignResponse(
                 campaign.getTitle(),
                 campaign.getDescription(),
                 campaign.getImageId(),
-                campaign.getPhoneNumber(),
+                PhoneNumberResponse.from(campaign.getPhoneNumber()),
                 LocationResponse.from(campaign.getLocation()),
                 campaign.getCurrentStatus().getStatus().name(),
                 campaign.getCreatedAt(),
@@ -74,7 +75,7 @@ public record CampaignResponse(
                 campaign.getTitle(),
                 campaign.getDescription(),
                 campaign.getImageId(),
-                campaign.getPhoneNumber(),
+                PhoneNumberResponse.from(campaign.getPhoneNumber()),
                 LocationResponse.from(campaign.getLocation()),
                 campaign.getCurrentStatus().getStatus().name(),
                 campaign.getCreatedAt(),
@@ -102,7 +103,7 @@ public record CampaignResponse(
                 campaign.getTitle(),
                 campaign.getDescription(),
                 campaign.getImageId(),
-                campaign.getPhoneNumber(),
+                PhoneNumberResponse.from(campaign.getPhoneNumber()),
                 LocationResponse.from(campaign.getLocation()),
                 campaign.getCurrentStatus().getStatus().name(),
                 campaign.getCreatedAt(),

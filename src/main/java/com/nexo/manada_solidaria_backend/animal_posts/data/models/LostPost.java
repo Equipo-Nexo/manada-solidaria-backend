@@ -3,6 +3,7 @@ package com.nexo.manada_solidaria_backend.animal_posts.data.models;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusLostPost;
+import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.common.utils.StatusHistoryUtils;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -39,7 +40,7 @@ public class LostPost extends AnimalPost<StatusLostPost, LostPostStatusHistory> 
             List.of(new LostPostStatusHistory(StatusLostPost.CREATED, this))
     );
 
-    public LostPost(String name, String description, String imageUrl, String sharePostUrl, String phoneNumber, boolean hasOwner, User owner, Location location, Animal animal, BigDecimal reward) {
+    public LostPost(String name, String description, String imageUrl, String sharePostUrl, PhoneNumber phoneNumber, boolean hasOwner, User owner, Location location, Animal animal, BigDecimal reward) {
         super(name, description, imageUrl, sharePostUrl, phoneNumber, owner, animal, location);
         this.hasOwner = hasOwner;
         this.reward = reward;

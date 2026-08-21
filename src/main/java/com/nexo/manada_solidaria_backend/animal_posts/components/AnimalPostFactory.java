@@ -5,6 +5,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.Animal;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
+import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.springframework.stereotype.Component;
@@ -47,7 +48,7 @@ public class AnimalPostFactory {
                 request.description(),
                 request.imageId(),
                 null, //TODO definir una nueva card en jira nos limitamos al post en ms-30
-                request.phoneNumber(),
+                PhoneNumberRequest.toDomain(request.phoneNumber()),
                 request.hasOwner(),
                 owner,
                 location,
@@ -62,7 +63,7 @@ public class AnimalPostFactory {
                 request.description(),
                 request.imageId(),
                 null, //TODO definir una nueva card en jira nos limitamos al post en ms-30
-                request.phoneNumber(),
+                PhoneNumberRequest.toDomain(request.phoneNumber()),
                 owner,
                 animal,
                 location,
