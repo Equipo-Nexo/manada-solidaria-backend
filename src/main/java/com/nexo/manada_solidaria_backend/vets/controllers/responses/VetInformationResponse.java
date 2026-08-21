@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.vets.controllers.responses;
 
 import com.nexo.manada_solidaria_backend.common.controllers.responses.LocationResponse;
+import com.nexo.manada_solidaria_backend.common.controllers.responses.PhoneNumberResponse;
 import com.nexo.manada_solidaria_backend.vets.data.models.Schedule;
 import com.nexo.manada_solidaria_backend.vets.data.models.VetInformation;
 
@@ -15,7 +16,7 @@ public record VetInformationResponse(
 
         String name,
 
-        String phone,
+        PhoneNumberResponse phoneNumber,
 
         String email,
 
@@ -35,7 +36,7 @@ public record VetInformationResponse(
         this(
                 vet.getId(),
                 vet.getName(),
-                vet.getPhone(),
+                PhoneNumberResponse.from(vet.getPhoneNumber()),
                 vet.getEmail(),
                 vet.getProfilePictureUrl(),
                 vet.getVetPageUrl(),

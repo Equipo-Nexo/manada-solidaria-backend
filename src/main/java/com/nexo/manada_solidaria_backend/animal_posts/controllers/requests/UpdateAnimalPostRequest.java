@@ -4,11 +4,11 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalAge;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalGender;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalSize;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
+import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import com.nexo.manada_solidaria_backend.locations.controllers.requests.UpdateLocationRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;
 
 import java.math.BigDecimal;
@@ -23,11 +23,8 @@ public record UpdateAnimalPostRequest(
         String imageId,
 
         // Opcional: un post "en la calle" (LOST sin dueño) no tiene teléfono y debe poder editarse.
-        @Pattern(
-                regexp = "^[0-9]{8,15}$",
-                message = "El teléfono debe contener entre 8 y 15 dígitos numéricos"
-        )
-        String phoneNumber,
+        @Valid
+        PhoneNumberRequest phoneNumber,
 
         @PositiveOrZero(message = "La recompensa no puede ser negativa")
         BigDecimal reward,
