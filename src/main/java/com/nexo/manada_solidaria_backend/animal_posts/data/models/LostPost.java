@@ -23,7 +23,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class LostPost extends AnimalPost<LostPostStatusHistory> {
+public class LostPost extends AnimalPost<StatusLostPost, LostPostStatusHistory> {
     @Column(nullable = false, updatable = false)
     private boolean hasOwner;
     @Column(precision = 12, scale = 2)
@@ -64,5 +64,24 @@ public class LostPost extends AnimalPost<LostPostStatusHistory> {
     @Override
     public AnimalPostFilter getType() {
         return hasOwner ? AnimalPostFilter.LOST : AnimalPostFilter.IN_STREET;
+    }
+
+    @Override
+    protected Class<StatusLostPost> statusType() {
+        return StatusLostPost.class;
+    }
+
+    @Override
+    protected boolean isTransitionAllowed(StatusLostPost current, StatusLostPost target) {
+        return switch (current) {
+            case SEARCHING -> target == StatusLostPost.FOUND;
+            case TO_RESCUE -> target == StatusLostPost.RESCUED;
+            case CREATED, FOUND, RESCUED -> false;
+        };
+    }
+
+    @Override
+    protected void addStatus(StatusLostPost status) {
+        this.statusHistory.add(new LostPostStatusHistory(status, this));
     }
 }

@@ -1,0 +1,2 @@
+ALTER TABLE lost_post_status_history
+    MODIFY COLUMN status ENUM('CREATED', 'FOUND', 'RESCUED', 'SEARCHING', 'TO_RESCUE') NOT NULL;

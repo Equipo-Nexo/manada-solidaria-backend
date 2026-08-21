@@ -5,12 +5,15 @@ import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.Updat
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.common.data.models.StatusHistory;
+import com.nexo.manada_solidaria_backend.common.utils.EnumUtils;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -22,7 +25,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class AnimalPost<T extends StatusHistory> {
+public abstract class AnimalPost<STATUS extends Enum<STATUS>, HISTORY extends StatusHistory<STATUS>> {
     private String name;
     private String description;
     private String imageUrl;
@@ -78,7 +81,28 @@ public abstract class AnimalPost<T extends StatusHistory> {
         this.location.update(request.location());
     }
 
-    public abstract T getCurrentStatus();
+    public abstract HISTORY getCurrentStatus();
     
     public abstract AnimalPostFilter getType();
+
+    public void transitionTo(String targetStatus) {
+        STATUS target = EnumUtils.parseOrThrow(statusType(), targetStatus);
+        HISTORY current = getCurrentStatus();
+
+        if (!isTransitionAllowed(current.getStatus(), target)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "No se puede pasar de " + current.getStatus() + " a " + target
+            );
+        }
+
+        current.finish();
+        addStatus(target);
+    }
+
+    protected abstract Class<STATUS> statusType();
+
+    protected abstract boolean isTransitionAllowed(STATUS current, STATUS target);
+
+    protected abstract void addStatus(STATUS status);
 }

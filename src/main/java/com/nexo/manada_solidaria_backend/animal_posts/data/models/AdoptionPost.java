@@ -20,7 +20,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class AdoptionPost extends AnimalPost<AdoptionPostStatusHistory> {
+public class AdoptionPost extends AnimalPost<StatusAdoptionPost, AdoptionPostStatusHistory> {
     @OneToMany(
             mappedBy = "post",
             cascade = CascadeType.ALL,
@@ -50,5 +50,24 @@ public class AdoptionPost extends AnimalPost<AdoptionPostStatusHistory> {
     @Override
     public AnimalPostFilter getType() {
         return AnimalPostFilter.ADOPTION;
+    }
+
+    @Override
+    protected Class<StatusAdoptionPost> statusType() {
+        return StatusAdoptionPost.class;
+    }
+
+    @Override
+    protected boolean isTransitionAllowed(StatusAdoptionPost current, StatusAdoptionPost target) {
+        return switch (current) {
+            case SEARCHING_ADOPT, SEARCHING_ADOPT_AND_TRANSIT ->
+                    target != StatusAdoptionPost.CREATED && target != current;
+            case CREATED, ADOPTED -> false;
+        };
+    }
+
+    @Override
+    protected void addStatus(StatusAdoptionPost status) {
+        this.statusHistory.add(new AdoptionPostStatusHistory(status, this));
     }
 }

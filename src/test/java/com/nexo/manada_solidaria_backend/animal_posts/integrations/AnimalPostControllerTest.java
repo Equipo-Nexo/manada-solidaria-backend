@@ -1,5 +1,7 @@
 package com.nexo.manada_solidaria_backend.animal_posts.integrations;
 
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalAge;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalGender;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalSize;
@@ -30,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +46,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -566,6 +570,101 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
 
+    @DisplayName("PATCH /animal-posts/{id}/status — transiciones validas, estado ajeno al tipo y transiciones prohibidas")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideStatusTransitionCases")
+    void transitionStatusTests(
+            String testName,
+            AnimalPostFilter postType,
+            String startStatus,
+            String targetStatus,
+            HttpStatus expectedStatus
+    ) throws Exception {
+        UUID postId = seedPost(postType, startStatus);
+
+        var result = patchStatus(postId, targetStatus)
+                .andExpect(status().is(expectedStatus.value()));
+
+        if (expectedStatus.is2xxSuccessful()) {
+            result.andExpect(jsonPath("$.status").value(targetStatus));
+        }
+    }
+
+    @Test
+    @DisplayName("PATCH /animal-posts/{id}/status persiste el nuevo estado y cierra el anterior")
+    void transitionStatus_persistsNewStatusAndClosesPrevious() throws Exception {
+        LostPost post = saveLostPost("Perdido", StatusLostPost.SEARCHING);
+
+        patchStatus(post.getId(), "FOUND").andExpect(status().isOk());
+
+        LostPost saved = (LostPost) animalPostRepository.findById(post.getId()).orElseThrow();
+        assertThat(saved.getCurrentStatus().getStatus()).isEqualTo(StatusLostPost.FOUND);
+        assertThat(saved.getStatusHistory())
+                .filteredOn(history -> history.getStatus() == StatusLostPost.SEARCHING)
+                .allSatisfy(history -> assertThat(history.getFinishedAt()).isNotNull());
+    }
+
+    @Test
+    @DisplayName("PATCH /animal-posts/{id}/status de otro usuario devuelve 403")
+    void transitionStatus_notOwner_returnsForbidden() throws Exception {
+        LostPost post = saveLostPostOwnedByOtherUser();
+
+        patchStatus(post.getId(), "FOUND").andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("PATCH /animal-posts/{id}/status inexistente devuelve 404")
+    void transitionStatus_nonExistentPost_returnsNotFound() throws Exception {
+        patchStatus(UUID.randomUUID(), "FOUND").andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("PATCH /animal-posts/{id}/status sin la clave status devuelve 400")
+    void transitionStatus_withoutStatus_returnsBadRequest() throws Exception {
+        LostPost post = saveLostPost("Perdido", StatusLostPost.SEARCHING);
+
+        mockMvc.perform(
+                        patch("/animal-posts/" + post.getId() + "/status")
+                                .header("Authorization", "Bearer " + accessToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{ }")
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors", hasItem(containsString("estado es obligatorio"))));
+    }
+
+    @DisplayName("PATCH /animal-posts/{id}/status sin autenticacion valida devuelve 401")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideTransitionUnauthorizedCases")
+    void transitionStatus_unauthorized(String testName, String token) throws Exception {
+        MockHttpServletRequestBuilder request = patch("/animal-posts/" + UUID.randomUUID() + "/status")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(toJson(new TransitionStatusRequest("FOUND")));
+
+        if (token != null) {
+            request = request.header("Authorization", "Bearer " + token);
+        }
+
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
+    }
+
+    private UUID seedPost(AnimalPostFilter postType, String startStatus) {
+        return switch (postType) {
+            case LOST -> saveLostPost("Perdido", StatusLostPost.valueOf(startStatus), true).getId();
+            case IN_STREET -> saveLostPost("En la calle", StatusLostPost.valueOf(startStatus), false).getId();
+            case ADOPTION -> saveAdoptionPost("Adopcion", StatusAdoptionPost.valueOf(startStatus)).getId();
+        };
+    }
+
+    private ResultActions patchStatus(UUID postId, String targetStatus) throws Exception {
+        return mockMvc.perform(
+                patch("/animal-posts/" + postId + "/status")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(new TransitionStatusRequest(targetStatus)))
+        );
+    }
+
     private UUID createOwnedPostReturningId() throws Exception {
         String responseBody = mockMvc.perform(
                         post("/animal-posts")
@@ -586,20 +685,24 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         return animalPostRepository.save(post);
     }
 
-    private void saveLostPost(String name, StatusLostPost status) {
-        saveLostPost(name, status, true);
+    private LostPost saveLostPost(String name, StatusLostPost status) {
+        return saveLostPost(name, status, true);
     }
 
-    private void saveLostPost(String name, StatusLostPost status, boolean hasOwner) {
-        LostPost post = new LostPost(name, "Descripción", "cf-img", null, new PhoneNumber("3533", "436249"), hasOwner, null, location(), animal(), null);
+    private LostPost saveLostPost(String name, StatusLostPost status, boolean hasOwner) {
+        LostPost post = new LostPost(name, "Descripción", "cf-img", null, new PhoneNumber("3533", "436249"), hasOwner, admin(), location(), animal(), null);
         post.setStatusHistory(new ArrayList<>(List.of(new LostPostStatusHistory(status, post))));
-        animalPostRepository.save(post);
+        return animalPostRepository.save(post);
     }
 
-    private void saveAdoptionPost(String name, StatusAdoptionPost status) {
-        AdoptionPost post = new AdoptionPost(name, "Descripción", "cf-img", null, new PhoneNumber("3533", "436249"), null, animal(), location(), false);
+    private AdoptionPost saveAdoptionPost(String name, StatusAdoptionPost status) {
+        AdoptionPost post = new AdoptionPost(name, "Descripción", "cf-img", null, new PhoneNumber("3533", "436249"), admin(), animal(), location(), false);
         post.setStatusHistory(new ArrayList<>(List.of(new AdoptionPostStatusHistory(status, post))));
-        animalPostRepository.save(post);
+        return animalPostRepository.save(post);
+    }
+
+    private User admin() {
+        return userRepository.findByUsername("admin").orElseThrow();
     }
 
     private Animal animal() {
