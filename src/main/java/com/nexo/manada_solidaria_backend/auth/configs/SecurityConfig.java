@@ -29,13 +29,14 @@ import static com.nexo.manada_solidaria_backend.auth.utils.WhitelistUtils.ENDPOI
 public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource(
-            @Value("${security.cors.allowed-origins}") List<String> allowedOrigins
+            @Value("${security.cors.allowed-origins}") List<String> allowedOrigins,
+            @Value("${security.cors.allowed-credentials}") boolean allowCredentials
     ) {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true);
+        configuration.setAllowCredentials(allowCredentials);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
