@@ -3,6 +3,7 @@ package com.nexo.manada_solidaria_backend.users.services.implementations;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
 import com.nexo.manada_solidaria_backend.auth.controllers.requests.CreateUserRequest;
 import com.nexo.manada_solidaria_backend.campaigns.services.interfaces.CampaignService;
+import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.*;
@@ -126,7 +127,7 @@ public class UserServiceImpl implements UserService {
                 passwordEncoder.encode(createUserRequest.getPassword()),
                 new Profile(
                         createUserRequest.getEmail(),
-                        createUserRequest.getPhoneNumber(),
+                        PhoneNumberRequest.toDomain(createUserRequest.getPhoneNumber()),
                         Optional.ofNullable(createUserRequest.getRoles())
                                 .orElse(List.of(Rol.COMMUNITY))
 

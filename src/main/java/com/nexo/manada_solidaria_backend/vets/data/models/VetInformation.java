@@ -1,5 +1,7 @@
 package com.nexo.manada_solidaria_backend.vets.data.models;
 
+import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
+import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.UpdateVetInformationRequest;
 import jakarta.persistence.*;
@@ -18,7 +20,8 @@ import java.util.UUID;
 @AllArgsConstructor
 public class VetInformation {
     private String name;
-    private String phone;
+    @Embedded
+    private PhoneNumber phoneNumber;
     private String email;
     private String profilePictureUrl;
     private String vetPageUrl;
@@ -30,20 +33,20 @@ public class VetInformation {
     @Id
     private UUID id = UUID.randomUUID();
 
-    public VetInformation(Location location, List<Schedule> calendar, String description, String vetPageUrl, String profilePictureUrl, String email, String phone, String name) {
+    public VetInformation(Location location, List<Schedule> calendar, String description, String vetPageUrl, String profilePictureUrl, String email, PhoneNumber phoneNumber, String name) {
         this.location = location;
         this.calendar = calendar;
         this.description = description;
         this.vetPageUrl = vetPageUrl;
         this.profilePictureUrl = profilePictureUrl;
         this.email = email;
-        this.phone = phone;
+        this.phoneNumber = phoneNumber;
         this.name = name;
     }
 
     public void update(UpdateVetInformationRequest request) {
         this.name = request.name();
-        this.phone = request.phone();
+        this.phoneNumber = PhoneNumberRequest.toDomain(request.phoneNumber());
         this.email = request.email();
         this.profilePictureUrl = request.profilePictureUrl();
         this.vetPageUrl = request.vetPageUrl();

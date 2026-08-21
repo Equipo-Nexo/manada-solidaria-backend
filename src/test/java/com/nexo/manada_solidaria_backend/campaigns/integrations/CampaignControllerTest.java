@@ -7,11 +7,12 @@ import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCatego
 import com.nexo.manada_solidaria_backend.campaigns.data.models.Campaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationCampaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationCampaignStatusHistory;
+import com.nexo.manada_solidaria_backend.campaigns.data.models.FundraisingCampaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.NewsCampaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.NewsCampaignStatusHistory;
-import com.nexo.manada_solidaria_backend.campaigns.data.models.FundraisingCampaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.repositories.CampaignRepository;
 import com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils;
+import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthenticatedIntegrationTest;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.Profile;
@@ -294,7 +295,8 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
 
         assertThat(updated.getTitle()).isEqualTo("Título Donación Editado");
         assertThat(updated.getDescription()).isEqualTo("Descripción editada");
-        assertThat(updated.getPhoneNumber()).isEqualTo("999999999");
+        assertThat(updated.getPhoneNumber().areaCode()).isEqualTo("3533");
+        assertThat(updated.getPhoneNumber().number()).isEqualTo("436249");
         assertThat(updated.getCampaignEndDate()).isEqualTo(LocalDate.now().plusMonths(2));
     }
 
@@ -487,7 +489,7 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     private Campaign saveCampaignOwnedByOtherUser() {
-        User other = new User("otro-campaign-user", "x", new Profile("otro@mail.com", "111", List.of(Rol.COMMUNITY)));
+        User other = new User("otro-campaign-user", "x", new Profile("otro@mail.com", new PhoneNumber("3533", "436249"), List.of(Rol.COMMUNITY)));
         userRepository.save(other);
         return campaignRepository.save(MockCampaignDataUtils.buildDonationModel(other));
     }

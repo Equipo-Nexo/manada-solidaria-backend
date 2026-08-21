@@ -1,7 +1,9 @@
 package com.nexo.manada_solidaria_backend.auth.controllers.requests;
 
 import com.nexo.manada_solidaria_backend.auth.validations.annotations.PasswordMatches;
+import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,9 +28,6 @@ public class CreateUserRequest {
     @Email
     @NotNull(message = "Debe ingresar un correo electrónico")
     private String email;
-    @Pattern(
-            regexp = "^\\+?[1-9]\\d{7,14}$",
-            message = "El número de teléfono no tiene un formato válido"
-    )
-    private String phoneNumber;
+    @Valid
+    private PhoneNumberRequest phoneNumber;
 }
