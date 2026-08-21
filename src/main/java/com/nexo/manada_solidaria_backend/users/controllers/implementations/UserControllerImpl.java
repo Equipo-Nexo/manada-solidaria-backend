@@ -5,6 +5,7 @@ import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfil
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.ProfileResponse;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.UserPostResponse;
+import com.nexo.manada_solidaria_backend.users.controllers.responses.UserResponse;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import com.nexo.manada_solidaria_backend.users.services.interfaces.UserService;
@@ -18,6 +19,11 @@ import java.util.List;
 public class UserControllerImpl implements UserController {
 
     private final UserService userService;
+
+    @Override
+    public List<UserResponse> getUsers(String username, Rol role) {
+        return userService.getUsers(username, role);
+    }
 
     @Override
     public List<UserPostResponse> getUserPosts(User user, String type) {

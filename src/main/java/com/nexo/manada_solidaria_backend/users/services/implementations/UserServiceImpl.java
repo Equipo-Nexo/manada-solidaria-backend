@@ -65,6 +65,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<UserResponse> getUsers(String username, Rol role) {
+        return userRepository.findAll().stream()
+                .filter(user -> matchesUsername(user, username))
+                .filter(user -> hasRole(user, role))
+                .map(UserResponse::from)
+                .toList();
+    }
+
+    private static boolean matchesUsername(User user, String username) {
+        return username == null || user.getUsername().toLowerCase().contains(username.toLowerCase());
+    }
+
+    private static boolean hasRole(User user, Rol role) {
+        return role == null || user.getProfile().hasRole(role);
+    }
+
+    @Override
     public List<UserPostResponse> getUserPosts(User user, String type) {
         return (requireAllPosts(type) ? getAllUserPosts(user) : getUserPostsByType(user, type))
                 .sorted(Comparator.comparingLong(UserPostResponse::getCreatedSince))

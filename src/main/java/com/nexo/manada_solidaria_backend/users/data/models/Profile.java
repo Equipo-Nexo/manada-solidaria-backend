@@ -51,6 +51,10 @@ public class Profile {
         this.profileImageURL = request.profileImageURL();
     }
 
+    public boolean hasRole(Rol role) {
+        return roles.contains(role);
+    }
+
     public void updateRoles(UpdateRolesRequest request) {
         List<Rol> updated = new ArrayList<>(request.toRoles());
         if (!updated.contains(Rol.RESCUER)) {
