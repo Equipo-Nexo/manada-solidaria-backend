@@ -5,6 +5,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.models.Animal;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPostStatusHistory;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
+import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthenticatedIntegrationTest;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
@@ -83,25 +84,60 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.metrics.completedPosts").value(expectedCompleted));
     }
 
-    @Test
-    @DisplayName("GET /users de un usuario inexistente devuelve 404")
-    void getUser_whenUserDoesNotExist_returnsNotFound() throws Exception {
-        getUser(UUID.randomUUID()).andExpect(status().isNotFound());
-    }
-
-    @DisplayName("GET /users resuelve el usuario objetivo")
+    @DisplayName("GET /users/{userId} devuelve el usuario del path, no el del token")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource(MOCK_DATA + "provideUserResolutionCases")
     void getUser_resolvesTarget(
             String testName,
-            boolean sendUserId,
+            boolean otherUser,
             String expectedUsername
     ) throws Exception {
         User other = saveUser("otro");
 
-        getUser(sendUserId ? other.getId() : null)
+        getUser(otherUser ? other.getId() : adminId())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value(expectedUsername));
+    }
+
+    @DisplayName("GET /users/{userId}/profile devuelve el perfil sin las publicaciones")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideUserProfileCases")
+    @Sql(
+            scripts = {
+                    "/sql/users/user-profile-data.sql",
+                    "/sql/users/create-campaigns.sql",
+                    "/sql/users/create-animal-posts.sql",
+                    "/sql/users/create-fundraising.sql"
+            },
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    void getUserProfile_returnsProfileWithoutPosts(
+            String testName,
+            String jsonPathExpression,
+            Matcher<?> expected
+    ) throws Exception {
+        getUserProfile(adminId())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(jsonPathExpression, expected));
+    }
+
+    @Test
+    @DisplayName("GET /users/{userId}/profile no incluye el campo posts")
+    void getUserProfile_omitsPostsField() throws Exception {
+        getUserProfile(adminId())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.posts").doesNotExist());
+    }
+
+    @DisplayName("Pedir un usuario inexistente devuelve 404")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideNotFoundCases")
+    void getUser_whenUserDoesNotExist_returnsNotFound(String testName, String pathTemplate) throws Exception {
+        mockMvc.perform(
+                        get(pathTemplate.formatted(UUID.randomUUID()))
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isNotFound());
     }
 
     @DisplayName("GET del detalle de usuario sin autenticacion valida devuelve 401")
@@ -283,18 +319,21 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
     }
 
     private ResultActions getUser(UUID userId) throws Exception {
-        MockHttpServletRequestBuilder request = get("/users")
-                .header("Authorization", "Bearer " + accessToken);
-        if (userId != null) {
-            request = request.param("userId", userId.toString());
-        }
-        return mockMvc.perform(request);
+        return mockMvc.perform(
+                get("/users/" + userId).header("Authorization", "Bearer " + accessToken)
+        );
+    }
+
+    private ResultActions getUserProfile(UUID userId) throws Exception {
+        return mockMvc.perform(
+                get("/users/" + userId + "/profile").header("Authorization", "Bearer " + accessToken)
+        );
     }
 
     private User saveUser(String username) {
         return userRepository.save(
                 new User(username, "irrelevante",
-                        new Profile("otro@mail.com", "1122223333", List.of(Rol.COMMUNITY)))
+                        new Profile("otro@mail.com", new PhoneNumber("3533", "436249"), List.of(Rol.COMMUNITY)))
         );
     }
 

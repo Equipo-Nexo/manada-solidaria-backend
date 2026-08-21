@@ -3,6 +3,7 @@ MERGE INTO PROFILE (
     NAME,
     LASTNAME,
     EMAIL,
+    AREA_CODE,
     PHONE_NUMBER,
     PROFILE_IMAGEURL,
     ROLES
@@ -13,7 +14,8 @@ VALUES (
     'Elian',
     'Enria',
     'admin@mail.com',
-    '1133334444',
+    '3533',
+    '436249',
     'cf-profile-1',
     'COMMUNITY'
 );

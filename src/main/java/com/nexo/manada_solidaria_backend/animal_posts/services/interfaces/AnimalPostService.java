@@ -28,4 +28,6 @@ public interface AnimalPostService {
     List<AnimalPostResponse> getUserAnimalPosts(User user);
 
     long countFinishedUserAnimalPosts(User user);
+
+    long countUserAnimalPosts(User user);
 }

@@ -90,7 +90,8 @@ public class MockUserDataUtils {
                 Arguments.of("Devuelve el nombre del perfil", "$.profile.name", is("Elian")),
                 Arguments.of("Devuelve el apellido del perfil", "$.profile.lastname", is("Enria")),
                 Arguments.of("Devuelve el correo del perfil", "$.profile.email", is("admin@mail.com")),
-                Arguments.of("Devuelve el telefono del perfil", "$.profile.phoneNumber", is("1133334444")),
+                Arguments.of("Devuelve el codigo de area del perfil", "$.profile.phoneNumber.areaCode", is("3533")),
+                Arguments.of("Devuelve el numero de telefono del perfil", "$.profile.phoneNumber.number", is("436249")),
                 Arguments.of("Devuelve la foto del perfil", "$.profile.profileImageURL", is("cf-profile-1")),
                 Arguments.of("Devuelve los roles", "$.roles", hasItem("COMMUNITY")),
                 Arguments.of("Devuelve las publicaciones del usuario", "$.posts.length()", is(4)),
@@ -116,17 +117,40 @@ public class MockUserDataUtils {
 
     private static Stream<Arguments> provideUnauthorizedTokenCases() {
         return Stream.of(
-                Arguments.of("Sin token en el detalle por id", "/users?userId=" + UUID.randomUUID(), null),
-                Arguments.of("Con token invalido en el detalle por id", "/users?userId=" + UUID.randomUUID(), INVALID_ACCESS_TOKEN),
-                Arguments.of("Sin token en el detalle propio", "/users", null),
-                Arguments.of("Con token invalido en el detalle propio", "/users", INVALID_ACCESS_TOKEN)
+                Arguments.of("Sin token en el detalle", "/users/" + UUID.randomUUID(), null),
+                Arguments.of("Con token invalido en el detalle", "/users/" + UUID.randomUUID(), INVALID_ACCESS_TOKEN),
+                Arguments.of("Sin token en el perfil", "/users/" + UUID.randomUUID() + "/profile", null),
+                Arguments.of("Con token invalido en el perfil", "/users/" + UUID.randomUUID() + "/profile", INVALID_ACCESS_TOKEN)
+        );
+    }
+
+    private static Stream<Arguments> provideNotFoundCases() {
+        return Stream.of(
+                Arguments.of("El detalle de un usuario inexistente", "/users/%s"),
+                Arguments.of("El perfil de un usuario inexistente", "/users/%s/profile")
         );
     }
 
     private static Stream<Arguments> provideUserResolutionCases() {
         return Stream.of(
-                Arguments.of("Sin userId devuelve el usuario del JWT", false, "admin"),
-                Arguments.of("Con userId devuelve ese usuario", true, "otro")
+                Arguments.of("Pedir el usuario autenticado devuelve ese usuario", false, "admin"),
+                Arguments.of("Pedir otro usuario devuelve ese otro, no el del token", true, "otro")
+        );
+    }
+
+    private static Stream<Arguments> provideUserProfileCases() {
+        return Stream.of(
+                Arguments.of("Devuelve el username", "$.username", is("admin")),
+                Arguments.of("Devuelve el nombre", "$.profile.name", is("Elian")),
+                Arguments.of("Devuelve el apellido", "$.profile.lastname", is("Enria")),
+                Arguments.of("Devuelve el email", "$.profile.email", is("admin@mail.com")),
+                Arguments.of("Devuelve el codigo de area", "$.profile.phoneNumber.areaCode", is("3533")),
+                Arguments.of("Devuelve el numero de telefono", "$.profile.phoneNumber.number", is("436249")),
+                Arguments.of("Devuelve la foto de perfil", "$.profile.profileImageURL", is("cf-profile-1")),
+                Arguments.of("Devuelve los roles", "$.roles", hasItem("COMMUNITY")),
+                Arguments.of("Cuenta las publicaciones sin traerlas", "$.metrics.totalPosts", is(4)),
+                Arguments.of("Cuenta las completadas", "$.metrics.completedPosts", is(0)),
+                Arguments.of("Devuelve los dias desde el registro", "$.metrics.daysSinceRegistration", is(10))
         );
     }
 

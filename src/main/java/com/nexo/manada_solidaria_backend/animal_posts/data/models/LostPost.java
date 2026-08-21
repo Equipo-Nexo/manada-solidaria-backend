@@ -88,8 +88,4 @@ public class LostPost extends AnimalPost<StatusLostPost, LostPostStatusHistory> 
         this.statusHistory.add(new LostPostStatusHistory(status, this));
     }
 
-    @Override
-    protected Set<StatusLostPost> happyStatuses() {
-        return HAPPY_STATUSES;
-    }
 }

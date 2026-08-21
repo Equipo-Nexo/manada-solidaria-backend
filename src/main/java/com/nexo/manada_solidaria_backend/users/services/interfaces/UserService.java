@@ -5,6 +5,7 @@ import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfil
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.ProfileResponse;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.UserDetailResponse;
+import com.nexo.manada_solidaria_backend.users.controllers.responses.UserProfileResponse;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.UserPostResponse;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -22,7 +23,9 @@ public interface UserService extends UserDetailsService {
 
     void createUser(CreateUserRequest createUserRequest);
 
-    UserDetailResponse getUser(UUID userId, User authenticatedUser);
+    UserDetailResponse getUser(UUID userId);
+
+    UserProfileResponse getUserProfile(UUID userId);
 
     List<UserPostResponse> getUserPosts(User user, String type);
 

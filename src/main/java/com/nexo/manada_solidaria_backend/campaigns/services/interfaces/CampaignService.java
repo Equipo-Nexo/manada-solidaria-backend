@@ -30,4 +30,6 @@ public interface CampaignService {
     List<CampaignResponse> getUserFundraisingCampaigns(User user);
 
     long countFinishedUserCampaigns(User user);
+
+    long countUserCampaigns(User user);
 }

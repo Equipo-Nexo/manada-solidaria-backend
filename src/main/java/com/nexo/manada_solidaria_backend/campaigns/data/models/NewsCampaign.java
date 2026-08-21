@@ -17,6 +17,7 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -24,6 +25,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NewsCampaign extends Campaign<NewsCampaignStatusHistory> {
+
+    public static final Set<NewsCampaginStatus> FINISHED_STATUSES = Set.of(NewsCampaginStatus.FINISHED);
     private LocalDateTime newsStartDateTime;
     private LocalDateTime newsEndDateTime;
     @Enumerated(EnumType.STRING)
@@ -78,7 +81,7 @@ public class NewsCampaign extends Campaign<NewsCampaignStatusHistory> {
 
     @Override
     public boolean isFinished() {
-        return getCurrentStatus().getStatus() == NewsCampaginStatus.FINISHED;
+        return FINISHED_STATUSES.contains(getCurrentStatus().getStatus());
     }
 
     @Override

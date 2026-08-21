@@ -8,6 +8,8 @@ import com.nexo.manada_solidaria_backend.campaigns.controllers.responses.Campaig
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.CampaignCategoryFilter;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCategory;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.Campaign;
+import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationCampaign;
+import com.nexo.manada_solidaria_backend.campaigns.data.models.NewsCampaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.repositories.CampaignRepository;
 import com.nexo.manada_solidaria_backend.campaigns.services.interfaces.CampaignService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -112,10 +114,13 @@ public class CampaignServiceImpl implements CampaignService {
 
     @Override
     public long countFinishedUserCampaigns(User user) {
-        return campaignRepository.findAllByOwner(user)
-                .stream()
-                .filter(Campaign::isFinished)
-                .count();
+        return campaignRepository.countFinishedByOwner(
+                user, DonationCampaign.FINISHED_STATUSES, NewsCampaign.FINISHED_STATUSES);
+    }
+
+    @Override
+    public long countUserCampaigns(User user) {
+        return campaignRepository.countByOwner(user);
     }
 
     private <T extends Campaign<?>> Page<CampaignResponse> toResponse(Page<T> campaigns) {

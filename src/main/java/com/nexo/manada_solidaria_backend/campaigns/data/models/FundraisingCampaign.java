@@ -18,6 +18,7 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -25,6 +26,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FundraisingCampaign extends Campaign<FundraisingCampaignStatusHistory> {
+
+    public static final Set<CampaignStatus> FINISHED_STATUSES = Set.of(CampaignStatus.FINISHED, CampaignStatus.COMPLETED);
     private String accountAlias;
     private Long amountToBeCollected;
     private long amountCollected;
@@ -76,8 +79,7 @@ public class FundraisingCampaign extends Campaign<FundraisingCampaignStatusHisto
 
     @Override
     public boolean isFinished() {
-        CampaignStatus status = getCurrentStatus().getStatus();
-        return status == CampaignStatus.FINISHED || status == CampaignStatus.COMPLETED;
+        return FINISHED_STATUSES.contains(getCurrentStatus().getStatus());
     }
 
     @Override

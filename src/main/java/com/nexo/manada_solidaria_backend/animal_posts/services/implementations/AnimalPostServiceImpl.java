@@ -7,6 +7,8 @@ import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.Trans
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AnimalPostResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
 import com.nexo.manada_solidaria_backend.common.utils.EnumUtils;
@@ -91,10 +93,12 @@ public class AnimalPostServiceImpl implements AnimalPostService {
 
     @Override
     public long countFinishedUserAnimalPosts(User user) {
-        return animalPostRepository.findAllByOwner(user)
-                .stream()
-                .filter(AnimalPost::isFinished)
-                .count();
+        return animalPostRepository.countFinishedByOwner(user, LostPost.HAPPY_STATUSES, AdoptionPost.HAPPY_STATUSES);
+    }
+
+    @Override
+    public long countUserAnimalPosts(User user) {
+        return animalPostRepository.countByOwner(user);
     }
 
     private void validateOwner(AnimalPost post, User authenticatedUser) {

@@ -67,11 +67,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserDetailResponse getUser(UUID userId, User authenticatedUser) {
-        User user = Optional.ofNullable(userId)
-                .map(this::getUserById)
-                .orElse(authenticatedUser);
+    public UserDetailResponse getUser(UUID userId) {
+        User user = getUserById(userId);
         return UserDetailResponse.from(user, getUserPosts(user, null), countCompletedPosts(user));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserProfileResponse getUserProfile(UUID userId) {
+        User user = getUserById(userId);
+        return UserProfileResponse.from(user, countPosts(user), countCompletedPosts(user));
     }
 
     @Override
@@ -93,6 +98,11 @@ public class UserServiceImpl implements UserService {
         authenticatedUser.getProfile().updateRoles(request);
         userRepository.save(authenticatedUser);
         return authenticatedUser.getProfile().getRoles();
+    }
+
+    private long countPosts(User user) {
+        return animalPostService.countUserAnimalPosts(user)
+                + campaignService.countUserCampaigns(user);
     }
 
     private long countCompletedPosts(User user) {

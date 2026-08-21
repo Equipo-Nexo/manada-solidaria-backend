@@ -18,7 +18,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -107,9 +106,4 @@ public abstract class AnimalPost<STATUS extends Enum<STATUS>, HISTORY extends St
 
     protected abstract void addStatus(STATUS status);
 
-    protected abstract Set<STATUS> happyStatuses();
-
-    public boolean isFinished() {
-        return happyStatuses().contains(getCurrentStatus().getStatus());
-    }
 }

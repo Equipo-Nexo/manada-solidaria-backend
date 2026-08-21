@@ -74,8 +74,4 @@ public class AdoptionPost extends AnimalPost<StatusAdoptionPost, AdoptionPostSta
         this.statusHistory.add(new AdoptionPostStatusHistory(status, this));
     }
 
-    @Override
-    protected Set<StatusAdoptionPost> happyStatuses() {
-        return HAPPY_STATUSES;
-    }
 }
