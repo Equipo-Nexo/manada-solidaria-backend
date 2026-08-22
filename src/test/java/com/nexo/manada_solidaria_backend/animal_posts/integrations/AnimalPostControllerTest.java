@@ -41,6 +41,7 @@ import java.util.UUID;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -547,6 +548,41 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.name").value(expectedName));
     }
 
+    @DisplayName("GET /animal-posts/{id} devuelve los datos de quien publica")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideOwnerFieldCases")
+    @Sql("/sql/animal_posts/get-animal-post.sql")
+    void getAnimalPost_returnsOwnerData(
+            String testName,
+            String jsonPathExpression,
+            Matcher<?> expected
+    ) throws Exception {
+        mockMvc.perform(
+                        get("/animal-posts/55555555-5555-5555-5555-555555555555")
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(jsonPathExpression, expected));
+    }
+
+    @DisplayName("GET /animal-posts/{id} devuelve todos los roles de quien publica")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideOwnerRolesCases")
+    void getAnimalPost_returnsAllOwnerRoles(
+            String testName,
+            List<Rol> roles
+    ) throws Exception {
+        LostPost post = saveLostPostOwnedBy("publicador", roles);
+
+        mockMvc.perform(
+                        get("/animal-posts/" + post.getId())
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.owner.username").value("publicador"))
+                .andExpect(jsonPath("$.owner.roles", contains(roles.stream().map(Rol::name).toArray())));
+    }
+
     @ParameterizedTest(name = "{0}")
     @MethodSource("com.nexo.manada_solidaria_backend.animal_posts.utils.MockAnimalPostDataUtils#provideGetAnimalPostCases")
     void getAnimalPost_securityCases(String testName, String id, String token, HttpStatus expectedStatus) throws Exception {
@@ -678,6 +714,15 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
 
         LostPost post = new LostPost("De otro", "Descripcion", "cf-img", null, "111", true, other, location(), animal(), null);
         return animalPostRepository.save(post);
+    }
+
+    private LostPost saveLostPostOwnedBy(String username, List<Rol> roles) {
+        User owner = userRepository.save(
+                new User(username, "x", new Profile("publicador@mail.com", "111", new ArrayList<>(roles)))
+        );
+        return animalPostRepository.save(
+                new LostPost("De " + username, "Descripcion", "cf-img", null, "111", true, owner, location(), animal(), null)
+        );
     }
 
     private LostPost saveLostPost(String name, StatusLostPost status) {
