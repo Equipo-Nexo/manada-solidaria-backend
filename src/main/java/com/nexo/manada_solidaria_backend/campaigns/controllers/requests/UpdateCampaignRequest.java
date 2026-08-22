@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.campaigns.controllers.requests;
 
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCategory;
+import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import com.nexo.manada_solidaria_backend.common.controllers.validations.ConditionalField;
 import com.nexo.manada_solidaria_backend.locations.controllers.requests.UpdateLocationRequest;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
@@ -39,12 +40,9 @@ public record UpdateCampaignRequest(
 
         String imageId,
 
-        @NotBlank
-        @Pattern(
-                regexp = "^[0-9]{8,15}$",
-                message = "El teléfono debe contener entre 8 y 15 dígitos"
-        )
-        String phoneNumber,
+        @NotNull(message = "El teléfono es obligatorio")
+        @Valid
+        PhoneNumberRequest phoneNumber,
 
         @Valid
         UpdateLocationRequest location,

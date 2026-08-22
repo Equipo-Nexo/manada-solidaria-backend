@@ -3,6 +3,7 @@ package com.nexo.manada_solidaria_backend.campaigns.data.models;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CampaignType;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationFundraisingCampaignStatus;
+import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.common.utils.StatusHistoryUtils;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -40,7 +41,7 @@ public class FundraisingCampaign extends Campaign<DonationFundraisingCampaignSta
             String description,
             String imageId,
             String shareCampaignUrl,
-            String phoneNumber,
+            PhoneNumber phoneNumber,
             Location location,
             User owner,
             String accountAlias,

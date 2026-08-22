@@ -4,13 +4,15 @@ import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.Campaign
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest.LocationRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
-import com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationFundraisingCampaignStatus;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationCampaignCategory;
+import com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationFundraisingCampaignStatus;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCategory;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignStatus;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationCampaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationItem;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.FundraisingCampaign;
+import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
+import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.locations.controllers.requests.UpdateLocationRequest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.springframework.http.HttpStatus;
@@ -47,12 +49,28 @@ public class MockCampaignDataUtils {
     public static final LocalDateTime NEWS_UPDATE_END_DATE =
             LocalDateTime.now().plusDays(6);
 
+    private static final CreateCampaignRequest NEWS_WITHOUT_AREA_CODE = new CreateCampaignRequest(
+            CampaignType.NEWS,
+            "Campaña de Vacunación",
+            "Estaremos vacunando gratis este sábado.",
+            "cf-image-news-123",
+            new PhoneNumberRequest(null, "436249"),
+            UBICACION_VILLA_MARIA,
+            null,
+            null,
+            null,
+            null,
+            NEWS_START_DATE,
+            NEWS_END_DATE,
+            NewsCampaignCategory.VACCINATION
+    );
+
     public static final CreateCampaignRequest NEWS_VALID = new CreateCampaignRequest(
             CampaignType.NEWS,
             "Campaña de Vacunación",
             "Estaremos vacunando gratis este sábado.",
             "cf-image-news-123",
-            "154154154",
+            new PhoneNumberRequest("3533", "436249"),
             UBICACION_VILLA_MARIA,
             null,
             null,
@@ -69,7 +87,7 @@ public class MockCampaignDataUtils {
             "Campaña Limpieza",
             "Limpieza de espacios verdes.",
             null,
-            "1542345678",
+            new PhoneNumberRequest("3533", "436249"),
             UBICACION_SOLO_OBLIGATORIOS,
             null,
             null,
@@ -86,7 +104,7 @@ public class MockCampaignDataUtils {
             "Operación de mofli",
             "Necesitamos juntar fondos para cirugía",
             "cf-image-fundraising-456",
-            "123456789",
+            new PhoneNumberRequest("3533", "436249"),
             UBICACION_CORDOBA,
             "recaudacion.mofli",
             150000L,
@@ -103,7 +121,7 @@ public class MockCampaignDataUtils {
             "Fondo de emergencia",
             "Recaudación abierta para balanceado.",
             null,
-            "1234567891",
+            new PhoneNumberRequest("3533", "436249"),
             UBICACION_VILLA_MARIA,
             "ayudemos.patitas",
             null,
@@ -120,7 +138,7 @@ public class MockCampaignDataUtils {
             "Ayuda para refugio",
             "Necesitamos donaciones para los animales.",
             "cf-image-donation-123",
-            "12345678912",
+            new PhoneNumberRequest("3533", "436249"),
             UBICACION_VILLA_MARIA,
             null,
             null,
@@ -146,7 +164,7 @@ public class MockCampaignDataUtils {
             "Noticia con Alias",
             "Intenta meter alias en una noticia.",
             null,
-            "1234567812",
+            new PhoneNumberRequest("3533", "436249"),
             UBICACION_VILLA_MARIA,
             "alias.no.valido",
             null,
@@ -163,7 +181,7 @@ public class MockCampaignDataUtils {
             "Recaudación sin alias",
             "Se olvidaron de configurar dónde transferir.",
             null,
-            "154154154",
+            new PhoneNumberRequest("3533", "436249"),
             UBICACION_VILLA_MARIA,
             null,
             10000L,
@@ -180,7 +198,7 @@ public class MockCampaignDataUtils {
             "Noticia inválida",
             "Tiene campos de recaudación.",
             null,
-            "154154154",
+            new PhoneNumberRequest("3533", "436249"),
             UBICACION_VILLA_MARIA,
             "ayudemos.entre.todos",
             5000L,
@@ -197,7 +215,7 @@ public class MockCampaignDataUtils {
             "Donación inválida",
             "No tiene elementos.",
             null,
-            "1541541234",
+            new PhoneNumberRequest("3533", "436249"),
             UBICACION_VILLA_MARIA,
             null,
             null,
@@ -214,7 +232,7 @@ public class MockCampaignDataUtils {
             null,
             "Falta el título",
             null,
-            "123456789",
+            new PhoneNumberRequest("3533", "436249"),
             UBICACION_VILLA_MARIA,
             null,
             null,
@@ -231,7 +249,7 @@ public class MockCampaignDataUtils {
             "Monto Negativo",
             "No debería pasar.",
             null,
-            "123456789",
+            new PhoneNumberRequest("3533", "436249"),
             UBICACION_VILLA_MARIA,
             "ayudemos.entre.todos",
             -500L,
@@ -248,7 +266,7 @@ public class MockCampaignDataUtils {
             "Fecha Pasada",
             "No debería pasar.",
             null,
-            "123456789",
+            new PhoneNumberRequest("3533", "436249"),
             UBICACION_VILLA_MARIA,
             "ayudemos.entre.todos",
             null,
@@ -264,7 +282,7 @@ public class MockCampaignDataUtils {
             "Noticia con fechas inválidas",
             "La fecha de fin es anterior a la de inicio.",
             null,
-            "123456789",
+            new PhoneNumberRequest("3533", "436249"),
             UBICACION_VILLA_MARIA,
             null,
             null,
@@ -280,7 +298,7 @@ public class MockCampaignDataUtils {
             "Fondo sin ubicación",
             "Recaudación online sin punto físico.",
             null,
-            "1234567891",
+            new PhoneNumberRequest("3533", "436249"),
             null,
             "alias.sin.ubicacion",
             100000L,
@@ -296,7 +314,7 @@ public class MockCampaignDataUtils {
             "Noticia sin ubicación",
             "Debería fallar porque la ubicación es requerida.",
             null,
-            "154154154",
+            new PhoneNumberRequest("3533", "436249"),
             null,
             null,
             null,
@@ -312,7 +330,7 @@ public class MockCampaignDataUtils {
             "Donación sin ubicación",
             "Debería fallar porque la ubicación es requerida.",
             null,
-            "12345678912",
+            new PhoneNumberRequest("3533", "436249"),
             null,
             null,
             null,
@@ -370,6 +388,12 @@ public class MockCampaignDataUtils {
                 Arguments.of(
                         "La campaña DONATION sin ubicación falla (400)",
                         DONATION_WITHOUT_LOCATION,
+                        HttpStatus.BAD_REQUEST,
+                        null
+                ),
+                Arguments.of(
+                        "La campaña sin código de área falla (400)",
+                        NEWS_WITHOUT_AREA_CODE,
                         HttpStatus.BAD_REQUEST,
                         null
                 ),
@@ -440,7 +464,7 @@ public class MockCampaignDataUtils {
                 "Descripción Noticia",
                 "img-1",
                 "url-1",
-                "123456789",
+                new PhoneNumber("3533", "436249"),
                 location,
                 owner,
                 NEWS_START_DATE,
@@ -465,7 +489,7 @@ public class MockCampaignDataUtils {
                 "Descripción Recaudación de Dinero",
                 "img-2",
                 "url-2",
-                "123456789",
+                new PhoneNumber("3533", "436249"),
                 location,
                 owner,
                 "alias.recaudacion",
@@ -489,7 +513,7 @@ public class MockCampaignDataUtils {
                 "Descripción Donación",
                 "img-3",
                 "url-3",
-                "123456789",
+                new PhoneNumber("3533", "436249"),
                 location,
                 owner,
                 LocalDate.now().plusDays(10)
@@ -510,7 +534,7 @@ public class MockCampaignDataUtils {
                 "Título Donación Editado",
                 "Descripción editada",
                 "img-updated",
-                "999999999",
+                new PhoneNumberRequest("3533", "436249"),
                 new UpdateLocationRequest(
                         "Villa María",
                         "Nueva dirección",
@@ -536,7 +560,7 @@ public class MockCampaignDataUtils {
                 "Recaudación Editada",
                 "Nueva descripción",
                 "img-fundraising-updated",
-                "111111111",
+                new PhoneNumberRequest("3533", "436249"),
                 new UpdateLocationRequest(
                         "Córdoba",
                         "Nueva dirección",
@@ -560,7 +584,7 @@ public class MockCampaignDataUtils {
                 "Recaudación Editada Sin Ubicación",
                 "Nueva descripción sin lugar físico",
                 "img-fundraising-updated",
-                "111111111",
+                new PhoneNumberRequest("3533", "436249"),
                 null, // Location en NULL
                 "nuevo.alias",
                 100000L,
@@ -579,7 +603,7 @@ public class MockCampaignDataUtils {
                 "Noticia Editada",
                 "Nueva descripción noticia",
                 "img-news-updated",
-                "222222222",
+                new PhoneNumberRequest("3533", "436249"),
                 new UpdateLocationRequest(
                         "Villa María",
                         "Plaza nueva",
@@ -603,7 +627,7 @@ public class MockCampaignDataUtils {
                 "Noticia Editada Sin Ubicación",
                 "Esta actualización debe fallar",
                 "img-news-updated",
-                "222222222",
+                new PhoneNumberRequest("3533", "436249"),
                 null, // Location en NULL (Inválido para NEWS)
                 null,
                 null,

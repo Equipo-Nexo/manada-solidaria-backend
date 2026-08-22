@@ -6,9 +6,9 @@ import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static com.nexo.manada_solidaria_backend.geolocation.utils.MockGeolocationDataUtils.emptyResponse;
 import static com.nexo.manada_solidaria_backend.geolocation.utils.MockGeolocationDataUtils.twoFeaturesResponse;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -107,8 +107,7 @@ class GeolocationControllerTest extends BaseAuthenticatedIntegrationTest {
                                 .param("latitude", "-34.6037")
                                 .param("longitude", "-58.3816")
                 )
-                .andExpect(status().isOk())
-                .andExpect(result -> assertThat(result.getResponse().getContentAsString()).isEmpty());
+                .andExpect(status().isNotFound());
 
         takeMockServerRequest();
     }
