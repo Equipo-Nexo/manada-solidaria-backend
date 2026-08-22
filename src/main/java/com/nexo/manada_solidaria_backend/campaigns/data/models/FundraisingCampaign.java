@@ -2,7 +2,7 @@ package com.nexo.manada_solidaria_backend.campaigns.data.models;
 
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CampaignType;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
-import com.nexo.manada_solidaria_backend.campaigns.data.enums.CampaignStatus;
+import com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationFundraisingCampaignStatus;
 import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.common.utils.StatusHistoryUtils;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
@@ -24,10 +24,10 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class FundraisingCampaign extends Campaign<FundraisingCampaignStatusHistory> {
+public class FundraisingCampaign extends Campaign<DonationFundraisingCampaignStatus, FundraisingCampaignStatusHistory> {
     private String accountAlias;
     private Long amountToBeCollected;
-    private long amountCollected;
+    private Long amountCollected;
     private LocalDate campaignEndDate;
     @OneToMany(
             mappedBy = "campaign",
@@ -55,7 +55,7 @@ public class FundraisingCampaign extends Campaign<FundraisingCampaignStatusHisto
         this.amountCollected = 0L;
         this.campaignEndDate = campaignEndDate;
         this.statusHistory = new ArrayList<>(
-                List.of(new FundraisingCampaignStatusHistory(CampaignStatus.CREATED, this))
+                List.of(new FundraisingCampaignStatusHistory(DonationFundraisingCampaignStatus.CREATED, this))
         );
     }
 
@@ -67,6 +67,14 @@ public class FundraisingCampaign extends Campaign<FundraisingCampaignStatusHisto
         this.amountToBeCollected = request.amountToBeCollected();
         this.amountCollected = request.amountCollected();
         this.campaignEndDate = request.campaignEndDate();
+
+        if (this.amountCollected != null
+                && this.amountToBeCollected != null
+                && this.amountCollected >= this.amountToBeCollected
+                && getCurrentStatus().getStatus() == DonationFundraisingCampaignStatus.CREATED) {
+
+            transitionTo(DonationFundraisingCampaignStatus.COMPLETED.name());
+        }
     }
 
     @Override
@@ -76,12 +84,46 @@ public class FundraisingCampaign extends Campaign<FundraisingCampaignStatusHisto
 
     @Override
     public boolean isFinished() {
-        CampaignStatus status = getCurrentStatus().getStatus();
-        return status == CampaignStatus.FINISHED || status == CampaignStatus.COMPLETED;
+        DonationFundraisingCampaignStatus status = getCurrentStatus().getStatus();
+        return status == DonationFundraisingCampaignStatus.FINISHED || status == DonationFundraisingCampaignStatus.COMPLETED;
     }
 
     @Override
     public CampaignType getCampaignType() {
         return CampaignType.FUNDRAISING;
+    }
+
+    @Override
+    protected Class<DonationFundraisingCampaignStatus> statusType() {
+        return DonationFundraisingCampaignStatus.class;
+    }
+
+    @Override
+    protected boolean isTransitionAllowed(
+            DonationFundraisingCampaignStatus current,
+            DonationFundraisingCampaignStatus target
+    ) {
+        return switch (current) {
+            case CREATED ->
+                    target == DonationFundraisingCampaignStatus.COMPLETED;
+
+            case COMPLETED ->
+                    target == DonationFundraisingCampaignStatus.FINISHED;
+
+            case FINISHED ->
+                    false;
+        };
+    }
+
+    @Override
+    protected void addStatus(
+            DonationFundraisingCampaignStatus status
+    ) {
+        statusHistory.add(
+                new FundraisingCampaignStatusHistory(
+                        status,
+                        this
+                )
+        );
     }
 }

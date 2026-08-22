@@ -2,7 +2,7 @@ package com.nexo.manada_solidaria_backend.campaigns.data.models;
 
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CampaignType;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
-import com.nexo.manada_solidaria_backend.campaigns.data.enums.CampaignStatus;
+import com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationFundraisingCampaignStatus;
 import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.common.utils.StatusHistoryUtils;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
@@ -24,7 +24,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class DonationCampaign extends Campaign<DonationCampaignStatusHistory> {
+public class DonationCampaign extends Campaign<DonationFundraisingCampaignStatus, DonationCampaignStatusHistory> {
     private LocalDate campaignEndDate;
     @OneToMany(
             mappedBy = "campaign",
@@ -53,7 +53,7 @@ public class DonationCampaign extends Campaign<DonationCampaignStatusHistory> {
 
         this.campaignEndDate = campaignEndDate;
         this.statusHistory = new ArrayList<>(
-                List.of(new DonationCampaignStatusHistory(CampaignStatus.CREATED, this))
+                List.of(new DonationCampaignStatusHistory(DonationFundraisingCampaignStatus.CREATED, this))
         );
         this.items = new ArrayList<>();
     }
@@ -72,8 +72,47 @@ public class DonationCampaign extends Campaign<DonationCampaignStatusHistory> {
 
     @Override
     public boolean isFinished() {
-        CampaignStatus status = getCurrentStatus().getStatus();
-        return status == CampaignStatus.FINISHED || status == CampaignStatus.COMPLETED;
+        DonationFundraisingCampaignStatus status = getCurrentStatus().getStatus();
+        return status == DonationFundraisingCampaignStatus.FINISHED || status == DonationFundraisingCampaignStatus.COMPLETED;
+    }
+
+    @Override
+    public CampaignType getCampaignType() {
+        return CampaignType.DONATION;
+    }
+
+    @Override
+    protected Class<DonationFundraisingCampaignStatus> statusType() {
+        return DonationFundraisingCampaignStatus.class;
+    }
+
+    @Override
+    protected boolean isTransitionAllowed(
+            DonationFundraisingCampaignStatus current,
+            DonationFundraisingCampaignStatus target
+    ) {
+        return switch (current) {
+            case CREATED ->
+                    target == DonationFundraisingCampaignStatus.COMPLETED;
+
+            case COMPLETED ->
+                    target == DonationFundraisingCampaignStatus.FINISHED;
+
+            case FINISHED ->
+                    false;
+        };
+    }
+
+    @Override
+    protected void addStatus(
+            DonationFundraisingCampaignStatus status
+    ) {
+        statusHistory.add(
+                new DonationCampaignStatusHistory(
+                        status,
+                        this
+                )
+        );
     }
 
     public void addItem(DonationItem item) {
@@ -81,10 +120,5 @@ public class DonationCampaign extends Campaign<DonationCampaignStatusHistory> {
             this.items.add(item);
             item.setCampaign(this);
         }
-    }
-
-    @Override
-    public CampaignType getCampaignType() {
-        return CampaignType.DONATION;
     }
 }

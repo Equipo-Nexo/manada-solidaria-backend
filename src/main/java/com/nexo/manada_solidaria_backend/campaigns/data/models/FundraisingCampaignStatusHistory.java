@@ -1,6 +1,6 @@
 package com.nexo.manada_solidaria_backend.campaigns.data.models;
 
-import com.nexo.manada_solidaria_backend.campaigns.data.enums.CampaignStatus;
+import com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationFundraisingCampaignStatus;
 import com.nexo.manada_solidaria_backend.common.data.models.StatusHistory;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -12,14 +12,14 @@ import lombok.Setter;
 @Entity
 @Setter
 @NoArgsConstructor
-public class FundraisingCampaignStatusHistory extends StatusHistory<CampaignStatus> {
+public class FundraisingCampaignStatusHistory extends StatusHistory<DonationFundraisingCampaignStatus> {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fundraising_campaign_id", nullable = false)
     private FundraisingCampaign campaign;
 
     public FundraisingCampaignStatusHistory(
-            CampaignStatus status,
+            DonationFundraisingCampaignStatus status,
             FundraisingCampaign campaign
     ) {
         super(status);

@@ -1,15 +1,11 @@
 package com.nexo.manada_solidaria_backend.campaigns.integrations;
 
+import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CampaignType;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest;
-import com.nexo.manada_solidaria_backend.campaigns.data.enums.CampaignStatus;
-import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaginStatus;
+import com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationFundraisingCampaignStatus;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCategory;
-import com.nexo.manada_solidaria_backend.campaigns.data.models.Campaign;
-import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationCampaign;
-import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationCampaignStatusHistory;
-import com.nexo.manada_solidaria_backend.campaigns.data.models.FundraisingCampaign;
-import com.nexo.manada_solidaria_backend.campaigns.data.models.NewsCampaign;
-import com.nexo.manada_solidaria_backend.campaigns.data.models.NewsCampaignStatusHistory;
+import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignStatus;
+import com.nexo.manada_solidaria_backend.campaigns.data.models.*;
 import com.nexo.manada_solidaria_backend.campaigns.data.repositories.CampaignRepository;
 import com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils;
 import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
@@ -28,21 +24,19 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils.NEWS_UPDATE_END_DATE;
+import static com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils.NEWS_UPDATE_START_DATE;
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -229,7 +223,7 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     @DisplayName("DELETE /campaigns/{id} de una donación en estado final devuelve 409 y no elimina")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource("com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils#provideFinalDonationStatuses")
-    void delete_donationInFinalState_returnsConflictAndKeepsCampaign(String testName, CampaignStatus status) throws Exception {
+    void delete_donationInFinalState_returnsConflictAndKeepsCampaign(String testName, DonationFundraisingCampaignStatus status) throws Exception {
         UUID campaignId = saveDonationWithStatus(admin(), status).getId();
 
         mockMvc.perform(delete("/campaigns/" + campaignId)
@@ -245,7 +239,7 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     @DisplayName("DELETE /campaigns/{id} de una noticia en estado FINISHED devuelve 409 y no elimina")
     void delete_finishedNewsCampaign_returnsConflictAndKeepsCampaign() throws Exception {
         NewsCampaign campaign = MockCampaignDataUtils.buildNewsModel(admin());
-        campaign.setStatusHistory(new ArrayList<>(List.of(new NewsCampaignStatusHistory(NewsCampaginStatus.FINISHED, campaign))));
+        campaign.setStatusHistory(new ArrayList<>(List.of(new NewsCampaignStatusHistory(NewsCampaignStatus.FINISHED, campaign))));
         UUID campaignId = campaignRepository.save(campaign).getId();
 
         mockMvc.perform(delete("/campaigns/" + campaignId)
@@ -339,8 +333,8 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
         NewsCampaign updated = (NewsCampaign) campaignRepository.findById(campaignId).orElseThrow();
 
         assertThat(updated.getCategory()).isEqualTo(NewsCampaignCategory.OTHER);
-        assertThat(updated.getNewsStartDateTime()).isEqualTo(LocalDateTime.of(2026,9,1,10,0));
-        assertThat(updated.getNewsEndDateTime()).isEqualTo(LocalDateTime.of(2026,9,5,18,0));
+        assertThat(updated.getNewsStartDateTime()).isEqualTo(NEWS_UPDATE_START_DATE);
+        assertThat(updated.getNewsEndDateTime()).isEqualTo(NEWS_UPDATE_END_DATE);
     }
 
     @Test
@@ -484,6 +478,237 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource("com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils#provideValidStatusTransitions")
+    @DisplayName("PATCH /campaigns/{id}/status permite transiciones válidas")
+    void transitionStatus_validTransition_returnsOk(
+            String testName,
+            CampaignType campaignType,
+            Enum<?> currentStatus,
+            Enum<?> targetStatus
+    ) throws Exception {
+
+        Campaign<?, ?> campaign = saveCampaignWithStatus(
+                campaignType,
+                currentStatus.name()
+        );
+
+        mockMvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                .patch("/campaigns/" + campaign.getId() + "/status")
+                                .header("Authorization", "Bearer " + accessToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(toJson(
+                                        new com.nexo.manada_solidaria_backend.campaigns.controllers.requests.TransitionCampaignStatusRequest(
+                                                targetStatus.name()
+                                        )
+                                ))
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(targetStatus.name()));
+
+        Campaign<?, ?> updated =
+                campaignRepository.findById(campaign.getId()).orElseThrow();
+
+        assertThat(updated.getCurrentStatus().getStatus())
+                .isEqualTo(targetStatus);
+    }
+
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource("com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils#provideInvalidStatusTransitions")
+    @DisplayName("PATCH /campaigns/{id}/status rechaza transiciones inválidas")
+    void transitionStatus_invalidTransition_returnsConflict(
+            String testName,
+            CampaignType campaignType,
+            Enum<?> currentStatus,
+            Enum<?> targetStatus
+    ) throws Exception {
+
+        Campaign<?, ?> campaign = saveCampaignWithStatus(
+                campaignType,
+                currentStatus.name()
+        );
+
+        mockMvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                .patch("/campaigns/" + campaign.getId() + "/status")
+                                .header("Authorization", "Bearer " + accessToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(toJson(
+                                        new com.nexo.manada_solidaria_backend.campaigns.controllers.requests.TransitionCampaignStatusRequest(
+                                                targetStatus.name()
+                                        )
+                                ))
+                )
+                .andExpect(status().isConflict());
+
+        Campaign<?, ?> unchanged =
+                campaignRepository.findById(campaign.getId()).orElseThrow();
+
+        assertThat(unchanged.getCurrentStatus().getStatus())
+                .isEqualTo(currentStatus);
+    }
+
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource("com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils#provideNonOwnerTransitions")
+    @DisplayName("PATCH /campaigns/{id}/status de otro usuario devuelve 403")
+    void transitionStatus_asNonOwner_returnsForbidden(
+            String testName,
+            CampaignType campaignType,
+            String currentStatus,
+            String targetStatus
+    ) throws Exception {
+
+        User other = new User(
+                "otro-status-user-" + UUID.randomUUID(),
+                "x",
+                new Profile(
+                        "otro-status-" + UUID.randomUUID() + "@mail.com",
+                        new PhoneNumber("353", "4014524"),
+                        List.of(Rol.COMMUNITY)
+                )
+        );
+
+        userRepository.save(other);
+
+        Campaign<?, ?> campaign =
+                saveCampaignWithStatusOwnedByUser(
+                        campaignType,
+                        currentStatus,
+                        other
+                );
+
+        mockMvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                .patch("/campaigns/" + campaign.getId() + "/status")
+                                .header("Authorization", "Bearer " + accessToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(toJson(
+                                        new com.nexo.manada_solidaria_backend.campaigns.controllers.requests.TransitionCampaignStatusRequest(
+                                                targetStatus
+                                        )
+                                ))
+                )
+                .andExpect(status().isForbidden());
+
+        Campaign<?, ?> unchanged =
+                campaignRepository.findById(campaign.getId()).orElseThrow();
+
+        assertThat(unchanged.getCurrentStatus().getStatus().name())
+                .isEqualTo(currentStatus);
+    }
+
+    @Test
+    @DisplayName("PATCH /campaigns/{id}/status de campaña inexistente devuelve 404")
+    void transitionStatus_nonExistingCampaign_returnsNotFound() throws Exception {
+
+        mockMvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                .patch("/campaigns/" + UUID.randomUUID() + "/status")
+                                .header("Authorization", "Bearer " + accessToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(toJson(
+                                        new com.nexo.manada_solidaria_backend.campaigns.controllers.requests.TransitionCampaignStatusRequest(
+                                                "FINISHED"
+                                        )
+                                ))
+                )
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errors",
+                        hasItem(containsString("no existe"))));
+    }
+
+    @Test
+    @DisplayName("PATCH /campaigns/{id}/status sin token devuelve 401")
+    void transitionStatus_withoutToken_returnsUnauthorized() throws Exception {
+
+        UUID campaignId =
+                campaignRepository.save(
+                        MockCampaignDataUtils.buildDonationModel(admin())
+                ).getId();
+
+        mockMvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                .patch("/campaigns/" + campaignId + "/status")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(toJson(
+                                        new com.nexo.manada_solidaria_backend.campaigns.controllers.requests.TransitionCampaignStatusRequest(
+                                                "COMPLETED"
+                                        )
+                                ))
+                )
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("PATCH /campaigns/{id}/status con token inválido devuelve 401")
+    void transitionStatus_withInvalidToken_returnsUnauthorized() throws Exception {
+
+        UUID campaignId =
+                campaignRepository.save(
+                        MockCampaignDataUtils.buildDonationModel(admin())
+                ).getId();
+
+        mockMvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                .patch("/campaigns/" + campaignId + "/status")
+                                .header("Authorization", "Bearer " + INVALID_ACCESS_TOKEN)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(toJson(
+                                        new com.nexo.manada_solidaria_backend.campaigns.controllers.requests.TransitionCampaignStatusRequest(
+                                                "COMPLETED"
+                                        )
+                                ))
+                )
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("PATCH /campaigns/{id}/status con estado vacío devuelve 400")
+    void transitionStatus_blankStatus_returnsBadRequest() throws Exception {
+
+        UUID campaignId =
+                campaignRepository.save(
+                        MockCampaignDataUtils.buildDonationModel(admin())
+                ).getId();
+
+        mockMvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                .patch("/campaigns/" + campaignId + "/status")
+                                .header("Authorization", "Bearer " + accessToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                    {
+                                        "status": ""
+                                    }
+                                    """)
+                )
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("PATCH /campaigns/{id}/status con estado inexistente devuelve 400")
+    void transitionStatus_invalidStatus_returnsBadRequest() throws Exception {
+
+        UUID campaignId =
+                campaignRepository.save(
+                        MockCampaignDataUtils.buildDonationModel(admin())
+                ).getId();
+
+        mockMvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                .patch("/campaigns/" + campaignId + "/status")
+                                .header("Authorization", "Bearer " + accessToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                    {
+                                        "status": "INVALID_STATUS"
+                                    }
+                                    """)
+                )
+                .andExpect(status().isBadRequest());
+    }
+
     private User admin() {
         return userRepository.findByUsername("admin").orElseThrow();
     }
@@ -494,10 +719,120 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
         return campaignRepository.save(MockCampaignDataUtils.buildDonationModel(other));
     }
 
-    private Campaign saveDonationWithStatus(User owner, CampaignStatus status) {
+    private Campaign saveDonationWithStatus(User owner, DonationFundraisingCampaignStatus status) {
         DonationCampaign campaign = MockCampaignDataUtils.buildDonationModel(owner);
         // Fila con finishedAt == null: es el estado vigente que resuelve getCurrentStatus().
         campaign.setStatusHistory(new ArrayList<>(List.of(new DonationCampaignStatusHistory(status, campaign))));
         return campaignRepository.save(campaign);
+    }
+
+    private Campaign<?, ?> saveCampaignWithStatus(CampaignType type, String status) {
+        User owner = admin();
+
+        return switch (type) {
+            case DONATION -> {
+                DonationCampaign campaign =
+                        MockCampaignDataUtils.buildDonationModel(owner);
+
+                DonationFundraisingCampaignStatus campaignStatus =
+                        DonationFundraisingCampaignStatus.valueOf(status);
+
+                campaign.setStatusHistory(new ArrayList<>(
+                        List.of(
+                                new DonationCampaignStatusHistory(
+                                        campaignStatus,
+                                        campaign
+                                )
+                        )
+                ));
+
+                yield campaignRepository.save(campaign);
+            }
+
+            case FUNDRAISING -> {
+                FundraisingCampaign campaign =
+                        MockCampaignDataUtils.buildFundraisingModel(owner);
+
+                DonationFundraisingCampaignStatus campaignStatus =
+                        DonationFundraisingCampaignStatus.valueOf(status);
+
+                campaign.setStatusHistory(new ArrayList<>(
+                        List.of(
+                                new FundraisingCampaignStatusHistory(
+                                        campaignStatus,
+                                        campaign
+                                )
+                        )
+                ));
+
+                yield campaignRepository.save(campaign);
+            }
+
+            case NEWS -> {
+                NewsCampaign campaign = MockCampaignDataUtils.buildNewsModel(owner);
+                NewsCampaignStatus campaignStatus = NewsCampaignStatus.valueOf(status);
+
+                campaign.setStatusHistory(new ArrayList<>(
+                        List.of(
+                                new NewsCampaignStatusHistory(
+                                        campaignStatus,
+                                        campaign
+                                )
+                        )
+                ));
+
+                yield campaignRepository.save(campaign);
+            }
+        };
+    }
+
+    private Campaign<?, ?> saveCampaignWithStatusOwnedByUser(
+            CampaignType type,
+            String status,
+            User owner
+    ) {
+        return switch (type) {
+            case DONATION -> {
+                DonationCampaign campaign =
+                        MockCampaignDataUtils.buildDonationModel(owner);
+
+                campaign.setStatusHistory(new ArrayList<>(List.of(
+                        new DonationCampaignStatusHistory(
+                                DonationFundraisingCampaignStatus.valueOf(status),
+                                campaign
+                        )
+                )));
+
+                yield campaignRepository.save(campaign);
+            }
+
+            case FUNDRAISING -> {
+                FundraisingCampaign campaign =
+                        MockCampaignDataUtils.buildFundraisingModel(owner);
+
+                campaign.setStatusHistory(new ArrayList<>(List.of(
+                        new FundraisingCampaignStatusHistory(
+                                DonationFundraisingCampaignStatus.valueOf(status),
+                                campaign
+                        )
+                )));
+
+                yield campaignRepository.save(campaign);
+            }
+
+            case NEWS -> {
+                NewsCampaign campaign =
+                        MockCampaignDataUtils.buildNewsModel(owner);
+
+                campaign.setStatusHistory(new ArrayList<>(List.of(
+                        new NewsCampaignStatusHistory(
+                                NewsCampaignStatus.valueOf(status),
+                                campaign
+                        )
+                )));
+
+                yield campaignRepository.save(campaign);
+            }
+        };
     }
 }

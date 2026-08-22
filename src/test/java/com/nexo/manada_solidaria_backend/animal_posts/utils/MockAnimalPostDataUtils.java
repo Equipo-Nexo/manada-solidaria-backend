@@ -1,13 +1,16 @@
 package com.nexo.manada_solidaria_backend.animal_posts.utils;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
+import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import org.junit.jupiter.params.provider.Arguments;
 import org.springframework.http.HttpStatus;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
@@ -275,6 +278,21 @@ public class MockAnimalPostDataUtils {
                         "Bearer " + INVALID_ACCESS_TOKEN,
                         HttpStatus.UNAUTHORIZED
                 )
+        );
+    }
+
+    private static Stream<Arguments> provideOwnerFieldCases() {
+        return Stream.of(
+                Arguments.of("Trae el usuario de quien publica", "$.owner.username", is("test-user")),
+                Arguments.of("Trae su foto de perfil", "$.owner.profileImageURL", is("cf-test-user")),
+                Arguments.of("Trae sus roles", "$.owner.roles", contains("COMMUNITY"))
+        );
+    }
+
+    private static Stream<Arguments> provideOwnerRolesCases() {
+        return Stream.of(
+                Arguments.of("Devuelve todos los roles, no uno solo", List.of(Rol.RESCUER, Rol.TRANSITIONAL_HOME)),
+                Arguments.of("Con un unico rol devuelve ese", List.of(Rol.COMMUNITY))
         );
     }
 
