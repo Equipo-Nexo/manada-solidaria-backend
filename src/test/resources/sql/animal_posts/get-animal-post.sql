@@ -75,7 +75,7 @@ VALUES
     'Perez',
     'Juan',
     '1122334455',
-    NULL,
+    'cf-test-user',
     NULL,
     ARRAY['COMMUNITY']
 );
