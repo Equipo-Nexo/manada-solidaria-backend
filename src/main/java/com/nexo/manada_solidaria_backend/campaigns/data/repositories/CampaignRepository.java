@@ -19,20 +19,20 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
         FROM Campaign c
         WHERE TYPE(c) <> FundraisingCampaign
     """)
-    Page<Campaign<?>> findCampaigns(Pageable pageable);
+    Page<Campaign<?, ?>> findCampaigns(Pageable pageable);
 
     @Query("""
         SELECT c
         FROM DonationCampaign c
     """)
-    Page<Campaign<?>> findDonationCampaigns(Pageable pageable);
+    Page<Campaign<?, ?>> findDonationCampaigns(Pageable pageable);
 
     @Query("""
         SELECT c
         FROM NewsCampaign c
         WHERE c.category = :category
     """)
-    Page<Campaign<?>> findNewsCampaignsByCategory(
+    Page<Campaign<?, ?>> findNewsCampaignsByCategory(
             @Param("category") NewsCampaignCategory category,
             Pageable pageable
     );
@@ -41,7 +41,7 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
         SELECT c
         FROM FundraisingCampaign c
     """)
-    Page<Campaign<?>> findFundraisingCampaigns(Pageable pageable);
+    Page<Campaign<?, ?>> findFundraisingCampaigns(Pageable pageable);
 
     @Query("""
         SELECT c
@@ -49,7 +49,7 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
         WHERE TYPE(c) <> FundraisingCampaign
         AND c.owner = :owner
     """)
-    List<Campaign<?>> findCampaignsByOwner(@Param("owner") User user);
+    List<Campaign<?, ?>> findCampaignsByOwner(@Param("owner") User user);
 
     @Query("""
         SELECT c
@@ -57,5 +57,5 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
         WHERE TYPE(c) = FundraisingCampaign
         AND c.owner = :owner
     """)
-    List<Campaign<?>> findFundraisingCampaignsByOwner(@Param("owner") User user);
+    List<Campaign<?, ?>> findFundraisingCampaignsByOwner(@Param("owner") User user);
 }
