@@ -15,7 +15,6 @@ import lombok.Setter;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +26,6 @@ import java.util.UUID;
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class AnimalPost<STATUS extends Enum<STATUS>, HISTORY extends StatusHistory<STATUS>> {
-    private static final int RECENT_DAYS = 7;
     private String name;
     private String description;
     private String imageUrl;
@@ -86,11 +84,6 @@ public abstract class AnimalPost<STATUS extends Enum<STATUS>, HISTORY extends St
     public abstract HISTORY getCurrentStatus();
     
     public abstract AnimalPostFilter getType();
-
-    public boolean isRecentlyResolved() {
-        return getCurrentStatus().getCreatedAt().toLocalDate()
-                .isAfter(LocalDate.now().minusDays(RECENT_DAYS));
-    }
 
     public void transitionTo(String targetStatus) {
         STATUS target = EnumUtils.parseOrThrow(statusType(), targetStatus);

@@ -22,12 +22,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 @AllArgsConstructor
 public class AnimalPostServiceImpl implements AnimalPostService {
+
+    private static final int RECENT_DAYS = 7;
 
     private final AnimalPostRepository animalPostRepository;
     private final AnimalPostFactory animalPostFactory;
@@ -88,7 +91,12 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     @Transactional(readOnly = true)
     public Page<HappyCaseResponse> getHappyCases(Pageable pageable) {
         return animalPostRepository.findHappyCases(LostPost.HAPPY_STATUSES, AdoptionPost.HAPPY_STATUSES, pageable)
-                .map(HappyCaseResponse::from);
+                .map(post -> HappyCaseResponse.from(post, isRecentlyResolved(post)));
+    }
+
+    private static boolean isRecentlyResolved(AnimalPost<?, ?> post) {
+        return post.getCurrentStatus().getCreatedAt().toLocalDate()
+                .isAfter(LocalDate.now().minusDays(RECENT_DAYS));
     }
 
     @Override

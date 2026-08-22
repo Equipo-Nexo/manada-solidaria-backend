@@ -5,6 +5,7 @@ import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.Profile;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -18,22 +19,22 @@ public record HappyCaseResponse(
         OwnerResponse owner
 ) {
 
-    public static HappyCaseResponse from(AnimalPost<?, ?> post) {
+    public static HappyCaseResponse from(AnimalPost<?, ?> post, boolean isRecent) {
         return new HappyCaseResponse(
                 post.getId(),
                 post.getName(),
                 post.getDescription(),
                 post.getImageUrl(),
                 post.getCurrentStatus().getStatus().name(),
-                post.isRecentlyResolved(),
+                isRecent,
                 OwnerResponse.from(post.getOwner())
         );
     }
 
     public record OwnerResponse(
             String username,
-            String profileImageURL,
-            Rol mainRole
+            List<Rol> roles,
+            String profileImageURL
     ) {
 
         static OwnerResponse from(User owner) {
@@ -46,8 +47,8 @@ public record HappyCaseResponse(
             Profile profile = owner.getProfile();
             return new OwnerResponse(
                     owner.getUsername(),
-                    profile.getProfileImageURL(),
-                    profile.getMainRole()
+                    profile.getRoles(),
+                    profile.getProfileImageURL()
             );
         }
     }

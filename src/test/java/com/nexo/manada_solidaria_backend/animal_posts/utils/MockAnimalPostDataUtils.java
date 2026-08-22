@@ -460,8 +460,8 @@ public class MockAnimalPostDataUtils {
                 Arguments.of("Trae el usuario del dueno", "$.content[0].owner.username", is("vecino")),
                 Arguments.of("Trae la foto de perfil del dueno", "$.content[0].owner.profileImageURL", is("cf-perfil-vecino")),
                 Arguments.of("Solo devuelve los estados finales", "$.totalElements", is(3)),
-                Arguments.of("Un dueno con RESCUER se muestra como rescatista", "$.content[?(@.name == 'Firulais volvio')].owner.mainRole", hasItem("RESCUER")),
-                Arguments.of("Un dueno sin RESCUER se muestra como comunidad", "$.content[?(@.name == 'Michi adoptada')].owner.mainRole", hasItem("COMMUNITY")),
+                Arguments.of("Trae todos los roles del dueno", "$.content[?(@.name == 'Firulais volvio')].owner.roles[*]", hasItem("RESCUER")),
+                Arguments.of("Un dueno de la comunidad trae su rol", "$.content[?(@.name == 'Michi adoptada')].owner.roles[*]", hasItem("COMMUNITY")),
                 Arguments.of("Resuelta ayer es reciente", "$.content[?(@.name == 'Michi adoptada')].isRecent", hasItem(true)),
                 Arguments.of("Resuelta hace 5 dias es reciente", "$.content[?(@.name == 'Firulais volvio')].isRecent", hasItem(true)),
                 Arguments.of("Resuelta hace 7 dias ya no es reciente", "$.content[?(@.name == 'Rex historico')].isRecent", hasItem(false))
