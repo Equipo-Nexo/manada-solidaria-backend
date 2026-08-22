@@ -5,6 +5,7 @@ import com.nexo.manada_solidaria_backend.geolocation.clients.responses.GeoapifyR
 import com.nexo.manada_solidaria_backend.geolocation.controllers.responses.GeolocationResponse;
 import com.nexo.manada_solidaria_backend.geolocation.services.interfaces.GeolocationService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -13,6 +14,7 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class GeolocationServiceImpl implements GeolocationService {
 
     private final GeoapifyRestClient geoapifyRestClient;
@@ -27,6 +29,7 @@ public class GeolocationServiceImpl implements GeolocationService {
                     .map(feature -> buildGeolocationResponse(feature.properties()))
                     .toList();
         } catch (Exception e) {
+            log.error("Error calling geoapify", e);
             throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "El servicio de geolocalizacion no se encuentra disponible.");
         }
     }
