@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
@@ -333,15 +334,53 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.totalElements").value(0));
     }
 
+    @DisplayName("GET /animal-posts filtra por los atributos del animal")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideAnimalFilterCases")
+    void animalFilterTests(String testName, Map<String, String> params, int expectedCount) throws Exception {
+        seedAnimalVariety();
+
+        MockHttpServletRequestBuilder request = get("/animal-posts")
+                .header("Authorization", "Bearer " + accessToken);
+        params.forEach(request::param);
+
+        mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(expectedCount));
+    }
+
     @Test
-    @DisplayName("GET /animal-posts?type=INVALIDO devuelve 400")
-    void list_withInvalidType_returnsBadRequest() throws Exception {
+    @DisplayName("GET /animal-posts?animalType=DOG&animalSize=SMALL devuelve la publicacion que cumple las dos condiciones")
+    void animalFilter_combined_returnsOnlyTheMatchingPost() throws Exception {
+        seedAnimalVariety();
+
         mockMvc.perform(
                         get("/animal-posts")
-                                .param("type", "INVALIDO")
+                                .param("animalType", "DOG")
+                                .param("animalSize", "SMALL")
                                 .header("Authorization", "Bearer " + accessToken)
                 )
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.content[0].name").value("Perro chico perdido"))
+                .andExpect(jsonPath("$.content[0].animal.type").value("DOG"))
+                .andExpect(jsonPath("$.content[0].animal.size").value("SMALL"))
+                .andExpect(jsonPath("$.content[0].animal.color").value("BLACK"));
+    }
+
+    @DisplayName("GET /animal-posts con un filtro invalido devuelve 400")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideInvalidFilterCases")
+    void listWithInvalidFilterTests(String testName, String param, String value) throws Exception {
+        mockMvc.perform(
+                        get("/animal-posts")
+                                .param(param, value)
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0]", containsString(value)))
+                .andExpect(jsonPath("$.errors[0]", containsString("Los valores permitidos son")))
+                .andExpect(jsonPath("$.errors[0]", not(containsString("com.nexo"))));
     }
 
     @Test
@@ -668,6 +707,15 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         mockMvc.perform(request).andExpect(status().isUnauthorized());
     }
 
+    private void seedAnimalVariety() {
+        saveLostPost("Perro chico perdido", StatusLostPost.SEARCHING, true,
+                animal(AnimalType.DOG, AnimalSize.SMALL, AnimalGender.MALE, AnimalAge.PUPPY, "BLACK"));
+        saveLostPost("Gata grande en la calle", StatusLostPost.TO_RESCUE, false,
+                animal(AnimalType.CAT, AnimalSize.LARGE, AnimalGender.FEMALE, AnimalAge.ADULT, "WHITE"));
+        saveAdoptionPost("Perra en adopcion", StatusAdoptionPost.SEARCHING_ADOPT,
+                animal(AnimalType.DOG, AnimalSize.MEDIUM, AnimalGender.FEMALE, AnimalAge.SENIOR, "BLACK"));
+    }
+
     private UUID seedPost(AnimalPostFilter postType, String startStatus) {
         return switch (postType) {
             case LOST -> saveLostPost("Perdido", StatusLostPost.valueOf(startStatus), true).getId();
@@ -719,13 +767,21 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     private LostPost saveLostPost(String name, StatusLostPost status, boolean hasOwner) {
-        LostPost post = new LostPost(name, "Descripción", "cf-img", null, new PhoneNumber("3533", "436249"), hasOwner, admin(), location(), animal(), null);
+        return saveLostPost(name, status, hasOwner, animal());
+    }
+
+    private LostPost saveLostPost(String name, StatusLostPost status, boolean hasOwner, Animal animal) {
+        LostPost post = new LostPost(name, "Descripción", "cf-img", null, new PhoneNumber("3533", "436249"), hasOwner, admin(), location(), animal, null);
         post.setStatusHistory(new ArrayList<>(List.of(new LostPostStatusHistory(status, post))));
         return animalPostRepository.save(post);
     }
 
     private AdoptionPost saveAdoptionPost(String name, StatusAdoptionPost status) {
-        AdoptionPost post = new AdoptionPost(name, "Descripción", "cf-img", null, new PhoneNumber("3533", "436249"), admin(), animal(), location(), false);
+        return saveAdoptionPost(name, status, animal());
+    }
+
+    private AdoptionPost saveAdoptionPost(String name, StatusAdoptionPost status, Animal animal) {
+        AdoptionPost post = new AdoptionPost(name, "Descripción", "cf-img", null, new PhoneNumber("3533", "436249"), admin(), animal, location(), false);
         post.setStatusHistory(new ArrayList<>(List.of(new AdoptionPostStatusHistory(status, post))));
         return animalPostRepository.save(post);
     }
@@ -735,11 +791,11 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     private Animal animal() {
-        Animal animal = new Animal();
-        animal.setType(AnimalType.DOG);
-        animal.setSize(AnimalSize.MEDIUM);
-        animal.setGender(AnimalGender.MALE);
-        return animal;
+        return animal(AnimalType.DOG, AnimalSize.MEDIUM, AnimalGender.MALE, null, null);
+    }
+
+    private Animal animal(AnimalType type, AnimalSize size, AnimalGender gender, AnimalAge age, String color) {
+        return new Animal(color, age, size, gender, type);
     }
 
     private Location location() {

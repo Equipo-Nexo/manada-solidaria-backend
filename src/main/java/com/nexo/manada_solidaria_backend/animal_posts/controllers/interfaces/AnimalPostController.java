@@ -1,6 +1,6 @@
 package com.nexo.manada_solidaria_backend.animal_posts.controllers.interfaces;
 
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.GetAnimalPostsRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.UUID;
@@ -39,8 +38,7 @@ public interface AnimalPostController {
 
     @GetMapping
     Page<AnimalPostResponse> getAnimalPosts(
-            @RequestParam(required = false) AnimalPostFilter type,
-            @RequestParam(required = false) String status,
+            @ParameterObject GetAnimalPostsRequest request,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) @ParameterObject Pageable pageable
     );
 

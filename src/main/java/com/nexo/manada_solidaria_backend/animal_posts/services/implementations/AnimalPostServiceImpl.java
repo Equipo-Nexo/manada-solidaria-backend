@@ -1,7 +1,7 @@
 package com.nexo.manada_solidaria_backend.animal_posts.services.implementations;
 
 import com.nexo.manada_solidaria_backend.animal_posts.components.AnimalPostFactory;
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.GetAnimalPostsRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
@@ -39,9 +39,18 @@ public class AnimalPostServiceImpl implements AnimalPostService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<AnimalPostResponse> getAnimalPosts(AnimalPostFilter type, String status, Pageable pageable) {
+    public Page<AnimalPostResponse> getAnimalPosts(GetAnimalPostsRequest request, Pageable pageable) {
         return animalPostRepository
-                .findAllFiltered(EnumUtils.getNameOrNull(type), status, pageable)
+                .findAllFiltered(
+                        EnumUtils.getNameOrNull(request.type()),
+                        request.status(),
+                        request.animalType(),
+                        request.animalSize(),
+                        request.animalGender(),
+                        request.animalAge(),
+                        request.animalColor(),
+                        pageable
+                )
                 .map(AnimalPostResponse::from);
     }
 
