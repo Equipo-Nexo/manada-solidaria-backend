@@ -119,4 +119,6 @@ public abstract class Campaign<
 
     public abstract CampaignType getCampaignType();
 
+    public abstract boolean hasExpired(LocalDateTime now);
+
 }

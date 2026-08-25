@@ -122,4 +122,10 @@ public class NewsCampaign extends Campaign<NewsCampaignStatus, NewsCampaignStatu
                 )
         );
     }
+
+    @Override
+    public boolean hasExpired(LocalDateTime now) {
+        return newsEndDateTime != null
+                && !newsEndDateTime.isAfter(now);
+    }
 }

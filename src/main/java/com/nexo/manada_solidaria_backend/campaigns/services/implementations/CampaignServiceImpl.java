@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -130,6 +132,26 @@ public class CampaignServiceImpl implements CampaignService {
         return CampaignResponse.from(campaign);
     }
 
+    @Override
+    @Transactional
+    public void finalizeExpiredDonationAndFundraisingCampaigns() {
+        finalizeCampaigns(
+                campaignRepository.findExpiredDonationAndFundraisingCampaigns(
+                        LocalDate.now()
+                )
+        );
+    }
+
+    @Override
+    @Transactional
+    public void finalizeExpiredNewsCampaigns() {
+        finalizeCampaigns(
+                campaignRepository.findExpiredNewsCampaigns(
+                        LocalDateTime.now()
+                )
+        );
+    }
+
     private <T extends Campaign<?, ?>> Page<CampaignResponse> toResponse(
             Page<T> campaigns
     ) {
@@ -171,4 +193,11 @@ public class CampaignServiceImpl implements CampaignService {
         }
     }
 
+    private void finalizeCampaigns(List<? extends Campaign<?, ?>> campaigns) {
+        campaigns.stream()
+                .filter(campaign -> !campaign.isFinished())
+                .forEach(campaign ->
+                        campaign.transitionTo("FINISHED")
+                );
+    }
 }

@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -103,15 +104,19 @@ public class DonationCampaign extends Campaign<DonationFundraisingCampaignStatus
     }
 
     @Override
-    protected void addStatus(
-            DonationFundraisingCampaignStatus status
-    ) {
+    protected void addStatus(DonationFundraisingCampaignStatus status) {
         statusHistory.add(
                 new DonationCampaignStatusHistory(
                         status,
                         this
                 )
         );
+    }
+
+    @Override
+    public boolean hasExpired(LocalDateTime now) {
+        return campaignEndDate != null
+                && campaignEndDate.isBefore(now.toLocalDate());
     }
 
     public void addItem(DonationItem item) {

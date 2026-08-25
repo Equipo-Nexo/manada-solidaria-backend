@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -58,4 +60,31 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
         AND c.owner = :owner
     """)
     List<Campaign<?, ?>> findFundraisingCampaignsByOwner(@Param("owner") User user);
+
+    @Query("""
+        SELECT c
+        FROM Campaign c
+        WHERE
+            (
+                TYPE(c) = DonationCampaign
+                AND TREAT(c AS DonationCampaign).campaignEndDate < :today
+            )
+            OR
+            (
+                TYPE(c) = FundraisingCampaign
+                AND TREAT(c AS FundraisingCampaign).campaignEndDate < :today
+            )
+    """)
+    List<Campaign<?, ?>> findExpiredDonationAndFundraisingCampaigns(
+            @Param("today") LocalDate today
+    );
+
+    @Query("""
+    SELECT c
+    FROM NewsCampaign c
+    WHERE c.newsEndDateTime <= :now
+""")
+    List<Campaign<?, ?>> findExpiredNewsCampaigns(
+            @Param("now") LocalDateTime now
+    );
 }

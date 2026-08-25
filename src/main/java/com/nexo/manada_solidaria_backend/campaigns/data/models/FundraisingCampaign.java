@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -124,5 +125,11 @@ public class FundraisingCampaign extends Campaign<DonationFundraisingCampaignSta
                         this
                 )
         );
+    }
+
+    @Override
+    public boolean hasExpired(LocalDateTime now) {
+        return campaignEndDate != null
+                && campaignEndDate.isBefore(now.toLocalDate());
     }
 }
