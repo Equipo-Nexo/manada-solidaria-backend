@@ -3,11 +3,12 @@ package com.nexo.manada_solidaria_backend.campaigns.integrations;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CampaignType;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationFundraisingCampaignStatus;
-import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignStatus;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCategory;
+import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignStatus;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.*;
 import com.nexo.manada_solidaria_backend.campaigns.data.repositories.CampaignRepository;
 import com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils;
+import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthenticatedIntegrationTest;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.Profile;
@@ -24,22 +25,18 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils.NEWS_UPDATE_END_DATE;
-import static com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils.NEWS_UPDATE_START_DATE;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils.NEWS_UPDATE_END_DATE;
+import static com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils.NEWS_UPDATE_START_DATE;
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -292,7 +289,8 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
 
         assertThat(updated.getTitle()).isEqualTo("Título Donación Editado");
         assertThat(updated.getDescription()).isEqualTo("Descripción editada");
-        assertThat(updated.getPhoneNumber()).isEqualTo("999999999");
+        assertThat(updated.getPhoneNumber().areaCode()).isEqualTo("3533");
+        assertThat(updated.getPhoneNumber().number()).isEqualTo("436249");
         assertThat(updated.getCampaignEndDate()).isEqualTo(LocalDate.now().plusMonths(2));
     }
 
@@ -566,7 +564,7 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                 "x",
                 new Profile(
                         "otro-status-" + UUID.randomUUID() + "@mail.com",
-                        "111",
+                        new PhoneNumber("353", "4014524"),
                         List.of(Rol.COMMUNITY)
                 )
         );
@@ -716,7 +714,7 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     private Campaign saveCampaignOwnedByOtherUser() {
-        User other = new User("otro-campaign-user", "x", new Profile("otro@mail.com", "111", List.of(Rol.COMMUNITY)));
+        User other = new User("otro-campaign-user", "x", new Profile("otro@mail.com", new PhoneNumber("3533", "436249"), List.of(Rol.COMMUNITY)));
         userRepository.save(other);
         return campaignRepository.save(MockCampaignDataUtils.buildDonationModel(other));
     }

@@ -8,7 +8,10 @@ import org.junit.jupiter.params.provider.Arguments;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
 public class MockUserDataUtils {
@@ -18,7 +21,7 @@ public class MockUserDataUtils {
               "name": "Elian",
               "lastname": "Enria",
               "email": "nuevo@mail.com",
-              "phoneNumber": "1133334444",
+              "phoneNumber": {"areaCode": "3533", "number": "436249"},
               "profileImageURL": "cf-profile-1"
             }
             """;
@@ -28,7 +31,7 @@ public class MockUserDataUtils {
               "name": "Elian",
               "lastname": "Enria",
               "email": "nuevo@mail.com",
-              "phoneNumber": "1133334444"
+              "phoneNumber": {"areaCode": "3533", "number": "436249"}
             }
             """;
 
@@ -36,7 +39,7 @@ public class MockUserDataUtils {
             {
               "name": "Elian",
               "lastname": "Enria",
-              "phoneNumber": "1133334444"
+              "phoneNumber": {"areaCode": "3533", "number": "436249"}
             }
             """;
 
@@ -45,7 +48,7 @@ public class MockUserDataUtils {
               "name": "Elian",
               "lastname": "Enria",
               "email": "no-es-un-email",
-              "phoneNumber": "1133334444"
+              "phoneNumber": {"areaCode": "3533", "number": "436249"}
             }
             """;
 
@@ -54,7 +57,7 @@ public class MockUserDataUtils {
               "name": "Elian",
               "lastname": "Enria",
               "email": "nuevo@mail.com",
-              "phoneNumber": "telefono-invalido"
+              "phoneNumber": {"areaCode": "3533", "number": "telefono-invalido"}
             }
             """;
 
@@ -79,6 +82,39 @@ public class MockUserDataUtils {
             { }
             """;
 
+    private static Stream<Arguments> provideGetUsersFilterCases() {
+        return Stream.of(
+                Arguments.of("Sin filtros devuelve todos los usuarios", null, null,
+                        List.of("admin", "NOTADMIN", "rescatista", "refugio")),
+                Arguments.of("Filtra por nombre de usuario", "NOTADMIN", null,
+                        List.of("NOTADMIN")),
+                Arguments.of("Un usuario con varios roles aparece al filtrar por cualquiera de ellos", null, "RESCUER",
+                        List.of("rescatista", "refugio")),
+                Arguments.of("Tambien matchea por un rol secundario", null, "TRANSITIONAL_HOME",
+                        List.of("refugio")),
+                Arguments.of("Filtra por rol COMMUNITY", null, "COMMUNITY",
+                        List.of("admin", "NOTADMIN"))
+        );
+    }
+
+    private static Stream<Arguments> provideUserFieldCases() {
+        return Stream.of(
+                Arguments.of("Devuelve el id, que es lo que permite abrir el detalle", "$[0].id", notNullValue()),
+                Arguments.of("Devuelve el username del User", "$[0].username", is("rescatista")),
+                Arguments.of("Devuelve los roles del Profile", "$[0].roles", contains("RESCUER")),
+                Arguments.of("Devuelve el codigo de area", "$[0].phoneNumber.areaCode", is("3533")),
+                Arguments.of("Devuelve el numero de telefono", "$[0].phoneNumber.number", is("436249")),
+                Arguments.of("Devuelve la foto de perfil", "$[0].profileImageURL", is("cf-rescatista"))
+        );
+    }
+
+    private static Stream<Arguments> provideUnauthorizedTokenCases() {
+        return Stream.of(
+                Arguments.of("Sin token", null),
+                Arguments.of("Con token invalido", INVALID_ACCESS_TOKEN)
+        );
+    }
+
     private static Stream<Arguments> provideGetUserPostsTestCases() {
         return Stream.of(
                 Arguments.of("Get all user posts", null, 4),
@@ -101,7 +137,8 @@ public class MockUserDataUtils {
                 Arguments.of("Devuelve el name enviado", UPDATE_PROFILE_VALID, "$.name", is("Elian")),
                 Arguments.of("Devuelve el lastname enviado", UPDATE_PROFILE_VALID, "$.lastname", is("Enria")),
                 Arguments.of("Devuelve el email enviado", UPDATE_PROFILE_VALID, "$.email", is("nuevo@mail.com")),
-                Arguments.of("Devuelve el phoneNumber enviado", UPDATE_PROFILE_VALID, "$.phoneNumber", is("1133334444")),
+                Arguments.of("Devuelve el areaCode enviado", UPDATE_PROFILE_VALID, "$.phoneNumber.areaCode", is("3533")),
+                Arguments.of("Devuelve el phoneNumber enviado", UPDATE_PROFILE_VALID, "$.phoneNumber.number", is("436249")),
                 Arguments.of("Devuelve el profileImageURL enviado", UPDATE_PROFILE_VALID, "$.profileImageURL", is("cf-profile-1")),
                 Arguments.of("Reemplazo total: el campo omitido queda null", UPDATE_PROFILE_WITHOUT_IMAGE, "$.profileImageURL", nullValue())
         );

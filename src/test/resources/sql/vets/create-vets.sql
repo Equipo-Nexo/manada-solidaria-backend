@@ -47,7 +47,8 @@ INSERT INTO vet_information (
     description,
     email,
     name,
-    phone,
+    area_code,
+    phone_number,
     profile_picture_url,
     vet_page_url
 )
@@ -58,7 +59,8 @@ VALUES
     'Atención clínica, vacunación y cirugías.',
     'contacto@sanroque.com',
     'Veterinaria San Roque',
-    '3514567890',
+    '3514',
+    '567890',
     'vet-profile-san-roque',
     'https://veterinariasanroque.com'
 ),
@@ -68,7 +70,8 @@ VALUES
     'Atención veterinaria general.',
     'contacto@elsol.com',
     'Veterinaria El Sol',
-    '3514567891',
+    '3514',
+    '567891',
     'vet-profile-el-sol',
     'https://veterinariaelsol.com'
 ),
@@ -78,7 +81,8 @@ VALUES
     'Atención clínica y vacunación.',
     'contacto@animalia.com',
     'Veterinaria Animalia',
-    '3514567892',
+    '3514',
+    '567892',
     'vet-profile-animalia',
     'https://veterinariaanimalia.com'
 );

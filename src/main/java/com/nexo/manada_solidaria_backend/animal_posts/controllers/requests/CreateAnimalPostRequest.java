@@ -4,6 +4,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalAge;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalGender;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalSize;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
+import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import com.nexo.manada_solidaria_backend.common.controllers.validations.ConditionalField;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -57,7 +58,8 @@ public record CreateAnimalPostRequest(
         String imageId,
 
         // Obligatorio salvo LOST con hasOwner=false ("en la calle"): lo resuelven los @ConditionalField de arriba.
-        String phoneNumber,
+        @Valid
+        PhoneNumberRequest phoneNumber,
 
         Boolean hasOwner,
 

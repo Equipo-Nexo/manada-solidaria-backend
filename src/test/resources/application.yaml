@@ -26,3 +26,12 @@ cloudflare:
     secret-access-key: test
     bucket: test
     public-url: test
+clients:
+  rest:
+    apis:
+      geoapify:
+        api-key: geoapify-test-key
+        host: http://localhost:18080
+        paths:
+          geocode-autocomplete: ${clients.rest.apis.geoapify.host}/v1/geocode/autocomplete
+          geocode-reverse: ${clients.rest.apis.geoapify.host}/v1/geocode/reverse?apiKey={apiKey}&lat={latitude}&lon={longitude}

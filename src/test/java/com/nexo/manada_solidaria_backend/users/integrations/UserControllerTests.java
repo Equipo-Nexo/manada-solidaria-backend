@@ -1,9 +1,11 @@
 package com.nexo.manada_solidaria_backend.users.integrations;
 
+import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthenticatedIntegrationTest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.Profile;
+import com.nexo.manada_solidaria_backend.users.data.models.User;
 import com.nexo.manada_solidaria_backend.users.data.repositories.UserRepository;
 import com.nexo.manada_solidaria_backend.users.utils.MockUserDataUtils;
 import org.hamcrest.Matcher;
@@ -15,7 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
@@ -32,6 +36,71 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @DisplayName("GET /users filtra por nombre de usuario y/o rol")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideGetUsersFilterCases")
+    void getUsers_filters(String testName, String username, String role, List<String> expectedUsernames) throws Exception {
+        saveUser("rescatista", new PhoneNumber("3533", "436249"), "cf-rescatista", Rol.RESCUER);
+        saveUser("refugio", new PhoneNumber("3533", "436250"), "cf-refugio",
+                Rol.RESCUER, Rol.TRANSITIONAL_HOME);
+
+        MockHttpServletRequestBuilder request = get("/users")
+                .header("Authorization", "Bearer " + accessToken);
+        if (username != null) {
+            request = request.param("username", username);
+        }
+        if (role != null) {
+            request = request.param("role", role);
+        }
+
+        mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(expectedUsernames.size())))
+                .andExpect(jsonPath("$[*].username", containsInAnyOrder(expectedUsernames.toArray())));
+    }
+
+    @DisplayName("GET /users mapea el username del User y roles/telefono/foto del Profile")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideUserFieldCases")
+    void getUsers_mapsUserAndProfileFields(
+            String testName,
+            String jsonPathExpression,
+            Matcher<?> expected
+    ) throws Exception {
+        saveUser("rescatista", new PhoneNumber("3533", "436249"), "cf-rescatista", Rol.RESCUER);
+
+        mockMvc.perform(
+                        get("/users")
+                                .param("username", "rescatista")
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath(jsonPathExpression, expected));
+    }
+
+    @Test
+    @DisplayName("GET /users?role=INVALIDO devuelve 400")
+    void getUsers_withInvalidRole_returnsBadRequest() throws Exception {
+        mockMvc.perform(
+                        get("/users")
+                                .param("role", "INVALIDO")
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isBadRequest());
+    }
+
+    @DisplayName("GET /users sin autenticacion valida devuelve 401")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideUnauthorizedTokenCases")
+    void getUsers_unauthorized(String testName, String token) throws Exception {
+        MockHttpServletRequestBuilder request = get("/users");
+        if (token != null) {
+            request = request.header("Authorization", "Bearer " + token);
+        }
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
+    }
 
     @DisplayName("Get user posts")
     @ParameterizedTest(name = "{index} - {0}")
@@ -197,6 +266,12 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body)
         );
+    }
+
+    private void saveUser(String username, PhoneNumber phoneNumber, String profileImageURL, Rol... roles) {
+        Profile profile = new Profile(null, phoneNumber, new ArrayList<>(List.of(roles)));
+        profile.setProfileImageURL(profileImageURL);
+        userRepository.save(new User(username, "x", profile));
     }
 
     private List<Rol> rolesOfAdmin() {

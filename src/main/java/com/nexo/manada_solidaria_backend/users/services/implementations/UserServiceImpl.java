@@ -3,6 +3,7 @@ package com.nexo.manada_solidaria_backend.users.services.implementations;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
 import com.nexo.manada_solidaria_backend.auth.controllers.requests.CreateUserRequest;
 import com.nexo.manada_solidaria_backend.campaigns.services.interfaces.CampaignService;
+import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.*;
@@ -61,6 +62,23 @@ public class UserServiceImpl implements UserService {
             log.error("Error creating user", e);
             throw new ResponseStatusException(INTERNAL_SERVER_ERROR, "Error creando el usuario");
         }
+    }
+
+    @Override
+    public List<UserResponse> getUsers(String username, Rol role) {
+        return userRepository.findAll().stream()
+                .filter(user -> matchesUsername(user, username))
+                .filter(user -> hasRole(user, role))
+                .map(UserResponse::from)
+                .toList();
+    }
+
+    private static boolean matchesUsername(User user, String username) {
+        return username == null || user.getUsername().toLowerCase().contains(username.toLowerCase());
+    }
+
+    private static boolean hasRole(User user, Rol role) {
+        return role == null || user.getProfile().hasRole(role);
     }
 
     @Override
@@ -126,7 +144,7 @@ public class UserServiceImpl implements UserService {
                 passwordEncoder.encode(createUserRequest.getPassword()),
                 new Profile(
                         createUserRequest.getEmail(),
-                        createUserRequest.getPhoneNumber(),
+                        PhoneNumberRequest.toDomain(createUserRequest.getPhoneNumber()),
                         Optional.ofNullable(createUserRequest.getRoles())
                                 .orElse(List.of(Rol.COMMUNITY))
 

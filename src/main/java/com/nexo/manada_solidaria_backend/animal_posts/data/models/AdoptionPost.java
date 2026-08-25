@@ -2,6 +2,7 @@ package com.nexo.manada_solidaria_backend.animal_posts.data.models;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusAdoptionPost;
+import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.common.utils.StatusHistoryUtils;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -14,12 +15,15 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 public class AdoptionPost extends AnimalPost<StatusAdoptionPost, AdoptionPostStatusHistory> {
+
+    public static final Set<StatusAdoptionPost> HAPPY_STATUSES = Set.of(StatusAdoptionPost.ADOPTED);
     @OneToMany(
             mappedBy = "post",
             cascade = CascadeType.ALL,
@@ -29,7 +33,7 @@ public class AdoptionPost extends AnimalPost<StatusAdoptionPost, AdoptionPostSta
             List.of(new AdoptionPostStatusHistory(StatusAdoptionPost.CREATED, this))
     );
 
-    public AdoptionPost(String name, String description, String imageUrl, String sharePostUrl, String phoneNumber, User owner, Animal animal, Location location, boolean inTransit) {
+    public AdoptionPost(String name, String description, String imageUrl, String sharePostUrl, PhoneNumber phoneNumber, User owner, Animal animal, Location location, boolean inTransit) {
         super(name, description, imageUrl, sharePostUrl, phoneNumber, owner, animal, location);
         startSearching(inTransit);
     }
