@@ -5,6 +5,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.Creat
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AnimalPostResponse;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.HappyCaseResponse;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import jakarta.validation.Valid;
 import org.springdoc.core.annotations.ParameterObject;
@@ -42,6 +43,11 @@ public interface AnimalPostController {
             @RequestParam(required = false) AnimalPostFilter type,
             @RequestParam(required = false) String status,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) @ParameterObject Pageable pageable
+    );
+
+    @GetMapping("/happy-cases")
+    Page<HappyCaseResponse> getHappyCases(
+            @PageableDefault(size = 10) @ParameterObject Pageable pageable
     );
 
     @GetMapping("/{animalPostId}")

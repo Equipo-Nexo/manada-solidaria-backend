@@ -469,6 +469,43 @@ public class MockAnimalPostDataUtils {
         );
     }
 
+    private static Stream<Arguments> provideHappyCaseFieldCases() {
+        return Stream.of(
+                Arguments.of("El mas reciente primero: la adopcion adoptada ayer", "$.content[0].name", is("Michi adoptada")),
+                Arguments.of("Trae la descripcion", "$.content[0].description", is("Encontro familia")),
+                Arguments.of("Trae la imagen de la publicacion", "$.content[0].imageUrl", is("cf-img-adopted")),
+                Arguments.of("Trae el estado final", "$.content[0].status", is("ADOPTED")),
+                Arguments.of("Trae el usuario del dueno", "$.content[0].owner.username", is("vecino")),
+                Arguments.of("Trae la foto de perfil del dueno", "$.content[0].owner.profileImageURL", is("cf-perfil-vecino")),
+                Arguments.of("Solo devuelve los estados finales", "$.totalElements", is(3)),
+                Arguments.of("Trae todos los roles del dueno", "$.content[?(@.name == 'Firulais volvio')].owner.roles[*]", hasItem("RESCUER")),
+                Arguments.of("Un dueno de la comunidad trae su rol", "$.content[?(@.name == 'Michi adoptada')].owner.roles[*]", hasItem("COMMUNITY")),
+                Arguments.of("Resuelta ayer es reciente", "$.content[?(@.name == 'Michi adoptada')].isRecent", hasItem(true)),
+                Arguments.of("Resuelta hace 5 dias es reciente", "$.content[?(@.name == 'Firulais volvio')].isRecent", hasItem(true)),
+                Arguments.of("Resuelta hace 7 dias ya no es reciente", "$.content[?(@.name == 'Rex historico')].isRecent", hasItem(false))
+        );
+    }
+
+    private static Stream<Arguments> provideHappyCaseStatusCases() {
+        return Stream.of(
+                Arguments.of("FOUND es un caso feliz", AnimalPostFilter.LOST, "FOUND", 1),
+                Arguments.of("ADOPTED es un caso feliz", AnimalPostFilter.ADOPTION, "ADOPTED", 1),
+                Arguments.of("RESCUED es un caso feliz", AnimalPostFilter.IN_STREET, "RESCUED", 1),
+                Arguments.of("CREATED no es un caso feliz", AnimalPostFilter.LOST, "CREATED", 0),
+                Arguments.of("SEARCHING no es un caso feliz", AnimalPostFilter.LOST, "SEARCHING", 0),
+                Arguments.of("TO_RESCUE no es un caso feliz", AnimalPostFilter.IN_STREET, "TO_RESCUE", 0),
+                Arguments.of("SEARCHING_ADOPT no es un caso feliz", AnimalPostFilter.ADOPTION, "SEARCHING_ADOPT", 0),
+                Arguments.of("SEARCHING_ADOPT_AND_TRANSIT no es un caso feliz", AnimalPostFilter.ADOPTION, "SEARCHING_ADOPT_AND_TRANSIT", 0)
+        );
+    }
+
+    private static Stream<Arguments> provideHappyCasesUnauthorizedCases() {
+        return Stream.of(
+                Arguments.of("Sin token", null),
+                Arguments.of("Con token invalido", INVALID_ACCESS_TOKEN)
+        );
+    }
+
     private static Stream<Arguments> provideFilterCases() {
         return Stream.of(
                 Arguments.of("Sin filtros devuelve todos los posts", null, null, 5),
