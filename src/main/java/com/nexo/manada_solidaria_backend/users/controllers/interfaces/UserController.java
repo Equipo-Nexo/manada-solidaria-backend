@@ -4,6 +4,7 @@ import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfil
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.ProfileResponse;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.UserPostResponse;
+import com.nexo.manada_solidaria_backend.users.controllers.responses.UserResponse;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import jakarta.validation.Valid;
@@ -19,6 +20,12 @@ import java.util.List;
 
 @RequestMapping("/users")
 public interface UserController {
+
+    @GetMapping
+    List<UserResponse> getUsers(
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) Rol role
+    );
 
     @GetMapping("/posts")
     List<UserPostResponse> getUserPosts(
