@@ -3,6 +3,7 @@ package com.nexo.manada_solidaria_backend.campaigns.services.implementations;
 import com.nexo.manada_solidaria_backend.campaigns.components.CampaignFactory;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CampaignType;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest;
+import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.TransitionCampaignStatusRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.responses.CampaignResponse;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.CampaignCategoryFilter;
@@ -31,17 +32,22 @@ public class CampaignServiceImpl implements CampaignService {
 
     @Override
     public CampaignResponse create(CreateCampaignRequest request, User owner) {
-        Campaign saved = campaignRepository.save(campaignFactory.buildCampaign(request, owner));
+        Campaign<?, ?> saved = campaignRepository.save(campaignFactory.buildCampaign(request, owner));
 
         return CampaignResponse.from(saved);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<CampaignResponse> getCampaigns(CampaignCategoryFilter category, Pageable pageable) {
-        Page<Campaign<?>> campaigns = switch (category) {
+    public Page<CampaignResponse> getCampaigns(
+            CampaignCategoryFilter category,
+            Pageable pageable
+    ) {
+        Page<Campaign<?, ?>> campaigns = switch (category) {
             case null -> campaignRepository.findCampaigns(pageable);
+
             case DONATION -> campaignRepository.findDonationCampaigns(pageable);
+
             default -> campaignRepository.findNewsCampaignsByCategory(
                     NewsCampaignCategory.valueOf(category.name()),
                     pageable
@@ -54,7 +60,7 @@ public class CampaignServiceImpl implements CampaignService {
     @Override
     @Transactional(readOnly = true)
     public CampaignResponse getCampaign(UUID campaignId) {
-        Campaign campaign = getCampaignOrThrowException(campaignId);
+        Campaign<?, ?> campaign = getCampaignOrThrowException(campaignId);
 
         return CampaignResponse.from(campaign);
     }
@@ -68,7 +74,7 @@ public class CampaignServiceImpl implements CampaignService {
     @Override
     @Transactional
     public void update(UUID campaignId, UpdateCampaignRequest request, User authenticatedUser) {
-        Campaign campaign = getOwnedCampaignOrThrow(campaignId, authenticatedUser);
+        Campaign<?, ?> campaign = getOwnedCampaignOrThrow(campaignId, authenticatedUser);
 
         validateCampaignType(campaign, request.type());
         campaign.update(request);
@@ -78,7 +84,7 @@ public class CampaignServiceImpl implements CampaignService {
     @Override
     @Transactional
     public void delete(UUID campaignId, User authenticatedUser) {
-        Campaign campaign = campaignRepository.findById(campaignId)
+        Campaign<?, ?> campaign = campaignRepository.findById(campaignId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "La campaña no existe"));
 
         if (!campaign.getOwner().getId().equals(authenticatedUser.getId())) {
@@ -110,18 +116,34 @@ public class CampaignServiceImpl implements CampaignService {
                 .toList();
     }
 
-    private <T extends Campaign<?>> Page<CampaignResponse> toResponse(Page<T> campaigns) {
+    @Override
+    @Transactional
+    public CampaignResponse transitionStatus(UUID campaignId, TransitionCampaignStatusRequest request, User authenticatedUser) {
+        Campaign<?, ?> campaign =
+                getOwnedCampaignOrThrow(
+                        campaignId,
+                        authenticatedUser
+                );
+
+        campaign.transitionTo(request.status());
+
+        return CampaignResponse.from(campaign);
+    }
+
+    private <T extends Campaign<?, ?>> Page<CampaignResponse> toResponse(
+            Page<T> campaigns
+    ) {
         return campaigns.map(CampaignResponse::from);
     }
 
-    private Campaign getOwnedCampaignOrThrow(UUID campaignId, User authenticatedUser) {
-        Campaign campaign = getCampaignOrThrowException(campaignId);
+    private Campaign<?, ?> getOwnedCampaignOrThrow(UUID campaignId, User authenticatedUser) {
+        Campaign<?, ?> campaign = getCampaignOrThrowException(campaignId);
 
         validateOwner(campaign, authenticatedUser);
         return campaign;
     }
 
-    private Campaign getCampaignOrThrowException(UUID campaignId) {
+    private Campaign<?, ?> getCampaignOrThrowException(UUID campaignId) {
         return campaignRepository.findById(campaignId)
                 .orElseThrow(() ->
                         new ResponseStatusException(
@@ -131,7 +153,7 @@ public class CampaignServiceImpl implements CampaignService {
                 );
     }
 
-    private void validateOwner(Campaign campaign, User authenticatedUser) {
+    private void validateOwner(Campaign<?, ?> campaign, User authenticatedUser) {
         if (!campaign.getOwner().getId().equals(authenticatedUser.getId())) {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
@@ -140,7 +162,7 @@ public class CampaignServiceImpl implements CampaignService {
         }
     }
 
-    private void validateCampaignType(Campaign<?> campaign, CampaignType requestType) {
+    private void validateCampaignType(Campaign<?, ?> campaign, CampaignType requestType) {
         if (!campaign.getCampaignType().equals(requestType)) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,

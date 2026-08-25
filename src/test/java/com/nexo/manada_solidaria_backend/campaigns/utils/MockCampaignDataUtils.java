@@ -4,9 +4,10 @@ import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.Campaign
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest.LocationRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
-import com.nexo.manada_solidaria_backend.campaigns.data.enums.CampaignStatus;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationCampaignCategory;
+import com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationFundraisingCampaignStatus;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCategory;
+import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignStatus;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationCampaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationItem;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.FundraisingCampaign;
@@ -37,11 +38,16 @@ public class MockCampaignDataUtils {
     );
 
     private static final LocalDateTime NEWS_START_DATE =
-            LocalDateTime.of(2026, 8, 1, 10, 0);
+            LocalDateTime.now().plusDays(1);
 
     private static final LocalDateTime NEWS_END_DATE =
-            LocalDateTime.of(2030, 8, 10, 18, 0);
+            LocalDateTime.now().plusDays(10);
 
+    public static final LocalDateTime NEWS_UPDATE_START_DATE =
+            LocalDateTime.now().plusDays(2);
+
+    public static final LocalDateTime NEWS_UPDATE_END_DATE =
+            LocalDateTime.now().plusDays(6);
 
     private static final CreateCampaignRequest NEWS_WITHOUT_AREA_CODE = new CreateCampaignRequest(
             CampaignType.NEWS,
@@ -609,8 +615,8 @@ public class MockCampaignDataUtils {
                 null,
                 null,
                 null,
-                LocalDateTime.of(2026, 9, 1, 10, 0),
-                LocalDateTime.of(2026, 9, 5, 18, 0),
+                NEWS_UPDATE_START_DATE,
+                NEWS_UPDATE_END_DATE,
                 NewsCampaignCategory.OTHER
         );
     }
@@ -627,8 +633,8 @@ public class MockCampaignDataUtils {
                 null,
                 null,
                 null,
-                LocalDateTime.of(2026, 9, 1, 10, 0),
-                LocalDateTime.of(2026, 9, 5, 18, 0),
+                NEWS_UPDATE_START_DATE,
+                NEWS_UPDATE_END_DATE,
                 NewsCampaignCategory.OTHER
         );
     }
@@ -666,8 +672,110 @@ public class MockCampaignDataUtils {
 
     private static Stream<Arguments> provideFinalDonationStatuses() {
         return Stream.of(
-                Arguments.of("Una donacion en estado FINISHED no se puede eliminar", CampaignStatus.FINISHED),
-                Arguments.of("Una donacion en estado COMPLETED tampoco se puede eliminar", CampaignStatus.COMPLETED)
+                Arguments.of("Una donacion en estado FINISHED no se puede eliminar", DonationFundraisingCampaignStatus.FINISHED),
+                Arguments.of("Una donacion en estado COMPLETED tampoco se puede eliminar", DonationFundraisingCampaignStatus.COMPLETED)
+        );
+    }
+
+    public static Stream<Arguments> provideValidStatusTransitions() {
+        return Stream.of(
+                Arguments.of(
+                        "DONATION CREATED a COMPLETED",
+                        CampaignType.DONATION,
+                        DonationFundraisingCampaignStatus.CREATED,
+                        DonationFundraisingCampaignStatus.COMPLETED
+                ),
+                Arguments.of(
+                        "DONATION COMPLETED a FINISHED",
+                        CampaignType.DONATION,
+                        DonationFundraisingCampaignStatus.COMPLETED,
+                        DonationFundraisingCampaignStatus.FINISHED
+                ),
+                Arguments.of(
+                        "FUNDRAISING CREATED a COMPLETED",
+                        CampaignType.FUNDRAISING,
+                        DonationFundraisingCampaignStatus.CREATED,
+                        DonationFundraisingCampaignStatus.COMPLETED
+                ),
+                Arguments.of(
+                        "FUNDRAISING COMPLETED a FINISHED",
+                        CampaignType.FUNDRAISING,
+                        DonationFundraisingCampaignStatus.COMPLETED,
+                        DonationFundraisingCampaignStatus.FINISHED
+                ),
+                Arguments.of(
+                        "NEWS STARTED a FINISHED",
+                        CampaignType.NEWS,
+                        NewsCampaignStatus.STARTED,
+                        NewsCampaignStatus.FINISHED
+                )
+        );
+    }
+
+    public static Stream<Arguments> provideInvalidStatusTransitions() {
+        return Stream.of(
+                Arguments.of(
+                        "DONATION CREATED a FINISHED",
+                        CampaignType.DONATION,
+                        DonationFundraisingCampaignStatus.CREATED,
+                        DonationFundraisingCampaignStatus.FINISHED
+                ),
+                Arguments.of(
+                        "DONATION COMPLETED a CREATED",
+                        CampaignType.DONATION,
+                        DonationFundraisingCampaignStatus.COMPLETED,
+                        DonationFundraisingCampaignStatus.CREATED
+                ),
+                Arguments.of(
+                        "DONATION FINISHED a CREATED",
+                        CampaignType.DONATION,
+                        DonationFundraisingCampaignStatus.FINISHED,
+                        DonationFundraisingCampaignStatus.CREATED
+                ),
+                Arguments.of(
+                        "FUNDRAISING CREATED a FINISHED",
+                        CampaignType.FUNDRAISING,
+                        DonationFundraisingCampaignStatus.CREATED,
+                        DonationFundraisingCampaignStatus.FINISHED
+                ),
+                Arguments.of(
+                        "FUNDRAISING COMPLETED a CREATED",
+                        CampaignType.FUNDRAISING,
+                        DonationFundraisingCampaignStatus.COMPLETED,
+                        DonationFundraisingCampaignStatus.CREATED
+                ),
+                Arguments.of(
+                        "FUNDRAISING FINISHED a CREATED",
+                        CampaignType.FUNDRAISING,
+                        DonationFundraisingCampaignStatus.FINISHED,
+                        DonationFundraisingCampaignStatus.CREATED
+                ),
+                Arguments.of(
+                        "NEWS CREATED a STARTED",
+                        CampaignType.NEWS,
+                        NewsCampaignStatus.CREATED,
+                        NewsCampaignStatus.STARTED
+                ),
+                Arguments.of(
+                        "NEWS CREATED a FINISHED",
+                        CampaignType.NEWS,
+                        NewsCampaignStatus.CREATED,
+                        NewsCampaignStatus.FINISHED
+                ),
+                Arguments.of(
+                        "NEWS FINISHED a STARTED",
+                        CampaignType.NEWS,
+                        NewsCampaignStatus.FINISHED,
+                        NewsCampaignStatus.STARTED
+                )
+        );
+    }
+
+    public static Stream<Arguments> provideNonOwnerTransitions() {
+        return Stream.of(
+                Arguments.of("Donation", CampaignType.DONATION, "CREATED", "COMPLETED"),
+                Arguments.of("Fundraising", CampaignType.FUNDRAISING, "CREATED", "COMPLETED"),
+                Arguments.of("News", CampaignType.NEWS, "STARTED", "FINISHED")
         );
     }
 }
