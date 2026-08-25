@@ -6,7 +6,10 @@ import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.Creat
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AnimalPostResponse;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.HappyCaseResponse;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
 import com.nexo.manada_solidaria_backend.common.utils.EnumUtils;
@@ -19,12 +22,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 @AllArgsConstructor
 public class AnimalPostServiceImpl implements AnimalPostService {
+
+    private static final int RECENT_DAYS = 7;
 
     private final AnimalPostRepository animalPostRepository;
     private final AnimalPostFactory animalPostFactory;
@@ -79,6 +85,18 @@ public class AnimalPostServiceImpl implements AnimalPostService {
         validateOwner(post, authenticatedUser);
 
         animalPostRepository.delete(post);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<HappyCaseResponse> getHappyCases(Pageable pageable) {
+        return animalPostRepository.findHappyCases(LostPost.HAPPY_STATUSES, AdoptionPost.HAPPY_STATUSES, pageable)
+                .map(post -> HappyCaseResponse.from(post, isRecentlyResolved(post)));
+    }
+
+    private static boolean isRecentlyResolved(AnimalPost<?, ?> post) {
+        return post.getCurrentStatus().getCreatedAt().toLocalDate()
+                .isAfter(LocalDate.now().minusDays(RECENT_DAYS));
     }
 
     @Override
