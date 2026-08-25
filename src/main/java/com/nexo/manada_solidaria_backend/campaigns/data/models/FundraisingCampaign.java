@@ -105,7 +105,8 @@ public class FundraisingCampaign extends Campaign<DonationFundraisingCampaignSta
     ) {
         return switch (current) {
             case CREATED ->
-                    target == DonationFundraisingCampaignStatus.COMPLETED;
+                    target == DonationFundraisingCampaignStatus.COMPLETED
+                            || target == DonationFundraisingCampaignStatus.FINISHED;
 
             case COMPLETED ->
                     target == DonationFundraisingCampaignStatus.FINISHED;
@@ -116,9 +117,7 @@ public class FundraisingCampaign extends Campaign<DonationFundraisingCampaignSta
     }
 
     @Override
-    protected void addStatus(
-            DonationFundraisingCampaignStatus status
-    ) {
+    protected void addStatus(DonationFundraisingCampaignStatus status) {
         statusHistory.add(
                 new FundraisingCampaignStatusHistory(
                         status,
@@ -128,8 +127,7 @@ public class FundraisingCampaign extends Campaign<DonationFundraisingCampaignSta
     }
 
     @Override
-    public boolean hasExpired(LocalDateTime now) {
-        return campaignEndDate != null
-                && campaignEndDate.isBefore(now.toLocalDate());
+    protected boolean isFinishedStatus(DonationFundraisingCampaignStatus status) {
+        return status == DonationFundraisingCampaignStatus.FINISHED;
     }
 }
