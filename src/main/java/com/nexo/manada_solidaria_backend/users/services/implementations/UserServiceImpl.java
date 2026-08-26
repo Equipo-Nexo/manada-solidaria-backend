@@ -73,7 +73,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public UserProfileResponse getUserProfile(UUID userId) {
         User user = getUserById(userId);
         return UserProfileResponse.from(user);

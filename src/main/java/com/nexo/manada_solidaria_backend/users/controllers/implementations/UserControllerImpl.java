@@ -5,8 +5,8 @@ import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfil
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.ProfileResponse;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.UserDetailResponse;
-import com.nexo.manada_solidaria_backend.users.controllers.responses.UserProfileResponse;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.UserPostResponse;
+import com.nexo.manada_solidaria_backend.users.controllers.responses.UserProfileResponse;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.UserResponse;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
