@@ -33,5 +33,5 @@ jobs:
       - name: Compile
         run: ./mvnw --batch-mode clean compile
 
-      - name: Run tests
+      - name: Tests
         run: ./mvnw --batch-mode test
