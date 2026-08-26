@@ -107,7 +107,7 @@ public abstract class Campaign<
         current.finish();
         addStatus(target);
 
-        if (isFinishedStatus(target)) {
+        if (isFinalStatus(target)) {
             this.finishedAt = LocalDateTime.now();
         }
     }
@@ -127,6 +127,8 @@ public abstract class Campaign<
 
     public abstract CampaignType getCampaignType();
 
-    protected abstract boolean isFinishedStatus(STATUS status);
+    protected abstract boolean isFinalStatus(STATUS status);
+
+    public abstract boolean isFinalizableByExpiration();
 
 }

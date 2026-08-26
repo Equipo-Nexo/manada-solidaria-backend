@@ -109,10 +109,7 @@ public class FundraisingCampaign extends Campaign<DonationFundraisingCampaignSta
                     target == DonationFundraisingCampaignStatus.COMPLETED
                             || target == DonationFundraisingCampaignStatus.FINISHED;
 
-            case COMPLETED ->
-                    target == DonationFundraisingCampaignStatus.FINISHED;
-
-            case FINISHED ->
+            case COMPLETED, FINISHED ->
                     false;
         };
     }
@@ -128,7 +125,13 @@ public class FundraisingCampaign extends Campaign<DonationFundraisingCampaignSta
     }
 
     @Override
-    protected boolean isFinishedStatus(DonationFundraisingCampaignStatus status) {
-        return status == DonationFundraisingCampaignStatus.FINISHED;
+    protected boolean isFinalStatus(DonationFundraisingCampaignStatus status) {
+        return status == DonationFundraisingCampaignStatus.COMPLETED
+                || status == DonationFundraisingCampaignStatus.FINISHED;
+    }
+
+    @Override
+    public boolean isFinalizableByExpiration() {
+        return getCurrentStatus().getStatus() == DonationFundraisingCampaignStatus.CREATED;
     }
 }

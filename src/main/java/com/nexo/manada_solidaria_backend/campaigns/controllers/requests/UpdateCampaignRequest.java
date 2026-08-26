@@ -57,7 +57,7 @@ public record UpdateCampaignRequest(
         @PositiveOrZero
         Long amountCollected,
 
-        @FutureOrPresent
+        @Future(message = "La fecha de finalización debe ser posterior al día de hoy")
         LocalDate campaignEndDate,
 
         LocalDateTime newsStartDateTime,

@@ -195,7 +195,7 @@ public class CampaignServiceImpl implements CampaignService {
 
     private void finalizeCampaigns(List<? extends Campaign<?, ?>> campaigns) {
         campaigns.stream()
-                .filter(campaign -> !campaign.isFinished())
+                .filter(Campaign::isFinalizableByExpiration)
                 .forEach(campaign ->
                         campaign.transitionTo("FINISHED")
                 );

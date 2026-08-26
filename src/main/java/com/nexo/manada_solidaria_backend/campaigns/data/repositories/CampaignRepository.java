@@ -67,12 +67,12 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
         WHERE
             (
                 TYPE(c) = DonationCampaign
-                AND TREAT(c AS DonationCampaign).campaignEndDate < :today
+                AND TREAT(c AS DonationCampaign).campaignEndDate <= :today
             )
             OR
             (
                 TYPE(c) = FundraisingCampaign
-                AND TREAT(c AS FundraisingCampaign).campaignEndDate < :today
+                AND TREAT(c AS FundraisingCampaign).campaignEndDate <= :today
             )
     """)
     List<Campaign<?, ?>> findExpiredDonationAndFundraisingCampaigns(
@@ -80,10 +80,10 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
     );
 
     @Query("""
-    SELECT c
-    FROM NewsCampaign c
-    WHERE c.newsEndDateTime <= :now
-""")
+        SELECT c
+        FROM NewsCampaign c
+        WHERE c.newsEndDateTime <= :now
+    """)
     List<Campaign<?, ?>> findExpiredNewsCampaigns(
             @Param("now") LocalDateTime now
     );

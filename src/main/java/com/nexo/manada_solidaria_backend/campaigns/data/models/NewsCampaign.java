@@ -125,7 +125,12 @@ public class NewsCampaign extends Campaign<NewsCampaignStatus, NewsCampaignStatu
     }
 
     @Override
-    protected boolean isFinishedStatus(NewsCampaignStatus status) {
+    protected boolean isFinalStatus(NewsCampaignStatus status) {
         return status == NewsCampaignStatus.FINISHED;
+    }
+
+    @Override
+    public boolean isFinalizableByExpiration() {
+        return getCurrentStatus().getStatus() == NewsCampaignStatus.STARTED;
     }
 }
