@@ -1,7 +1,7 @@
 package com.nexo.manada_solidaria_backend.animal_posts.controllers.implementations;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.interfaces.AnimalPostController;
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.GetAnimalPostsRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
@@ -28,8 +28,8 @@ public class AnimalPostControllerImpl implements AnimalPostController {
     }
 
     @Override
-    public Page<AnimalPostResponse> getAnimalPosts(AnimalPostFilter type, String status, Pageable pageable) {
-        return animalPostService.getAnimalPosts(type, status, pageable);
+    public Page<AnimalPostResponse> getAnimalPosts(GetAnimalPostsRequest request, Pageable pageable) {
+        return animalPostService.getAnimalPosts(request, pageable);
     }
 
     @Override

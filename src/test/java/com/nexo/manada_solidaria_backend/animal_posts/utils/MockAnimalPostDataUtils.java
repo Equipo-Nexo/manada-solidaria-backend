@@ -6,6 +6,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -523,6 +524,45 @@ public class MockAnimalPostDataUtils {
                 Arguments.of("type=LOST y status=ADOPTED no devuelve resultados", "LOST", "ADOPTED", 0),
                 Arguments.of("type=LOST y status=SEARCHING excluye a los de la calle", "LOST", "SEARCHING", 1),
                 Arguments.of("type=IN_STREET y status=TO_RESCUE devuelve al de la calle", "IN_STREET", "TO_RESCUE", 1)
+        );
+    }
+
+    private static Stream<Arguments> provideAnimalFilterCases() {
+        return Stream.of(
+                Arguments.of("Sin filtros devuelve todas las publicaciones", Map.of(), 3),
+                Arguments.of("animalType=DOG devuelve los perros", Map.of("animalType", "DOG"), 2),
+                Arguments.of("animalType=CAT devuelve los gatos", Map.of("animalType", "CAT"), 1),
+                Arguments.of("animalType=OTHER no devuelve resultados", Map.of("animalType", "OTHER"), 0),
+                Arguments.of("animalSize=SMALL devuelve los chicos", Map.of("animalSize", "SMALL"), 1),
+                Arguments.of("animalSize=LARGE devuelve los grandes", Map.of("animalSize", "LARGE"), 1),
+                Arguments.of("animalGender=FEMALE devuelve las hembras", Map.of("animalGender", "FEMALE"), 2),
+                Arguments.of("animalGender=UNKNOWN no devuelve resultados", Map.of("animalGender", "UNKNOWN"), 0),
+                Arguments.of("animalAge=PUPPY devuelve los cachorros", Map.of("animalAge", "PUPPY"), 1),
+                Arguments.of("animalAge=SENIOR devuelve los mayores", Map.of("animalAge", "SENIOR"), 1),
+                Arguments.of("animalColor=BLACK devuelve los negros", Map.of("animalColor", "BLACK"), 2),
+                Arguments.of("animalColor=GRAY no devuelve resultados", Map.of("animalColor", "GRAY"), 0),
+                Arguments.of("animalType=DOG y animalColor=BLACK devuelve los perros negros",
+                        Map.of("animalType", "DOG", "animalColor", "BLACK"), 2),
+                Arguments.of("animalType=DOG y animalSize=SMALL devuelve al perro chico",
+                        Map.of("animalType", "DOG", "animalSize", "SMALL"), 1),
+                Arguments.of("animalType=DOG y animalColor=WHITE no devuelve resultados",
+                        Map.of("animalType", "DOG", "animalColor", "WHITE"), 0),
+                Arguments.of("type=ADOPTION y animalColor=BLACK cruza el filtro viejo con el nuevo",
+                        Map.of("type", "ADOPTION", "animalColor", "BLACK"), 1),
+                Arguments.of("type=IN_STREET y animalType=CAT devuelve a la gata de la calle",
+                        Map.of("type", "IN_STREET", "animalType", "CAT"), 1),
+                Arguments.of("status=SEARCHING y animalAge=PUPPY combina estado con atributo del animal",
+                        Map.of("status", "SEARCHING", "animalAge", "PUPPY"), 1)
+        );
+    }
+
+    private static Stream<Arguments> provideInvalidFilterCases() {
+        return Stream.of(
+                Arguments.of("type invalido", "type", "INVALIDO"),
+                Arguments.of("animalType invalido", "animalType", "DINOSAURIO"),
+                Arguments.of("animalSize invalido", "animalSize", "ENORME"),
+                Arguments.of("animalGender invalido", "animalGender", "OTRO"),
+                Arguments.of("animalAge invalido", "animalAge", "BEBE")
         );
     }
 

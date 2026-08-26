@@ -1,6 +1,6 @@
 package com.nexo.manada_solidaria_backend.animal_posts.services.interfaces;
 
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.GetAnimalPostsRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
@@ -16,7 +16,7 @@ import java.util.UUID;
 public interface AnimalPostService {
     AnimalPostResponse create(CreateAnimalPostRequest request, User owner);
 
-    Page<AnimalPostResponse> getAnimalPosts(AnimalPostFilter type, String status, Pageable pageable);
+    Page<AnimalPostResponse> getAnimalPosts(GetAnimalPostsRequest request, Pageable pageable);
 
     AnimalPostResponse getAnimalPost(UUID animalPostId);
 
