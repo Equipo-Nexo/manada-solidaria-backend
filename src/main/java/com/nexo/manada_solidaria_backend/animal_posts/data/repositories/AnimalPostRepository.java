@@ -4,6 +4,8 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalAge;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalGender;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalSize;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusAdoptionPost;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusLostPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.springframework.data.domain.Page;
@@ -14,6 +16,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public interface AnimalPostRepository extends JpaRepository<AnimalPost, UUID> {
@@ -44,6 +47,33 @@ public interface AnimalPostRepository extends JpaRepository<AnimalPost, UUID> {
             @Param("animalGender") AnimalGender animalGender,
             @Param("animalAge") AnimalAge animalAge,
             @Param("animalColor") String animalColor,
+            Pageable pageable
+    );
+
+    @Query(
+            value = """
+                    SELECT p FROM AnimalPost p
+                    LEFT JOIN LostPostStatusHistory lost
+                        ON lost.post.id = p.id AND lost.finishedAt IS NULL
+                    LEFT JOIN AdoptionPostStatusHistory adoption
+                        ON adoption.post.id = p.id AND adoption.finishedAt IS NULL
+                    WHERE lost.status IN :happyLostStatuses
+                       OR adoption.status IN :happyAdoptionStatuses
+                    ORDER BY COALESCE(lost.createdAt, adoption.createdAt) DESC
+                    """,
+            countQuery = """
+                    SELECT count(p) FROM AnimalPost p
+                    WHERE EXISTS (SELECT 1 FROM LostPostStatusHistory h
+                                  WHERE h.post.id = p.id AND h.finishedAt IS NULL
+                                    AND h.status IN :happyLostStatuses)
+                       OR EXISTS (SELECT 1 FROM AdoptionPostStatusHistory h
+                                  WHERE h.post.id = p.id AND h.finishedAt IS NULL
+                                    AND h.status IN :happyAdoptionStatuses)
+                    """
+    )
+    Page<AnimalPost<?, ?>> findHappyCases(
+            @Param("happyLostStatuses") Set<StatusLostPost> happyLostStatuses,
+            @Param("happyAdoptionStatuses") Set<StatusAdoptionPost> happyAdoptionStatuses,
             Pageable pageable
     );
 
