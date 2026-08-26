@@ -2,18 +2,8 @@ package com.nexo.manada_solidaria_backend.animal_posts.integrations;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
-import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalAge;
-import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalGender;
-import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalSize;
-import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
-import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusAdoptionPost;
-import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusLostPost;
-import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
-import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPostStatusHistory;
-import com.nexo.manada_solidaria_backend.animal_posts.data.models.Animal;
-import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
-import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
-import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPostStatusHistory;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.*;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.*;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.utils.MockAnimalPostDataUtils;
 import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
@@ -38,17 +28,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasItem;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.hamcrest.Matchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -348,15 +334,53 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.totalElements").value(0));
     }
 
+    @DisplayName("GET /animal-posts filtra por los atributos del animal")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideAnimalFilterCases")
+    void animalFilterTests(String testName, Map<String, String> params, int expectedCount) throws Exception {
+        seedAnimalVariety();
+
+        MockHttpServletRequestBuilder request = get("/animal-posts")
+                .header("Authorization", "Bearer " + accessToken);
+        params.forEach(request::param);
+
+        mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(expectedCount));
+    }
+
     @Test
-    @DisplayName("GET /animal-posts?type=INVALIDO devuelve 400")
-    void list_withInvalidType_returnsBadRequest() throws Exception {
+    @DisplayName("GET /animal-posts?animalType=DOG&animalSize=SMALL devuelve la publicacion que cumple las dos condiciones")
+    void animalFilter_combined_returnsOnlyTheMatchingPost() throws Exception {
+        seedAnimalVariety();
+
         mockMvc.perform(
                         get("/animal-posts")
-                                .param("type", "INVALIDO")
+                                .param("animalType", "DOG")
+                                .param("animalSize", "SMALL")
                                 .header("Authorization", "Bearer " + accessToken)
                 )
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.content[0].name").value("Perro chico perdido"))
+                .andExpect(jsonPath("$.content[0].animal.type").value("DOG"))
+                .andExpect(jsonPath("$.content[0].animal.size").value("SMALL"))
+                .andExpect(jsonPath("$.content[0].animal.color").value("BLACK"));
+    }
+
+    @DisplayName("GET /animal-posts con un filtro invalido devuelve 400")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideInvalidFilterCases")
+    void listWithInvalidFilterTests(String testName, String param, String value) throws Exception {
+        mockMvc.perform(
+                        get("/animal-posts")
+                                .param(param, value)
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0]", containsString(value)))
+                .andExpect(jsonPath("$.errors[0]", containsString("Los valores permitidos son")))
+                .andExpect(jsonPath("$.errors[0]", not(containsString("com.nexo"))));
     }
 
     @Test
@@ -552,6 +576,41 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.phoneNumber", expectedPhoneNumber));
     }
 
+    @DisplayName("GET /animal-posts/{id} devuelve los datos de quien publica")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideOwnerFieldCases")
+    @Sql("/sql/animal_posts/get-animal-post.sql")
+    void getAnimalPost_returnsOwnerData(
+            String testName,
+            String jsonPathExpression,
+            Matcher<?> expected
+    ) throws Exception {
+        mockMvc.perform(
+                        get("/animal-posts/55555555-5555-5555-5555-555555555555")
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(jsonPathExpression, expected));
+    }
+
+    @DisplayName("GET /animal-posts/{id} devuelve todos los roles de quien publica")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideOwnerRolesCases")
+    void getAnimalPost_returnsAllOwnerRoles(
+            String testName,
+            List<Rol> roles
+    ) throws Exception {
+        LostPost post = saveLostPostOwnedBy("publicador", roles);
+
+        mockMvc.perform(
+                        get("/animal-posts/" + post.getId())
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.owner.username").value("publicador"))
+                .andExpect(jsonPath("$.owner.roles", contains(roles.stream().map(Rol::name).toArray())));
+    }
+
     @ParameterizedTest(name = "{0}")
     @MethodSource("com.nexo.manada_solidaria_backend.animal_posts.utils.MockAnimalPostDataUtils#provideGetAnimalPostCases")
     void getAnimalPost_securityCases(String testName, String id, String token, HttpStatus expectedStatus) throws Exception {
@@ -648,6 +707,15 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         mockMvc.perform(request).andExpect(status().isUnauthorized());
     }
 
+    private void seedAnimalVariety() {
+        saveLostPost("Perro chico perdido", StatusLostPost.SEARCHING, true,
+                animal(AnimalType.DOG, AnimalSize.SMALL, AnimalGender.MALE, AnimalAge.PUPPY, "BLACK"));
+        saveLostPost("Gata grande en la calle", StatusLostPost.TO_RESCUE, false,
+                animal(AnimalType.CAT, AnimalSize.LARGE, AnimalGender.FEMALE, AnimalAge.ADULT, "WHITE"));
+        saveAdoptionPost("Perra en adopcion", StatusAdoptionPost.SEARCHING_ADOPT,
+                animal(AnimalType.DOG, AnimalSize.MEDIUM, AnimalGender.FEMALE, AnimalAge.SENIOR, "BLACK"));
+    }
+
     private UUID seedPost(AnimalPostFilter postType, String startStatus) {
         return switch (postType) {
             case LOST -> saveLostPost("Perdido", StatusLostPost.valueOf(startStatus), true).getId();
@@ -677,6 +745,63 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         return UUID.fromString(mapper.readTree(responseBody).get("id").asText());
     }
 
+    @DisplayName("GET /animal-posts/happy-cases devuelve los casos finales, ordenados, con el dueno y marcando los recientes")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideHappyCaseFieldCases")
+    @Sql("/sql/animal_posts/happy-cases.sql")
+    void happyCases_returnsHappyPostsWithOwner(
+            String testName,
+            String jsonPathExpression,
+            Matcher<?> expected
+    ) throws Exception {
+        getHappyCases()
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(jsonPathExpression, expected));
+    }
+
+    @DisplayName("GET /animal-posts/happy-cases solo incluye publicaciones en estado feliz")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideHappyCaseStatusCases")
+    void happyCases_onlyIncludesHappyStatuses(
+            String testName,
+            AnimalPostFilter postType,
+            String status,
+            int expectedTotal
+    ) throws Exception {
+        seedPostInStatus(postType, status);
+
+        getHappyCases()
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(expectedTotal));
+    }
+
+    @DisplayName("GET /animal-posts/happy-cases sin autenticacion valida devuelve 401")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideHappyCasesUnauthorizedCases")
+    void happyCases_unauthorized(String testName, String token) throws Exception {
+        MockHttpServletRequestBuilder request = get("/animal-posts/happy-cases");
+        if (token != null) {
+            request = request.header("Authorization", "Bearer " + token);
+        }
+
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
+    }
+
+    private ResultActions getHappyCases() throws Exception {
+        return mockMvc.perform(
+                get("/animal-posts/happy-cases")
+                        .header("Authorization", "Bearer " + accessToken)
+        );
+    }
+
+    private void seedPostInStatus(AnimalPostFilter postType, String status) {
+        switch (postType) {
+            case LOST -> saveLostPost("Perdido", StatusLostPost.valueOf(status), true);
+            case IN_STREET -> saveLostPost("En la calle", StatusLostPost.valueOf(status), false);
+            case ADOPTION -> saveAdoptionPost("Adopcion", StatusAdoptionPost.valueOf(status));
+        }
+    }
+
     private LostPost saveLostPostOwnedByOtherUser() {
         User other = new User("otro-usuario", "x", new Profile("otro@mail.com", new PhoneNumber("3533", "436249"), List.of(Rol.COMMUNITY)));
         userRepository.save(other);
@@ -685,18 +810,35 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         return animalPostRepository.save(post);
     }
 
+    private LostPost saveLostPostOwnedBy(String username, List<Rol> roles) {
+        User owner = userRepository.save(
+                new User(username, "x", new Profile("publicador@mail.com", new PhoneNumber("353", "4014524"), new ArrayList<>(roles)))
+        );
+        return animalPostRepository.save(
+                new LostPost("De " + username, "Descripcion", "cf-img", null, new PhoneNumber("353", "4014524"), true, owner, location(), animal(), null)
+        );
+    }
+
     private LostPost saveLostPost(String name, StatusLostPost status) {
         return saveLostPost(name, status, true);
     }
 
     private LostPost saveLostPost(String name, StatusLostPost status, boolean hasOwner) {
-        LostPost post = new LostPost(name, "Descripción", "cf-img", null, new PhoneNumber("3533", "436249"), hasOwner, admin(), location(), animal(), null);
+        return saveLostPost(name, status, hasOwner, animal());
+    }
+
+    private LostPost saveLostPost(String name, StatusLostPost status, boolean hasOwner, Animal animal) {
+        LostPost post = new LostPost(name, "Descripción", "cf-img", null, new PhoneNumber("3533", "436249"), hasOwner, admin(), location(), animal, null);
         post.setStatusHistory(new ArrayList<>(List.of(new LostPostStatusHistory(status, post))));
         return animalPostRepository.save(post);
     }
 
     private AdoptionPost saveAdoptionPost(String name, StatusAdoptionPost status) {
-        AdoptionPost post = new AdoptionPost(name, "Descripción", "cf-img", null, new PhoneNumber("3533", "436249"), admin(), animal(), location(), false);
+        return saveAdoptionPost(name, status, animal());
+    }
+
+    private AdoptionPost saveAdoptionPost(String name, StatusAdoptionPost status, Animal animal) {
+        AdoptionPost post = new AdoptionPost(name, "Descripción", "cf-img", null, new PhoneNumber("3533", "436249"), admin(), animal, location(), false);
         post.setStatusHistory(new ArrayList<>(List.of(new AdoptionPostStatusHistory(status, post))));
         return animalPostRepository.save(post);
     }
@@ -706,11 +848,11 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     private Animal animal() {
-        Animal animal = new Animal();
-        animal.setType(AnimalType.DOG);
-        animal.setSize(AnimalSize.MEDIUM);
-        animal.setGender(AnimalGender.MALE);
-        return animal;
+        return animal(AnimalType.DOG, AnimalSize.MEDIUM, AnimalGender.MALE, null, null);
+    }
+
+    private Animal animal(AnimalType type, AnimalSize size, AnimalGender gender, AnimalAge age, String color) {
+        return new Animal(color, age, size, gender, type);
     }
 
     private Location location() {

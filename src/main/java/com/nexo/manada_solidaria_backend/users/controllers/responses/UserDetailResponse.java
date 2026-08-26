@@ -11,18 +11,16 @@ public record UserDetailResponse(
         String username,
         ProfileResponse profile,
         List<Rol> roles,
-        List<UserPostResponse> posts,
-        UserMetricsResponse metrics
+        List<UserPostResponse> posts
 ) {
 
-    public static UserDetailResponse from(User user, List<UserPostResponse> posts, long completedPosts) {
+    public static UserDetailResponse from(User user, List<UserPostResponse> posts) {
         return new UserDetailResponse(
                 user.getId(),
                 user.getUsername(),
                 ProfileResponse.from(user.getProfile()),
                 user.getProfile().getRoles(),
-                posts,
-                UserMetricsResponse.from(user, posts.size(), completedPosts)
+                posts
         );
     }
 }

@@ -1,13 +1,14 @@
 package com.nexo.manada_solidaria_backend.animal_posts.services.implementations;
 
 import com.nexo.manada_solidaria_backend.animal_posts.components.AnimalPostFactory;
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.GetAnimalPostsRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AnimalPostResponse;
-import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.HappyCaseResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
@@ -21,12 +22,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 @AllArgsConstructor
 public class AnimalPostServiceImpl implements AnimalPostService {
+
+    private static final int RECENT_DAYS = 7;
 
     private final AnimalPostRepository animalPostRepository;
     private final AnimalPostFactory animalPostFactory;
@@ -41,9 +45,18 @@ public class AnimalPostServiceImpl implements AnimalPostService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<AnimalPostResponse> getAnimalPosts(AnimalPostFilter type, String status, Pageable pageable) {
+    public Page<AnimalPostResponse> getAnimalPosts(GetAnimalPostsRequest request, Pageable pageable) {
         return animalPostRepository
-                .findAllFiltered(EnumUtils.getNameOrNull(type), status, pageable)
+                .findAllFiltered(
+                        EnumUtils.getNameOrNull(request.type()),
+                        request.status(),
+                        request.animalType(),
+                        request.animalSize(),
+                        request.animalGender(),
+                        request.animalAge(),
+                        request.animalColor(),
+                        pageable
+                )
                 .map(AnimalPostResponse::from);
     }
 
@@ -84,21 +97,23 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Page<HappyCaseResponse> getHappyCases(Pageable pageable) {
+        return animalPostRepository.findHappyCases(LostPost.HAPPY_STATUSES, AdoptionPost.HAPPY_STATUSES, pageable)
+                .map(post -> HappyCaseResponse.from(post, isRecentlyResolved(post)));
+    }
+
+    private static boolean isRecentlyResolved(AnimalPost<?, ?> post) {
+        return post.getCurrentStatus().getCreatedAt().toLocalDate()
+                .isAfter(LocalDate.now().minusDays(RECENT_DAYS));
+    }
+
+    @Override
     public List<AnimalPostResponse> getUserAnimalPosts(User user) {
         return animalPostRepository.findAllByOwner(user)
                 .stream()
                 .map(AnimalPostResponse::from)
                 .toList();
-    }
-
-    @Override
-    public long countFinishedUserAnimalPosts(User user) {
-        return animalPostRepository.countFinishedByOwner(user, LostPost.HAPPY_STATUSES, AdoptionPost.HAPPY_STATUSES);
-    }
-
-    @Override
-    public long countUserAnimalPosts(User user) {
-        return animalPostRepository.countByOwner(user);
     }
 
     private void validateOwner(AnimalPost post, User authenticatedUser) {

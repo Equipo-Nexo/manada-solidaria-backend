@@ -7,6 +7,7 @@ import com.nexo.manada_solidaria_backend.users.controllers.responses.ProfileResp
 import com.nexo.manada_solidaria_backend.users.controllers.responses.UserDetailResponse;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.UserProfileResponse;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.UserPostResponse;
+import com.nexo.manada_solidaria_backend.users.controllers.responses.UserResponse;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -26,6 +27,7 @@ public interface UserService extends UserDetailsService {
     UserDetailResponse getUser(UUID userId);
 
     UserProfileResponse getUserProfile(UUID userId);
+    List<UserResponse> getUsers(String username, Rol role);
 
     List<UserPostResponse> getUserPosts(User user, String type);
 

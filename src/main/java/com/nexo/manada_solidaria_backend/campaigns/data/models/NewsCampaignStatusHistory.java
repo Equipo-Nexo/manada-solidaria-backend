@@ -1,6 +1,6 @@
 package com.nexo.manada_solidaria_backend.campaigns.data.models;
 
-import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaginStatus;
+import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignStatus;
 import com.nexo.manada_solidaria_backend.common.data.models.StatusHistory;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -13,14 +13,14 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class NewsCampaignStatusHistory
-        extends StatusHistory<NewsCampaginStatus> {
+        extends StatusHistory<NewsCampaignStatus> {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "news_campaign_id", nullable = false)
     private NewsCampaign campaign;
 
     public NewsCampaignStatusHistory(
-            NewsCampaginStatus status,
+            NewsCampaignStatus status,
             NewsCampaign campaign
     ) {
         super(status);

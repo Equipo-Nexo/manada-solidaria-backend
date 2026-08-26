@@ -87,5 +87,4 @@ public class LostPost extends AnimalPost<StatusLostPost, LostPostStatusHistory> 
     protected void addStatus(StatusLostPost status) {
         this.statusHistory.add(new LostPostStatusHistory(status, this));
     }
-
 }

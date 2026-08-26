@@ -105,5 +105,4 @@ public abstract class AnimalPost<STATUS extends Enum<STATUS>, HISTORY extends St
     protected abstract boolean isTransitionAllowed(STATUS current, STATUS target);
 
     protected abstract void addStatus(STATUS status);
-
 }

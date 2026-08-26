@@ -6,6 +6,7 @@ import com.nexo.manada_solidaria_backend.users.controllers.responses.ProfileResp
 import com.nexo.manada_solidaria_backend.users.controllers.responses.UserDetailResponse;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.UserProfileResponse;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.UserPostResponse;
+import com.nexo.manada_solidaria_backend.users.controllers.responses.UserResponse;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import jakarta.validation.Valid;
@@ -32,6 +33,12 @@ public interface UserController {
     @GetMapping("/{userId}/profile")
     UserProfileResponse getUserProfile(
             @PathVariable UUID userId
+    );
+
+    @GetMapping
+    List<UserResponse> getUsers(
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) Rol role
     );
 
     @GetMapping("/posts")

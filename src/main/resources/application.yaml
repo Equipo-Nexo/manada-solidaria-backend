@@ -1,5 +1,6 @@
 spring:
   flyway:
+    out-of-order: true
     baseline-on-migrate: true
     baseline-version: 1
     enabled: true
@@ -31,3 +32,12 @@ cloudflare:
     secret-access-key: ${CLOUDFLARE_R2_SECRET_ACCESS_KEY}
     bucket: ${CLOUDFLARE_R2_BUCKET}
     public-url: ${CLOUDFLARE_R2_PUBLIC_URL}
+clients:
+  rest:
+    apis:
+      geoapify:
+        api-key: ${GEOAPIFY_APIKEY}
+        host: https://api.geoapify.com
+        paths:
+          geocode-autocomplete: ${clients.rest.apis.geoapify.host}/v1/geocode/autocomplete
+          geocode-reverse: ${clients.rest.apis.geoapify.host}/v1/geocode/reverse?apiKey={apiKey}&lat={latitude}&lon={longitude}

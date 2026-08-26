@@ -2,7 +2,7 @@ package com.nexo.manada_solidaria_backend.campaigns.data.models;
 
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CampaignType;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
-import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaginStatus;
+import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignStatus;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCategory;
 import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.common.utils.StatusHistoryUtils;
@@ -17,16 +17,13 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class NewsCampaign extends Campaign<NewsCampaignStatusHistory> {
-
-    public static final Set<NewsCampaginStatus> FINISHED_STATUSES = Set.of(NewsCampaginStatus.FINISHED);
+public class NewsCampaign extends Campaign<NewsCampaignStatus, NewsCampaignStatusHistory> {
     private LocalDateTime newsStartDateTime;
     private LocalDateTime newsEndDateTime;
     @Enumerated(EnumType.STRING)
@@ -60,8 +57,13 @@ public class NewsCampaign extends Campaign<NewsCampaignStatusHistory> {
         this.newsEndDateTime = endDateTime;
         this.category = category;
 
+        NewsCampaignStatus initialStatus =
+                startDateTime == null
+                        ? NewsCampaignStatus.STARTED
+                        : NewsCampaignStatus.CREATED;
+
         this.statusHistory = new ArrayList<>(
-                List.of(new NewsCampaignStatusHistory(NewsCampaginStatus.CREATED, this))
+                List.of(new NewsCampaignStatusHistory(initialStatus, this))
         );
     }
 
@@ -81,11 +83,44 @@ public class NewsCampaign extends Campaign<NewsCampaignStatusHistory> {
 
     @Override
     public boolean isFinished() {
-        return FINISHED_STATUSES.contains(getCurrentStatus().getStatus());
+        return getCurrentStatus().getStatus() == NewsCampaignStatus.FINISHED;
     }
 
     @Override
     public CampaignType getCampaignType() {
         return CampaignType.NEWS;
+    }
+
+
+    @Override
+    protected Class<NewsCampaignStatus> statusType() {
+        return NewsCampaignStatus.class;
+    }
+
+    @Override
+    protected boolean isTransitionAllowed(
+            NewsCampaignStatus current,
+            NewsCampaignStatus target
+    ) {
+        return switch (current) {
+            case CREATED ->
+                    false;
+
+            case STARTED ->
+                    target == NewsCampaignStatus.FINISHED;
+
+            case FINISHED ->
+                    false;
+        };
+    }
+
+    @Override
+    protected void addStatus(NewsCampaignStatus status) {
+        statusHistory.add(
+                new NewsCampaignStatusHistory(
+                        status,
+                        this
+                )
+        );
     }
 }

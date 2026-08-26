@@ -1,11 +1,12 @@
 package com.nexo.manada_solidaria_backend.animal_posts.controllers.implementations;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.interfaces.AnimalPostController;
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.GetAnimalPostsRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AnimalPostResponse;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.HappyCaseResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
@@ -27,8 +28,13 @@ public class AnimalPostControllerImpl implements AnimalPostController {
     }
 
     @Override
-    public Page<AnimalPostResponse> getAnimalPosts(AnimalPostFilter type, String status, Pageable pageable) {
-        return animalPostService.getAnimalPosts(type, status, pageable);
+    public Page<AnimalPostResponse> getAnimalPosts(GetAnimalPostsRequest request, Pageable pageable) {
+        return animalPostService.getAnimalPosts(request, pageable);
+    }
+
+    @Override
+    public Page<HappyCaseResponse> getHappyCases(Pageable pageable) {
+        return animalPostService.getHappyCases(pageable);
     }
 
     @Override

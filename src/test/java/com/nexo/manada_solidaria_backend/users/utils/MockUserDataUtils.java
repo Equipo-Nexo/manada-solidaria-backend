@@ -1,6 +1,5 @@
 package com.nexo.manada_solidaria_backend.users.utils;
 
-import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusLostPost;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.EditableRol;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
@@ -13,7 +12,9 @@ import java.util.stream.Stream;
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
 public class MockUserDataUtils {
@@ -99,23 +100,37 @@ public class MockUserDataUtils {
                         hasItem(containsString("de Vacunaci"))),
                 Arguments.of("Las publicaciones traen descripcion", "$.posts[*].description",
                         hasItem(containsString("gratuita para perros y gatos"))),
-                Arguments.of("Las publicaciones traen estado", "$.posts[*].status", hasItem("CREATED")),
-                Arguments.of("Metrica: cantidad de publicaciones", "$.metrics.totalPosts", is(4)),
-                Arguments.of("Metrica: publicaciones completadas", "$.metrics.completedPosts", is(0)),
-                Arguments.of("Metrica: dias desde el registro", "$.metrics.daysSinceRegistration", is(10))
+                Arguments.of("Las publicaciones traen estado", "$.posts[*].status", hasItem("CREATED"))
         );
     }
 
-    private static Stream<Arguments> provideCompletedPostsCases() {
+    private static Stream<Arguments> provideGetUsersFilterCases() {
         return Stream.of(
-                Arguments.of("Una publicacion encontrada cuenta como completada", StatusLostPost.FOUND, 1),
-                Arguments.of("Una publicacion en busqueda no cuenta como completada", StatusLostPost.SEARCHING, 0),
-                Arguments.of("Una publicacion rescatada cuenta como completada", StatusLostPost.RESCUED, 1),
-                Arguments.of("Una publicacion a rescatar no cuenta como completada", StatusLostPost.TO_RESCUE, 0)
+                Arguments.of("Sin filtros devuelve todos los usuarios", null, null,
+                        List.of("admin", "NOTADMIN", "rescatista", "refugio")),
+                Arguments.of("Filtra por nombre de usuario", "NOTADMIN", null,
+                        List.of("NOTADMIN")),
+                Arguments.of("Un usuario con varios roles aparece al filtrar por cualquiera de ellos", null, "RESCUER",
+                        List.of("rescatista", "refugio")),
+                Arguments.of("Tambien matchea por un rol secundario", null, "TRANSITIONAL_HOME",
+                        List.of("refugio")),
+                Arguments.of("Filtra por rol COMMUNITY", null, "COMMUNITY",
+                        List.of("admin", "NOTADMIN"))
         );
     }
 
-    private static Stream<Arguments> provideUnauthorizedTokenCases() {
+    private static Stream<Arguments> provideUserFieldCases() {
+        return Stream.of(
+                Arguments.of("Devuelve el id, que es lo que permite abrir el detalle", "$[0].id", notNullValue()),
+                Arguments.of("Devuelve el username del User", "$[0].username", is("rescatista")),
+                Arguments.of("Devuelve los roles del Profile", "$[0].roles", contains("RESCUER")),
+                Arguments.of("Devuelve el codigo de area", "$[0].phoneNumber.areaCode", is("3533")),
+                Arguments.of("Devuelve el numero de telefono", "$[0].phoneNumber.number", is("436249")),
+                Arguments.of("Devuelve la foto de perfil", "$[0].profileImageURL", is("cf-rescatista"))
+        );
+    }
+
+    private static Stream<Arguments> provideUnauthorizedPathCases() {
         return Stream.of(
                 Arguments.of("Sin token en el detalle", "/users/" + UUID.randomUUID(), null),
                 Arguments.of("Con token invalido en el detalle", "/users/" + UUID.randomUUID(), INVALID_ACCESS_TOKEN),
@@ -147,10 +162,14 @@ public class MockUserDataUtils {
                 Arguments.of("Devuelve el codigo de area", "$.profile.phoneNumber.areaCode", is("3533")),
                 Arguments.of("Devuelve el numero de telefono", "$.profile.phoneNumber.number", is("436249")),
                 Arguments.of("Devuelve la foto de perfil", "$.profile.profileImageURL", is("cf-profile-1")),
-                Arguments.of("Devuelve los roles", "$.roles", hasItem("COMMUNITY")),
-                Arguments.of("Cuenta las publicaciones sin traerlas", "$.metrics.totalPosts", is(4)),
-                Arguments.of("Cuenta las completadas", "$.metrics.completedPosts", is(0)),
-                Arguments.of("Devuelve los dias desde el registro", "$.metrics.daysSinceRegistration", is(10))
+                Arguments.of("Devuelve los roles", "$.roles", hasItem("COMMUNITY"))
+        );
+    }
+
+    private static Stream<Arguments> provideUnauthorizedTokenCases() {
+        return Stream.of(
+                Arguments.of("Sin token", null),
+                Arguments.of("Con token invalido", INVALID_ACCESS_TOKEN)
         );
     }
 

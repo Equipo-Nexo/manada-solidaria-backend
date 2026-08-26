@@ -1,13 +1,17 @@
 package com.nexo.manada_solidaria_backend.animal_posts.utils;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
+import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import org.junit.jupiter.params.provider.Arguments;
 import org.springframework.http.HttpStatus;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
@@ -278,6 +282,21 @@ public class MockAnimalPostDataUtils {
         );
     }
 
+    private static Stream<Arguments> provideOwnerFieldCases() {
+        return Stream.of(
+                Arguments.of("Trae el usuario de quien publica", "$.owner.username", is("test-user")),
+                Arguments.of("Trae su foto de perfil", "$.owner.profileImageURL", is("cf-test-user")),
+                Arguments.of("Trae sus roles", "$.owner.roles", contains("COMMUNITY"))
+        );
+    }
+
+    private static Stream<Arguments> provideOwnerRolesCases() {
+        return Stream.of(
+                Arguments.of("Devuelve todos los roles, no uno solo", List.of(Rol.RESCUER, Rol.TRANSITIONAL_HOME)),
+                Arguments.of("Con un unico rol devuelve ese", List.of(Rol.COMMUNITY))
+        );
+    }
+
     public static Stream<Arguments> provideExistingAnimalPosts() {
         return Stream.of(
                 Arguments.of(
@@ -451,6 +470,43 @@ public class MockAnimalPostDataUtils {
         );
     }
 
+    private static Stream<Arguments> provideHappyCaseFieldCases() {
+        return Stream.of(
+                Arguments.of("El mas reciente primero: la adopcion adoptada ayer", "$.content[0].name", is("Michi adoptada")),
+                Arguments.of("Trae la descripcion", "$.content[0].description", is("Encontro familia")),
+                Arguments.of("Trae la imagen de la publicacion", "$.content[0].imageUrl", is("cf-img-adopted")),
+                Arguments.of("Trae el estado final", "$.content[0].status", is("ADOPTED")),
+                Arguments.of("Trae el usuario del dueno", "$.content[0].owner.username", is("vecino")),
+                Arguments.of("Trae la foto de perfil del dueno", "$.content[0].owner.profileImageURL", is("cf-perfil-vecino")),
+                Arguments.of("Solo devuelve los estados finales", "$.totalElements", is(3)),
+                Arguments.of("Trae todos los roles del dueno", "$.content[?(@.name == 'Firulais volvio')].owner.roles[*]", hasItem("RESCUER")),
+                Arguments.of("Un dueno de la comunidad trae su rol", "$.content[?(@.name == 'Michi adoptada')].owner.roles[*]", hasItem("COMMUNITY")),
+                Arguments.of("Resuelta ayer es reciente", "$.content[?(@.name == 'Michi adoptada')].isRecent", hasItem(true)),
+                Arguments.of("Resuelta hace 5 dias es reciente", "$.content[?(@.name == 'Firulais volvio')].isRecent", hasItem(true)),
+                Arguments.of("Resuelta hace 7 dias ya no es reciente", "$.content[?(@.name == 'Rex historico')].isRecent", hasItem(false))
+        );
+    }
+
+    private static Stream<Arguments> provideHappyCaseStatusCases() {
+        return Stream.of(
+                Arguments.of("FOUND es un caso feliz", AnimalPostFilter.LOST, "FOUND", 1),
+                Arguments.of("ADOPTED es un caso feliz", AnimalPostFilter.ADOPTION, "ADOPTED", 1),
+                Arguments.of("RESCUED es un caso feliz", AnimalPostFilter.IN_STREET, "RESCUED", 1),
+                Arguments.of("CREATED no es un caso feliz", AnimalPostFilter.LOST, "CREATED", 0),
+                Arguments.of("SEARCHING no es un caso feliz", AnimalPostFilter.LOST, "SEARCHING", 0),
+                Arguments.of("TO_RESCUE no es un caso feliz", AnimalPostFilter.IN_STREET, "TO_RESCUE", 0),
+                Arguments.of("SEARCHING_ADOPT no es un caso feliz", AnimalPostFilter.ADOPTION, "SEARCHING_ADOPT", 0),
+                Arguments.of("SEARCHING_ADOPT_AND_TRANSIT no es un caso feliz", AnimalPostFilter.ADOPTION, "SEARCHING_ADOPT_AND_TRANSIT", 0)
+        );
+    }
+
+    private static Stream<Arguments> provideHappyCasesUnauthorizedCases() {
+        return Stream.of(
+                Arguments.of("Sin token", null),
+                Arguments.of("Con token invalido", INVALID_ACCESS_TOKEN)
+        );
+    }
+
     private static Stream<Arguments> provideFilterCases() {
         return Stream.of(
                 Arguments.of("Sin filtros devuelve todos los posts", null, null, 5),
@@ -468,6 +524,45 @@ public class MockAnimalPostDataUtils {
                 Arguments.of("type=LOST y status=ADOPTED no devuelve resultados", "LOST", "ADOPTED", 0),
                 Arguments.of("type=LOST y status=SEARCHING excluye a los de la calle", "LOST", "SEARCHING", 1),
                 Arguments.of("type=IN_STREET y status=TO_RESCUE devuelve al de la calle", "IN_STREET", "TO_RESCUE", 1)
+        );
+    }
+
+    private static Stream<Arguments> provideAnimalFilterCases() {
+        return Stream.of(
+                Arguments.of("Sin filtros devuelve todas las publicaciones", Map.of(), 3),
+                Arguments.of("animalType=DOG devuelve los perros", Map.of("animalType", "DOG"), 2),
+                Arguments.of("animalType=CAT devuelve los gatos", Map.of("animalType", "CAT"), 1),
+                Arguments.of("animalType=OTHER no devuelve resultados", Map.of("animalType", "OTHER"), 0),
+                Arguments.of("animalSize=SMALL devuelve los chicos", Map.of("animalSize", "SMALL"), 1),
+                Arguments.of("animalSize=LARGE devuelve los grandes", Map.of("animalSize", "LARGE"), 1),
+                Arguments.of("animalGender=FEMALE devuelve las hembras", Map.of("animalGender", "FEMALE"), 2),
+                Arguments.of("animalGender=UNKNOWN no devuelve resultados", Map.of("animalGender", "UNKNOWN"), 0),
+                Arguments.of("animalAge=PUPPY devuelve los cachorros", Map.of("animalAge", "PUPPY"), 1),
+                Arguments.of("animalAge=SENIOR devuelve los mayores", Map.of("animalAge", "SENIOR"), 1),
+                Arguments.of("animalColor=BLACK devuelve los negros", Map.of("animalColor", "BLACK"), 2),
+                Arguments.of("animalColor=GRAY no devuelve resultados", Map.of("animalColor", "GRAY"), 0),
+                Arguments.of("animalType=DOG y animalColor=BLACK devuelve los perros negros",
+                        Map.of("animalType", "DOG", "animalColor", "BLACK"), 2),
+                Arguments.of("animalType=DOG y animalSize=SMALL devuelve al perro chico",
+                        Map.of("animalType", "DOG", "animalSize", "SMALL"), 1),
+                Arguments.of("animalType=DOG y animalColor=WHITE no devuelve resultados",
+                        Map.of("animalType", "DOG", "animalColor", "WHITE"), 0),
+                Arguments.of("type=ADOPTION y animalColor=BLACK cruza el filtro viejo con el nuevo",
+                        Map.of("type", "ADOPTION", "animalColor", "BLACK"), 1),
+                Arguments.of("type=IN_STREET y animalType=CAT devuelve a la gata de la calle",
+                        Map.of("type", "IN_STREET", "animalType", "CAT"), 1),
+                Arguments.of("status=SEARCHING y animalAge=PUPPY combina estado con atributo del animal",
+                        Map.of("status", "SEARCHING", "animalAge", "PUPPY"), 1)
+        );
+    }
+
+    private static Stream<Arguments> provideInvalidFilterCases() {
+        return Stream.of(
+                Arguments.of("type invalido", "type", "INVALIDO"),
+                Arguments.of("animalType invalido", "animalType", "DINOSAURIO"),
+                Arguments.of("animalSize invalido", "animalSize", "ENORME"),
+                Arguments.of("animalGender invalido", "animalGender", "OTRO"),
+                Arguments.of("animalAge invalido", "animalAge", "BEBE")
         );
     }
 

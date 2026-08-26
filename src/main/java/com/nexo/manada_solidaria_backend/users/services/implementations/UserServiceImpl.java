@@ -69,14 +69,31 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public UserDetailResponse getUser(UUID userId) {
         User user = getUserById(userId);
-        return UserDetailResponse.from(user, getUserPosts(user, null), countCompletedPosts(user));
+        return UserDetailResponse.from(user, getUserPosts(user, null));
     }
 
     @Override
     @Transactional(readOnly = true)
     public UserProfileResponse getUserProfile(UUID userId) {
         User user = getUserById(userId);
-        return UserProfileResponse.from(user, countPosts(user), countCompletedPosts(user));
+        return UserProfileResponse.from(user);
+    }
+
+    @Override
+    public List<UserResponse> getUsers(String username, Rol role) {
+        return userRepository.findAll().stream()
+                .filter(user -> matchesUsername(user, username))
+                .filter(user -> hasRole(user, role))
+                .map(UserResponse::from)
+                .toList();
+    }
+
+    private static boolean matchesUsername(User user, String username) {
+        return username == null || user.getUsername().toLowerCase().contains(username.toLowerCase());
+    }
+
+    private static boolean hasRole(User user, Rol role) {
+        return role == null || user.getProfile().hasRole(role);
     }
 
     @Override
@@ -98,16 +115,6 @@ public class UserServiceImpl implements UserService {
         authenticatedUser.getProfile().updateRoles(request);
         userRepository.save(authenticatedUser);
         return authenticatedUser.getProfile().getRoles();
-    }
-
-    private long countPosts(User user) {
-        return animalPostService.countUserAnimalPosts(user)
-                + campaignService.countUserCampaigns(user);
-    }
-
-    private long countCompletedPosts(User user) {
-        return animalPostService.countFinishedUserAnimalPosts(user)
-                + campaignService.countFinishedUserCampaigns(user);
     }
 
     private static boolean requireAllPosts(String type) {

@@ -3,10 +3,12 @@ package com.nexo.manada_solidaria_backend.common.exceptions;
 import com.nexo.manada_solidaria_backend.common.exceptions.responses.ApiError;
 import tools.jackson.databind.exc.InvalidFormatException;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -44,7 +46,7 @@ public class GlobalExceptionHandler {
         Stream<String> errores = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
-                .map(DefaultMessageSourceResolvable::getDefaultMessage);
+                .map(GlobalExceptionHandler::describeFieldError);
 
         Stream<String> globalErrores = ex.getBindingResult()
                 .getGlobalErrors()
@@ -62,6 +64,21 @@ public class GlobalExceptionHandler {
                         .timestamp(LocalDateTime.now())
                         .build()
                 );
+    }
+
+    private static String describeFieldError(FieldError error) {
+        if (!error.contains(TypeMismatchException.class)) {
+            return error.getDefaultMessage();
+        }
+        return "El valor '" + error.getRejectedValue() + "' no es válido para el parámetro '"
+                + error.getField() + "'."
+                + allowedValues(error.unwrap(TypeMismatchException.class).getRequiredType());
+    }
+
+    private static String allowedValues(Class<?> requiredType) {
+        return requiredType != null && requiredType.isEnum()
+                ? " Los valores permitidos son: " + Arrays.toString(requiredType.getEnumConstants())
+                : "";
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)

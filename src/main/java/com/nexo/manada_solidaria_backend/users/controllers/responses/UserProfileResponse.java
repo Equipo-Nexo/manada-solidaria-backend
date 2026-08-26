@@ -10,17 +10,15 @@ public record UserProfileResponse(
         UUID id,
         String username,
         ProfileResponse profile,
-        List<Rol> roles,
-        UserMetricsResponse metrics
+        List<Rol> roles
 ) {
 
-    public static UserProfileResponse from(User user, long totalPosts, long completedPosts) {
+    public static UserProfileResponse from(User user) {
         return new UserProfileResponse(
                 user.getId(),
                 user.getUsername(),
                 ProfileResponse.from(user.getProfile()),
-                user.getProfile().getRoles(),
-                UserMetricsResponse.from(user, totalPosts, completedPosts)
+                user.getProfile().getRoles()
         );
     }
 }

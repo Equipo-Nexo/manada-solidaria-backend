@@ -73,5 +73,4 @@ public class AdoptionPost extends AnimalPost<StatusAdoptionPost, AdoptionPostSta
     protected void addStatus(StatusAdoptionPost status) {
         this.statusHistory.add(new AdoptionPostStatusHistory(status, this));
     }
-
 }
