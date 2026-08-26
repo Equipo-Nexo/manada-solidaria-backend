@@ -1,5 +1,6 @@
 spring:
   flyway:
+    out-of-order: true
     baseline-on-migrate: true
     baseline-version: 1
     enabled: true
