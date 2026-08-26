@@ -33,7 +33,7 @@ class AuthControllerTest extends BaseIntegrationTest {
                     String responseContent = result.getResponse().getContentAsString();
                     if (expectedStatus.is2xxSuccessful()) {
                         Assertions.assertNotNull(responseContent);
-                        Assertions.assertTrue(responseContent.contains("accessTokenn"));
+                        Assertions.assertTrue(responseContent.contains("accessToken"));
                     }
                 });
     }
