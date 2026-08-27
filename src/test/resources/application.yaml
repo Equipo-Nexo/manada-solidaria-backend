@@ -13,6 +13,9 @@ spring:
     hibernate:
       ddl-auto: update
 security:
+  webauthn:
+    rp-id: localhost
+    allowed-origins: http://localhost:5173
   access-token-expiration: 60
   refresh-token-expiration: 120
   secret: D8B3B7BA8B42E5BFA6896FC4811127724A982FAF1446DB85BCFB89C82F
