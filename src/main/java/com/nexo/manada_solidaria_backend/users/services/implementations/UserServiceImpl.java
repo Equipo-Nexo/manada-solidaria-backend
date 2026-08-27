@@ -55,7 +55,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public void createUser(CreateUserRequest createUserRequest) {
         try {
-            userRepository.saveAndFlush(buildUser(createUserRequest));
+            User created = userRepository.saveAndFlush(buildUser(createUserRequest));
+            log.info("User created: id={} username={}", created.getId(), created.getUsername());
         } catch (DataIntegrityViolationException e) {
             log.error("Username already exists", e);
             throw new ResponseStatusException(BAD_REQUEST, "El nombre de usuario ya existe");
@@ -80,6 +81,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserResponse> getUsers(String username, Rol role) {
+        log.debug("Listing users: username={} role={}", username, role);
         return userRepository.findAll().stream()
                 .filter(user -> matchesUsername(user, username))
                 .filter(user -> hasRole(user, role))
@@ -106,6 +108,7 @@ public class UserServiceImpl implements UserService {
     public ProfileResponse updateProfile(UpdateProfileRequest request, User authenticatedUser) {
         authenticatedUser.getProfile().update(request);
         userRepository.save(authenticatedUser);
+        log.info("Profile updated: user={}", authenticatedUser.getId());
         return ProfileResponse.from(authenticatedUser.getProfile());
     }
 
@@ -113,7 +116,9 @@ public class UserServiceImpl implements UserService {
     public List<Rol> updateRoles(UpdateRolesRequest request, User authenticatedUser) {
         authenticatedUser.getProfile().updateRoles(request);
         userRepository.save(authenticatedUser);
-        return authenticatedUser.getProfile().getRoles();
+        List<Rol> updated = authenticatedUser.getProfile().getRoles();
+        log.info("Roles updated: user={} roles={}", authenticatedUser.getId(), updated);
+        return updated;
     }
 
     private static boolean requireAllPosts(String type) {
