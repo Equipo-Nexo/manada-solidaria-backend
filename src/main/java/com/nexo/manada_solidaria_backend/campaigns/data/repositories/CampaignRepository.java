@@ -68,11 +68,25 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
             (
                 TYPE(c) = DonationCampaign
                 AND TREAT(c AS DonationCampaign).campaignEndDate <= :today
+                AND EXISTS (
+                    SELECT h
+                    FROM DonationCampaignStatusHistory h
+                    WHERE h.campaign = c
+                    AND h.status = com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationFundraisingCampaignStatus.CREATED
+                    AND h.finishedAt IS NULL
+                )
             )
             OR
             (
                 TYPE(c) = FundraisingCampaign
                 AND TREAT(c AS FundraisingCampaign).campaignEndDate <= :today
+                AND EXISTS (
+                    SELECT h
+                    FROM FundraisingCampaignStatusHistory h
+                    WHERE h.campaign = c
+                    AND h.status = com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationFundraisingCampaignStatus.CREATED
+                    AND h.finishedAt IS NULL
+                )
             )
     """)
     List<Campaign<?, ?>> findExpiredDonationAndFundraisingCampaigns(
@@ -83,6 +97,13 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
         SELECT c
         FROM NewsCampaign c
         WHERE c.newsEndDateTime <= :now
+        AND EXISTS (
+            SELECT h
+            FROM NewsCampaignStatusHistory h
+            WHERE h.campaign = c
+            AND h.status = com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignStatus.STARTED
+            AND h.finishedAt IS NULL
+        )
     """)
     List<Campaign<?, ?>> findExpiredNewsCampaigns(
             @Param("now") LocalDateTime now
