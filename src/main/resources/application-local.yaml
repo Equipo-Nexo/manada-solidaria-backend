@@ -11,9 +11,3 @@ security:
   cors:
     allowed-origins: "http://localhost:5173"
     allowed-credentials: true
-server:
-  servlet:
-    session:
-      cookie:
-        same-site: none
-        secure: true

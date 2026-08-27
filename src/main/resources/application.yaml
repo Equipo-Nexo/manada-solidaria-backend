@@ -21,6 +21,12 @@ spring:
 springdoc:
   swagger-ui:
     path: /docs
+server:
+  servlet:
+    session:
+      cookie:
+        same-site: none
+        secure: true
 security:
   access-token-expiration: 60
   refresh-token-expiration: 120
