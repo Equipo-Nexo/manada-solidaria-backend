@@ -88,6 +88,7 @@ public class SecurityConfig {
             @Value("${security.webauthn.allowed-origins}") String allowedOrigins
     ) {
         return httpSecurity
+                .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(authorizationManager ->
                         authorizationManager
                                 .requestMatchers(ENDPOINTS_WHITELIST).permitAll()
