@@ -18,6 +18,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Comparator;
@@ -62,6 +63,19 @@ public class UserServiceImpl implements UserService {
             log.error("Error creating user", e);
             throw new ResponseStatusException(INTERNAL_SERVER_ERROR, "Error creando el usuario");
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserDetailResponse getUser(UUID userId) {
+        User user = getUserById(userId);
+        return UserDetailResponse.from(user, getUserPosts(user, null));
+    }
+
+    @Override
+    public UserProfileResponse getUserProfile(UUID userId) {
+        User user = getUserById(userId);
+        return UserProfileResponse.from(user);
     }
 
     @Override

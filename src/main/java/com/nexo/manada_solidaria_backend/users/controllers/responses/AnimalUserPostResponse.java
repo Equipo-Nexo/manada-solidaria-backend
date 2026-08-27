@@ -7,10 +7,16 @@ import lombok.Setter;
 @Getter
 @Setter
 public class AnimalUserPostResponse extends UserPostResponse {
-    String status;
 
     public AnimalUserPostResponse(AnimalPostResponse animalPostResponse) {
-        super(animalPostResponse.id(), animalPostResponse.name(), animalPostResponse.createdAt(), animalPostResponse.imageUrl(), "animal");
-        this.status = animalPostResponse.status();
+        super(
+                animalPostResponse.id(),
+                animalPostResponse.name(),
+                animalPostResponse.description(),
+                animalPostResponse.createdAt(),
+                animalPostResponse.imageUrl(),
+                "animal",
+                animalPostResponse.status()
+        );
     }
 }

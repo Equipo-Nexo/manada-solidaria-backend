@@ -1,7 +1,13 @@
 package com.nexo.manada_solidaria_backend.users.integrations;
 
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusLostPost;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.Animal;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPostStatusHistory;
+import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
 import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthenticatedIntegrationTest;
+import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.Profile;
@@ -21,6 +27,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,6 +43,98 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private AnimalPostRepository animalPostRepository;
+
+    @DisplayName("GET /users devuelve perfil, publicaciones y metricas")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideUserDetailFieldCases")
+    @Sql(
+            scripts = {
+                    "/sql/users/user-profile-data.sql",
+                    "/sql/users/create-campaigns.sql",
+                    "/sql/users/create-animal-posts.sql",
+                    "/sql/users/create-fundraising.sql"
+            },
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    void getUser_returnsFullDetail(
+            String testName,
+            String jsonPathExpression,
+            Matcher<?> expected
+    ) throws Exception {
+        getUser(adminId())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(jsonPathExpression, expected));
+    }
+
+    @DisplayName("GET /users/{userId} devuelve el usuario del path, no el del token")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideUserResolutionCases")
+    void getUser_resolvesTarget(
+            String testName,
+            boolean otherUser,
+            String expectedUsername
+    ) throws Exception {
+        User other = saveUser("otro");
+
+        getUser(otherUser ? other.getId() : adminId())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value(expectedUsername));
+    }
+
+    @DisplayName("GET /users/{userId}/profile devuelve el perfil sin las publicaciones")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideUserProfileCases")
+    @Sql(
+            scripts = {
+                    "/sql/users/user-profile-data.sql",
+                    "/sql/users/create-campaigns.sql",
+                    "/sql/users/create-animal-posts.sql",
+                    "/sql/users/create-fundraising.sql"
+            },
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    void getUserProfile_returnsProfileWithoutPosts(
+            String testName,
+            String jsonPathExpression,
+            Matcher<?> expected
+    ) throws Exception {
+        getUserProfile(adminId())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(jsonPathExpression, expected));
+    }
+
+    @Test
+    @DisplayName("GET /users/{userId}/profile no incluye el campo posts")
+    void getUserProfile_omitsPostsField() throws Exception {
+        getUserProfile(adminId())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.posts").doesNotExist());
+    }
+
+    @DisplayName("Pedir un usuario inexistente devuelve 404")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideNotFoundCases")
+    void getUser_whenUserDoesNotExist_returnsNotFound(String testName, String pathTemplate) throws Exception {
+        mockMvc.perform(
+                        get(pathTemplate.formatted(UUID.randomUUID()))
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isNotFound());
+    }
+
+    @DisplayName("GET del detalle de usuario sin autenticacion valida devuelve 401")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideUnauthorizedPathCases")
+    void getUser_unauthorized(String testName, String path, String token) throws Exception {
+        MockHttpServletRequestBuilder request = get(path);
+        if (token != null) {
+            request = request.header("Authorization", "Bearer " + token);
+        }
+
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
+    }
 
     @DisplayName("GET /users filtra por nombre de usuario y/o rol")
     @ParameterizedTest(name = "{index} - {0}")
@@ -266,6 +365,38 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body)
         );
+    }
+
+    private ResultActions getUser(UUID userId) throws Exception {
+        return mockMvc.perform(
+                get("/users/" + userId).header("Authorization", "Bearer " + accessToken)
+        );
+    }
+
+    private ResultActions getUserProfile(UUID userId) throws Exception {
+        return mockMvc.perform(
+                get("/users/" + userId + "/profile").header("Authorization", "Bearer " + accessToken)
+        );
+    }
+
+    private User saveUser(String username) {
+        return userRepository.save(
+                new User(username, "irrelevante",
+                        new Profile("otro@mail.com", new PhoneNumber("3533", "436249"), List.of(Rol.COMMUNITY)))
+        );
+    }
+
+    private UUID adminId() {
+        return userRepository.findByUsername("admin").orElseThrow().getId();
+    }
+
+    private void saveLostPost(User owner, StatusLostPost status) {
+        LostPost post = new LostPost(
+                "Publicacion de prueba", "Descripcion", "cf-img", null, null, true,
+                owner, new Location("Parque", "Av. Patricias", 100, -34.6, -58.4), new Animal(), null
+        );
+        post.setStatusHistory(new ArrayList<>(List.of(new LostPostStatusHistory(status, post))));
+        animalPostRepository.save(post);
     }
 
     private void saveUser(String username, PhoneNumber phoneNumber, String profileImageURL, Rol... roles) {

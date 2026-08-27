@@ -9,6 +9,14 @@ import lombok.Setter;
 public class FundraisingCampaignResponse extends UserPostResponse {
 
     public FundraisingCampaignResponse(CampaignResponse campaignResponse) {
-        super(campaignResponse.id(), campaignResponse.title(), campaignResponse.createdAt(), campaignResponse.imageId(), "fundraising");
+        super(
+                campaignResponse.id(),
+                campaignResponse.title(),
+                campaignResponse.description(),
+                campaignResponse.createdAt(),
+                campaignResponse.imageId(),
+                "fundraising",
+                campaignResponse.status()
+        );
     }
 }
