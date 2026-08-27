@@ -4,7 +4,16 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/manada_solidaria?createDatabaseIfNotExist=true
 security:
+  webauthn:
+    rp-id: localhost
+    allowed-origins: http://localhost:5173
   secret: D8B3B7BA8B42E5BFA6896FC4811127724A982FAF1446DB85BCFB89C82F
   cors:
-    allowed-origins: "*"
-    allowed-credentials: false
+    allowed-origins: "http://localhost:5173"
+    allowed-credentials: true
+server:
+  servlet:
+    session:
+      cookie:
+        same-site: none
+        secure: true

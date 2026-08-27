@@ -1,4 +1,8 @@
 security:
+  webauthn:
+    rp-id: manada-solidaria.com
+    allowed-origins:
+      - https://manada-solidaria.duckdns.org
   cors:
     allowed-origins: http://manada-solidaria.duckdns.org, https://manada-solidaria.duckdns.org
     allowed-credentials: true
