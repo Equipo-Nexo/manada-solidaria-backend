@@ -10,7 +10,8 @@ public record UserProfileResponse(
         UUID id,
         String username,
         ProfileResponse profile,
-        List<Rol> roles
+        List<Rol> roles,
+        long daysSinceRegistration
 ) {
 
     public static UserProfileResponse from(User user) {
@@ -18,7 +19,8 @@ public record UserProfileResponse(
                 user.getId(),
                 user.getUsername(),
                 ProfileResponse.from(user.getProfile()),
-                user.getProfile().getRoles()
+                user.getProfile().getRoles(),
+                user.getDaysSinceRegistration()
         );
     }
 }

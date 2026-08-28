@@ -162,7 +162,8 @@ public class MockUserDataUtils {
                 Arguments.of("Devuelve el codigo de area", "$.profile.phoneNumber.areaCode", is("3533")),
                 Arguments.of("Devuelve el numero de telefono", "$.profile.phoneNumber.number", is("436249")),
                 Arguments.of("Devuelve la foto de perfil", "$.profile.profileImageURL", is("cf-profile-1")),
-                Arguments.of("Devuelve los roles", "$.roles", hasItem("COMMUNITY"))
+                Arguments.of("Devuelve los roles", "$.roles", hasItem("COMMUNITY")),
+                Arguments.of("Devuelve los dias desde el registro", "$.daysSinceRegistration", is(10))
         );
     }
 
