@@ -1,6 +1,6 @@
 security:
   webauthn:
-    rp-id: manada-solidaria.com
+    rp-id: manadasolidaria.com
     allowed-origins: https://manadasolidaria.com
   cors:
     allowed-origins: http://manadasolidaria.com, https://manadasolidaria.com
