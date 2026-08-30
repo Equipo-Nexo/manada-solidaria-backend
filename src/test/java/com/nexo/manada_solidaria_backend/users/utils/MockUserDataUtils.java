@@ -163,7 +163,7 @@ public class MockUserDataUtils {
                 Arguments.of("Devuelve el numero de telefono", "$.profile.phoneNumber.number", is("436249")),
                 Arguments.of("Devuelve la foto de perfil", "$.profile.profileImageURL", is("cf-profile-1")),
                 Arguments.of("Devuelve los roles", "$.roles", hasItem("COMMUNITY")),
-                Arguments.of("Devuelve los dias desde el registro", "$.daysSinceRegistration", is(10))
+                Arguments.of("Devuelve la fecha de registro", "$.createdAt", is("2025-03-14T10:00:00"))
         );
     }
 
