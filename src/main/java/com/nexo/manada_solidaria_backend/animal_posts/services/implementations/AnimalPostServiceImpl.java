@@ -15,6 +15,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.Animal
 import com.nexo.manada_solidaria_backend.common.utils.EnumUtils;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -26,6 +27,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class AnimalPostServiceImpl implements AnimalPostService {
@@ -40,12 +42,14 @@ public class AnimalPostServiceImpl implements AnimalPostService {
         AnimalPost saved = animalPostRepository.save(
                 animalPostFactory.buildAnimalPost(request, owner)
         );
+        log.info("Animal post created: id={} type={} owner={}", saved.getId(), saved.getType(), owner.getId());
         return AnimalPostResponse.from(saved);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<AnimalPostResponse> getAnimalPosts(GetAnimalPostsRequest request, Pageable pageable) {
+        log.debug("Listing animal posts: filters={} page={}", request, pageable);
         return animalPostRepository
                 .findAllFiltered(
                         EnumUtils.getNameOrNull(request.type()),
@@ -74,6 +78,7 @@ public class AnimalPostServiceImpl implements AnimalPostService {
 
         post.update(request);
         animalPostRepository.save(post);
+        log.info("Animal post updated: id={} by={}", animalPostId, authenticatedUser.getId());
     }
 
     @Override
@@ -82,7 +87,11 @@ public class AnimalPostServiceImpl implements AnimalPostService {
         AnimalPost post = getAnimalPostOrThrow(animalPostId);
 
         validateOwner(post, authenticatedUser);
+
+        String previousStatus = post.getCurrentStatus().getStatus().name();
         post.transitionTo(request.status());
+        log.info("Animal post status changed: id={} {} -> {} by={}",
+                animalPostId, previousStatus, request.status(), authenticatedUser.getId());
 
         return AnimalPostResponse.from(animalPostRepository.save(post));
     }
@@ -94,6 +103,7 @@ public class AnimalPostServiceImpl implements AnimalPostService {
         validateOwner(post, authenticatedUser);
 
         animalPostRepository.delete(post);
+        log.info("Animal post deleted: id={} by={}", animalPostId, authenticatedUser.getId());
     }
 
     @Override
