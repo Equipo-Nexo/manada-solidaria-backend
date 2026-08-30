@@ -10,4 +10,5 @@ security:
   secret: D8B3B7BA8B42E5BFA6896FC4811127724A982FAF1446DB85BCFB89C82F
   cors:
     allowed-origins: "http://localhost:5173"
+    allowed-origin-patterns: http://192.168.*.*:5173, https://*.devtunnels.ms*
     allowed-credentials: true
