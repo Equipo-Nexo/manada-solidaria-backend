@@ -3,6 +3,7 @@ package com.nexo.manada_solidaria_backend.users.controllers.responses;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -10,7 +11,8 @@ public record UserProfileResponse(
         UUID id,
         String username,
         ProfileResponse profile,
-        List<Rol> roles
+        List<Rol> roles,
+        LocalDateTime createdAt
 ) {
 
     public static UserProfileResponse from(User user) {
@@ -18,7 +20,8 @@ public record UserProfileResponse(
                 user.getId(),
                 user.getUsername(),
                 ProfileResponse.from(user.getProfile()),
-                user.getProfile().getRoles()
+                user.getProfile().getRoles(),
+                user.getCreatedAt()
         );
     }
 }

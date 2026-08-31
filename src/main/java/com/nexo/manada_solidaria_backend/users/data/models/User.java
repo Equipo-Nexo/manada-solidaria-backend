@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.UUID;
 
@@ -24,6 +25,8 @@ public class User implements UserDetails {
     private String password;
     @OneToOne(cascade = CascadeType.ALL)
     private Profile profile;
+    @Column(updatable = false)
+    private final LocalDateTime createdAt = LocalDateTime.now();
     @Id
     private final UUID id = UUID.randomUUID();
 
