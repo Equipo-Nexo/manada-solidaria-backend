@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -93,26 +94,33 @@ public class DonationCampaign extends Campaign<DonationFundraisingCampaignStatus
     ) {
         return switch (current) {
             case CREATED ->
-                    target == DonationFundraisingCampaignStatus.COMPLETED;
+                    target == DonationFundraisingCampaignStatus.COMPLETED
+                            || target == DonationFundraisingCampaignStatus.FINISHED;
 
-            case COMPLETED ->
-                    target == DonationFundraisingCampaignStatus.FINISHED;
-
-            case FINISHED ->
+            case COMPLETED, FINISHED ->
                     false;
         };
     }
 
     @Override
-    protected void addStatus(
-            DonationFundraisingCampaignStatus status
-    ) {
+    protected void addStatus(DonationFundraisingCampaignStatus status) {
         statusHistory.add(
                 new DonationCampaignStatusHistory(
                         status,
                         this
                 )
         );
+    }
+
+    @Override
+    protected boolean isFinalStatus(DonationFundraisingCampaignStatus status) {
+        return status == DonationFundraisingCampaignStatus.COMPLETED
+                || status == DonationFundraisingCampaignStatus.FINISHED;
+    }
+
+    @Override
+    public boolean isFinalizableByExpiration() {
+        return getCurrentStatus().getStatus() == DonationFundraisingCampaignStatus.CREATED;
     }
 
     public void addItem(DonationItem item) {
