@@ -22,7 +22,12 @@ public interface VetInformationController {
     );
 
     @GetMapping
-    List<VetInformationResponse> getAll();
+    List<VetInformationResponse> getAll(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Boolean openOnly,
+            @RequestParam(required = false) Double userLatitude,
+            @RequestParam(required = false) Double userLongitude
+    );
 
     @GetMapping("/{vetId}")
     VetInformationResponse getById(
