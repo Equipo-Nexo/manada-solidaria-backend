@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -58,4 +60,52 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
         AND c.owner = :owner
     """)
     List<Campaign<?, ?>> findFundraisingCampaignsByOwner(@Param("owner") User user);
+
+    @Query("""
+        SELECT c
+        FROM Campaign c
+        WHERE
+            (
+                TYPE(c) = DonationCampaign
+                AND TREAT(c AS DonationCampaign).campaignEndDate <= :today
+                AND EXISTS (
+                    SELECT h
+                    FROM DonationCampaignStatusHistory h
+                    WHERE h.campaign = c
+                    AND h.status = com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationFundraisingCampaignStatus.CREATED
+                    AND h.finishedAt IS NULL
+                )
+            )
+            OR
+            (
+                TYPE(c) = FundraisingCampaign
+                AND TREAT(c AS FundraisingCampaign).campaignEndDate <= :today
+                AND EXISTS (
+                    SELECT h
+                    FROM FundraisingCampaignStatusHistory h
+                    WHERE h.campaign = c
+                    AND h.status = com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationFundraisingCampaignStatus.CREATED
+                    AND h.finishedAt IS NULL
+                )
+            )
+    """)
+    List<Campaign<?, ?>> findExpiredDonationAndFundraisingCampaigns(
+            @Param("today") LocalDate today
+    );
+
+    @Query("""
+        SELECT c
+        FROM NewsCampaign c
+        WHERE c.newsEndDateTime <= :now
+        AND EXISTS (
+            SELECT h
+            FROM NewsCampaignStatusHistory h
+            WHERE h.campaign = c
+            AND h.status = com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignStatus.STARTED
+            AND h.finishedAt IS NULL
+        )
+    """)
+    List<Campaign<?, ?>> findExpiredNewsCampaigns(
+            @Param("now") LocalDateTime now
+    );
 }

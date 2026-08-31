@@ -2,6 +2,7 @@ package com.nexo.manada_solidaria_backend.campaigns.integrations;
 
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CampaignType;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest;
+import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationFundraisingCampaignStatus;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCategory;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignStatus;
@@ -494,8 +495,7 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
         );
 
         mockMvc.perform(
-                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                                .patch("/campaigns/" + campaign.getId() + "/status")
+                        patch("/campaigns/" + campaign.getId() + "/status")
                                 .header("Authorization", "Bearer " + accessToken)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(toJson(
@@ -707,6 +707,64 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                                     """)
                 )
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("PUT /campaigns/{id} completa automáticamente una recaudación al alcanzar el monto objetivo y setea finishedAt")
+    void update_fundraising_reachesGoal_completesCampaign() throws Exception {
+
+        FundraisingCampaign campaign =
+                MockCampaignDataUtils.buildFundraisingModel(admin());
+
+        UUID campaignId = campaignRepository.save(campaign).getId();
+
+        UpdateCampaignRequest request =
+                MockCampaignDataUtils.buildFundraisingUpdateRequestWithAmountCollected(100000L);
+
+        mockMvc.perform(put("/campaigns/" + campaignId)
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(request)))
+                .andExpect(status().isNoContent());
+
+        FundraisingCampaign updated =
+                (FundraisingCampaign) campaignRepository.findById(campaignId).orElseThrow();
+
+        assertThat(updated.getAmountCollected()).isEqualTo(100000L);
+        assertThat(updated.getAmountToBeCollected()).isEqualTo(100000L);
+
+        assertThat(updated.getCurrentStatus().getStatus())
+                .isEqualTo(DonationFundraisingCampaignStatus.COMPLETED);
+
+        assertThat(updated.getFinishedAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("PUT /campaigns/{id} no completa automáticamente una recaudación si no alcanzó el monto objetivo")
+    void update_fundraising_doesNotCompleteBeforeReachingGoal() throws Exception {
+
+        FundraisingCampaign campaign =
+                MockCampaignDataUtils.buildFundraisingModel(admin());
+
+        UUID campaignId = campaignRepository.save(campaign).getId();
+
+        UpdateCampaignRequest request =
+                MockCampaignDataUtils.buildFundraisingUpdateRequestWithAmountCollected(25000L);
+
+        mockMvc.perform(put("/campaigns/" + campaignId)
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(request)))
+                .andExpect(status().isNoContent());
+
+        FundraisingCampaign updated =
+                (FundraisingCampaign) campaignRepository.findById(campaignId).orElseThrow();
+
+        assertThat(updated.getAmountCollected()).isEqualTo(25000L);
+        assertThat(updated.getCurrentStatus().getStatus())
+                .isEqualTo(DonationFundraisingCampaignStatus.CREATED);
+
+        assertThat(updated.getFinishedAt()).isNull();
     }
 
     private User admin() {

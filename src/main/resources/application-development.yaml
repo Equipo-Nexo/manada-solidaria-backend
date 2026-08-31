@@ -1,7 +1,8 @@
 security:
   webauthn:
-    rp-id: manada-solidaria-dev.duckdns.org
-    allowed-origins: https://manada-solidaria-dev.duckdns.org
+    rp-id: dev.manadasolidaria.com
+    allowed-origins: https://dev.manadasolidaria.com
   cors:
-    allowed-origins: https://manada-solidaria-dev.duckdns.org, http://localhost:5173
+    allowed-origins: https://dev.manadasolidaria.com, http://localhost:5173
+    allowed-origin-patterns: http://192.168.*.*:5173, https://*.devtunnels.ms*
     allowed-credentials: true

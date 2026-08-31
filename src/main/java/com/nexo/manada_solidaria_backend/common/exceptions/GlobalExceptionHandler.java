@@ -3,6 +3,7 @@ package com.nexo.manada_solidaria_backend.common.exceptions;
 import com.nexo.manada_solidaria_backend.common.exceptions.responses.ApiError;
 import tools.jackson.databind.exc.InvalidFormatException;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
@@ -25,10 +26,17 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(ResponseStatusException.class)
     ResponseEntity<ApiError> handleResponseStatusException(ResponseStatusException responseStatusException, HttpServletRequest request) {
+        log.warn("{} {} -> {}: {}",
+                request.getMethod(),
+                request.getRequestURI(),
+                responseStatusException.getStatusCode().value(),
+                responseStatusException.getReason());
+
         return ResponseEntity
                 .status(responseStatusException.getStatusCode())
                 .body(ApiError.builder()
@@ -148,6 +156,8 @@ public class GlobalExceptionHandler {
     
     @ExceptionHandler(Exception.class)
     ResponseEntity<ApiError> handleUnexpectedException(Exception ex, HttpServletRequest request) {
+        log.error("{} {} -> 500", request.getMethod(), request.getRequestURI(), ex);
+
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiError.builder()

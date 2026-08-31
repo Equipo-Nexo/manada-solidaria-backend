@@ -109,13 +109,14 @@ public record CreateCampaignRequest(
         @Positive(message = "El monto a recaudar debe ser mayor a 0")
         Long amountToBeCollected,
 
-        @FutureOrPresent(message = "La fecha de finalización debe ser posterior o igual al día de hoy")
+        @Future (message = "La fecha de finalización debe ser posterior al día de hoy")
         LocalDate campaignEndDate,
 
         @Valid
         @Size(min = 1, message = "Debe haber al menos un ítem")
         List<DonationItemRequest> items,
 
+        @FutureOrPresent
         LocalDateTime newsStartDateTime,
 
         @Future(message = "La fecha de finalización debe ser futura")

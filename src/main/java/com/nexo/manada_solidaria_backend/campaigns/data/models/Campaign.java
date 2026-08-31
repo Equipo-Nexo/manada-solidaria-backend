@@ -38,6 +38,7 @@ public abstract class Campaign<
     private PhoneNumber phoneNumber;
     private LocalDateTime updatedAt = null;
     private final LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime finishedAt = null;
     @ManyToOne(optional = true, cascade = CascadeType.ALL)
     private Location location;
     @ManyToOne(optional = false)
@@ -105,6 +106,10 @@ public abstract class Campaign<
 
         current.finish();
         addStatus(target);
+
+        if (isFinalStatus(target)) {
+            this.finishedAt = LocalDateTime.now();
+        }
     }
 
     protected abstract Class<STATUS> statusType();
@@ -121,5 +126,9 @@ public abstract class Campaign<
     public abstract boolean isFinished();
 
     public abstract CampaignType getCampaignType();
+
+    protected abstract boolean isFinalStatus(STATUS status);
+
+    public abstract boolean isFinalizableByExpiration();
 
 }

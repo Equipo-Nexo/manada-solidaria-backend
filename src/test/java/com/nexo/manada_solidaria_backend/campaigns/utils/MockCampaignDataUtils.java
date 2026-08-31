@@ -686,16 +686,45 @@ public class MockCampaignDataUtils {
                         DonationFundraisingCampaignStatus.COMPLETED
                 ),
                 Arguments.of(
-                        "DONATION COMPLETED a FINISHED",
-                        CampaignType.DONATION,
-                        DonationFundraisingCampaignStatus.COMPLETED,
-                        DonationFundraisingCampaignStatus.FINISHED
-                ),
-                Arguments.of(
                         "FUNDRAISING CREATED a COMPLETED",
                         CampaignType.FUNDRAISING,
                         DonationFundraisingCampaignStatus.CREATED,
                         DonationFundraisingCampaignStatus.COMPLETED
+                ),
+                Arguments.of(
+                        "NEWS STARTED a FINISHED",
+                        CampaignType.NEWS,
+                        NewsCampaignStatus.STARTED,
+                        NewsCampaignStatus.FINISHED
+                ),
+                Arguments.of(
+                        "DONATION CREATED a FINISHED",
+                        CampaignType.DONATION,
+                        DonationFundraisingCampaignStatus.CREATED,
+                        DonationFundraisingCampaignStatus.FINISHED
+                ),
+                Arguments.of(
+                        "FUNDRAISING CREATED a FINISHED",
+                        CampaignType.FUNDRAISING,
+                        DonationFundraisingCampaignStatus.CREATED,
+                        DonationFundraisingCampaignStatus.FINISHED
+                )
+        );
+    }
+
+    public static Stream<Arguments> provideInvalidStatusTransitions() {
+        return Stream.of(
+                Arguments.of(
+                        "DONATION COMPLETED a CREATED",
+                        CampaignType.DONATION,
+                        DonationFundraisingCampaignStatus.COMPLETED,
+                        DonationFundraisingCampaignStatus.CREATED
+                ),
+                Arguments.of(
+                        "DONATION COMPLETED a FINISHED",
+                        CampaignType.DONATION,
+                        DonationFundraisingCampaignStatus.COMPLETED,
+                        DonationFundraisingCampaignStatus.FINISHED
                 ),
                 Arguments.of(
                         "FUNDRAISING COMPLETED a FINISHED",
@@ -704,50 +733,9 @@ public class MockCampaignDataUtils {
                         DonationFundraisingCampaignStatus.FINISHED
                 ),
                 Arguments.of(
-                        "NEWS STARTED a FINISHED",
-                        CampaignType.NEWS,
-                        NewsCampaignStatus.STARTED,
-                        NewsCampaignStatus.FINISHED
-                )
-        );
-    }
-
-    public static Stream<Arguments> provideInvalidStatusTransitions() {
-        return Stream.of(
-                Arguments.of(
-                        "DONATION CREATED a FINISHED",
-                        CampaignType.DONATION,
-                        DonationFundraisingCampaignStatus.CREATED,
-                        DonationFundraisingCampaignStatus.FINISHED
-                ),
-                Arguments.of(
-                        "DONATION COMPLETED a CREATED",
-                        CampaignType.DONATION,
-                        DonationFundraisingCampaignStatus.COMPLETED,
-                        DonationFundraisingCampaignStatus.CREATED
-                ),
-                Arguments.of(
-                        "DONATION FINISHED a CREATED",
-                        CampaignType.DONATION,
-                        DonationFundraisingCampaignStatus.FINISHED,
-                        DonationFundraisingCampaignStatus.CREATED
-                ),
-                Arguments.of(
-                        "FUNDRAISING CREATED a FINISHED",
-                        CampaignType.FUNDRAISING,
-                        DonationFundraisingCampaignStatus.CREATED,
-                        DonationFundraisingCampaignStatus.FINISHED
-                ),
-                Arguments.of(
                         "FUNDRAISING COMPLETED a CREATED",
                         CampaignType.FUNDRAISING,
                         DonationFundraisingCampaignStatus.COMPLETED,
-                        DonationFundraisingCampaignStatus.CREATED
-                ),
-                Arguments.of(
-                        "FUNDRAISING FINISHED a CREATED",
-                        CampaignType.FUNDRAISING,
-                        DonationFundraisingCampaignStatus.FINISHED,
                         DonationFundraisingCampaignStatus.CREATED
                 ),
                 Arguments.of(
@@ -778,4 +766,68 @@ public class MockCampaignDataUtils {
                 Arguments.of("News", CampaignType.NEWS, "STARTED", "FINISHED")
         );
     }
+
+    public static UpdateCampaignRequest buildFundraisingUpdateRequestWithAmountCollected(
+            Long amountCollected
+    ) {
+        return new UpdateCampaignRequest(
+                CampaignType.FUNDRAISING,
+                "Recaudación Editada",
+                "Nueva descripción",
+                "img-fundraising-updated",
+                new PhoneNumberRequest("3533", "436249"),
+                new UpdateLocationRequest(
+                        "Córdoba",
+                        "Nueva dirección",
+                        200,
+                        -31.41,
+                        -64.18
+                ),
+                "nuevo.alias",
+                100000L,
+                amountCollected,
+                LocalDate.now().plusMonths(3),
+                null,
+                null,
+                null
+        );
+    }
+
+    public static Stream<Arguments> provideExpiredDonationAndFundraisingCampaigns() {
+        return Stream.of(
+                Arguments.of(
+                        "Donation vencida pasa de CREATED a FINISHED",
+                        UUID.fromString("40000000-0000-0000-0000-000000000011")
+                ),
+                Arguments.of(
+                        "Fundraising vencida pasa de CREATED a FINISHED",
+                        UUID.fromString("40000000-0000-0000-0000-000000000012")
+                )
+        );
+    }
+
+    public static Stream<Arguments> provideNonExpiredDonationAndFundraisingCampaigns() {
+        return Stream.of(
+                Arguments.of(
+                        "Donation no vencida permanece CREATED",
+                        UUID.fromString("40000000-0000-0000-0000-000000000001"),
+                        DonationFundraisingCampaignStatus.CREATED
+                ),
+                Arguments.of(
+                        "Fundraising no vencida permanece CREATED",
+                        UUID.fromString("40000000-0000-0000-0000-000000000003"),
+                        DonationFundraisingCampaignStatus.CREATED
+                )
+        );
+    }
+
+    public static Stream<Arguments> provideCompletedDonationAndFundraisingCampaigns() {
+        return Stream.of(
+                Arguments.of(
+                        "Donation COMPLETED vencida permanece COMPLETED",
+                        UUID.fromString("40000000-0000-0000-0000-000000000014")
+                )
+        );
+    }
+
 }
