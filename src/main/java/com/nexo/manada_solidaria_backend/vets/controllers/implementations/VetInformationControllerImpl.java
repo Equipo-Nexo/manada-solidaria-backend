@@ -24,8 +24,8 @@ public class VetInformationControllerImpl implements VetInformationController {
     }
 
     @Override
-    public List<VetInformationResponse> getAll() {
-        return service.getAll();
+    public List<VetInformationResponse> getAll(String search, Boolean openOnly, Double userLatitude, Double userLongitude) {
+        return service.getAll(search, openOnly, userLatitude, userLongitude);
     }
 
     @Override
