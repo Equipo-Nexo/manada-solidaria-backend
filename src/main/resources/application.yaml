@@ -18,6 +18,17 @@ spring:
     username: ${DATABASE_USERNAME}
     password: ${DATABASE_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      "[mail.smtp.auth]": true
+      "[mail.smtp.starttls.enable]": true
+      "[mail.smtp.connectiontimeout]": 5000
+      "[mail.smtp.timeout]": 5000
+      "[mail.smtp.writetimeout]": 5000
 springdoc:
   swagger-ui:
     path: /docs
@@ -31,6 +42,11 @@ security:
   access-token-expiration: 60
   refresh-token-expiration: 120
   secret: ${SECURITY_KEY}
+  password-recovery:
+    code-expiration: 10
+    token-expiration: 5
+    max-attempts: 5
+    resend-cooldown: 60
 cloudflare:
   r2:
     account-id: ${CLOUDFLARE_R2_ACCOUNT_ID}

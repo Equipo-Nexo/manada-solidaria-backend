@@ -53,6 +53,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findFirstByProfileEmail(email);
+    }
+
+    @Override
+    public void updatePassword(User user, String rawPassword) {
+        user.setPassword(passwordEncoder.encode(rawPassword));
+        userRepository.save(user);
+    }
+
+    @Override
     public void createUser(CreateUserRequest createUserRequest) {
         try {
             User created = userRepository.saveAndFlush(buildUser(createUserRequest));

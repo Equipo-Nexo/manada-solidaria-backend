@@ -1,6 +1,5 @@
-package com.nexo.manada_solidaria_backend.auth.validations.annotations;
+package com.nexo.manada_solidaria_backend.common.controllers.validations;
 
-import com.nexo.manada_solidaria_backend.auth.validations.validators.PasswordMatchesValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
@@ -13,6 +12,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = PasswordMatchesValidator.class)
 public @interface PasswordMatches {
+
+    String field() default "repeatedPassword";
 
     String message() default "Las contraseñas no coinciden";
 

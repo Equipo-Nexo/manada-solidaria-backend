@@ -12,6 +12,9 @@ spring:
     show-sql: false
     hibernate:
       ddl-auto: update
+  mail:
+    host: localhost
+    username: manada-solidaria@test.local
 security:
   webauthn:
     rp-id: localhost
@@ -19,6 +22,11 @@ security:
   access-token-expiration: 60
   refresh-token-expiration: 120
   secret: D8B3B7BA8B42E5BFA6896FC4811127724A982FAF1446DB85BCFB89C82F
+  password-recovery:
+    code-expiration: 10
+    token-expiration: 5
+    max-attempts: 5
+    resend-cooldown: 60
   cors:
     allowed-origins: http://localhost:5173
     allowed-credentials: true
