@@ -116,16 +116,15 @@ class PasswordRecoveryControllerTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("El logo viaja embebido, sin nombre de archivo que lo muestre como adjunto")
-    void logoTravelsInlineAndNotAsAnAttachment() throws Exception {
+    @DisplayName("El logo viaja embebido y se muestra con nombre propio")
+    void logoTravelsInlineWithItsOwnName() throws Exception {
         requestRecovery(REGISTERED_EMAIL);
 
         String mime = rawMime(sentMessage());
 
         assertThat(mime).contains("Content-Type: multipart/related");
-        assertThat(mime).contains("Content-Disposition: inline");
+        assertThat(mime).contains("Content-Disposition: inline; filename=logo");
         assertThat(mime).contains("Content-ID: <logo>");
-        assertThat(mime).doesNotContain("filename=");
         assertThat(mime).contains("From: Manada Solidaria <");
     }
 

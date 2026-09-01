@@ -1,7 +1,10 @@
 package com.nexo.manada_solidaria_backend.password_recovery.components;
 
 import com.nexo.manada_solidaria_backend.password_recovery.config.PasswordRecoveryProperties;
+import jakarta.activation.DataHandler;
+import jakarta.activation.DataSource;
 import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.util.ByteArrayDataSource;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +25,7 @@ public class PasswordRecoveryMailer {
     private static final String SENDER_NAME = "Manada Solidaria";
     private static final String LOGO_CONTENT_ID = "logo";
     private static final String LOGO_CONTENT_TYPE = "image/png";
+    private static final String LOGO_NAME = "logo";
     private static final String CODE_PLACEHOLDER = "{{code}}";
     private static final String MINUTES_PLACEHOLDER = "{{minutes}}";
 
@@ -29,7 +33,7 @@ public class PasswordRecoveryMailer {
     private final String sender;
     private final String htmlTemplate;
     private final String textTemplate;
-    private final byte[] logo;
+    private final DataSource logo;
     private final long codeExpiration;
 
     public PasswordRecoveryMailer(
@@ -42,7 +46,7 @@ public class PasswordRecoveryMailer {
         this.codeExpiration = properties.getCodeExpiration();
         this.htmlTemplate = new String(read("mail/password-recovery.html"), StandardCharsets.UTF_8);
         this.textTemplate = new String(read("mail/password-recovery.txt"), StandardCharsets.UTF_8);
-        this.logo = read("mail/manada-solidaria-logo.png");
+        this.logo = new ByteArrayDataSource(read("mail/manada-solidaria-logo.png"), LOGO_CONTENT_TYPE);
     }
 
     public void sendRecoveryCode(String email, String code) {
@@ -55,11 +59,20 @@ public class PasswordRecoveryMailer {
             helper.setTo(email);
             helper.setSubject(SUBJECT);
             helper.setText(fill(textTemplate, code), fill(htmlTemplate, code));
-            helper.addInline(LOGO_CONTENT_ID, new ByteArrayDataSource(logo, LOGO_CONTENT_TYPE));
+            helper.getMimeMultipart().addBodyPart(buildLogoPart());
         } catch (MessagingException | UnsupportedEncodingException exception) {
             throw new MailParseException(exception);
         }
         mailSender.send(message);
+    }
+
+    private MimeBodyPart buildLogoPart() throws MessagingException {
+        MimeBodyPart logoPart = new MimeBodyPart();
+        logoPart.setDataHandler(new DataHandler(logo));
+        logoPart.setContentID("<" + LOGO_CONTENT_ID + ">");
+        logoPart.setDisposition(MimeBodyPart.INLINE);
+        logoPart.setFileName(LOGO_NAME);
+        return logoPart;
     }
 
     private String fill(String template, String code) {
