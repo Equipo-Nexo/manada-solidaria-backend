@@ -13,8 +13,6 @@ import java.lang.annotation.Target;
 @Constraint(validatedBy = PasswordMatchesValidator.class)
 public @interface PasswordMatches {
 
-    String field() default "repeatedPassword";
-
     String message() default "Las contraseñas no coinciden";
 
     Class<?>[] groups() default {};

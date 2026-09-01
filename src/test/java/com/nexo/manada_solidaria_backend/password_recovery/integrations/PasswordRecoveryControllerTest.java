@@ -6,6 +6,7 @@ import com.nexo.manada_solidaria_backend.password_recovery.controllers.requests.
 import com.nexo.manada_solidaria_backend.password_recovery.controllers.requests.VerifyRecoveryCodeRequest;
 import com.nexo.manada_solidaria_backend.password_recovery.data.models.PasswordRecovery;
 import com.nexo.manada_solidaria_backend.password_recovery.data.repositories.PasswordRecoveryRepository;
+import com.nexo.manada_solidaria_backend.password_recovery.utils.MockPasswordRecoveryDataUtils.RecoverySetup;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import com.nexo.manada_solidaria_backend.users.data.repositories.UserRepository;
 import jakarta.mail.internet.MimeMessage;
@@ -25,6 +26,8 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 
 import static com.nexo.manada_solidaria_backend.password_recovery.utils.MockPasswordRecoveryDataUtils.NEW_PASSWORD;
@@ -76,12 +79,15 @@ class PasswordRecoveryControllerTest extends BaseIntegrationTest {
     @DisplayName("Validar el codigo falla")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource(MOCK_DATA + "provideVerifyFailureCases")
-    void verifyFails(String testName, String email, boolean requestRecoveryFirst) throws Exception {
-        String code = "123456";
-        if (requestRecoveryFirst) {
-            requestRecovery(email);
-            code = anyCodeOtherThan(sentCode());
-        }
+    void verifyFails(String testName, String email, RecoverySetup setup) throws Exception {
+        String code = switch (setup) {
+            case NONE -> "123456";
+            case WRONG_CODE -> {
+                requestRecovery(email);
+                yield anyCodeOtherThan(sentCode());
+            }
+            case EXPIRED_CODE -> seedExpiredRecovery();
+        };
 
         verifyCode(email, code).andExpect(status().isBadRequest());
     }
@@ -110,6 +116,20 @@ class PasswordRecoveryControllerTest extends BaseIntegrationTest {
     }
 
     @Test
+    @DisplayName("El logo viaja embebido, sin nombre de archivo que lo muestre como adjunto")
+    void logoTravelsInlineAndNotAsAnAttachment() throws Exception {
+        requestRecovery(REGISTERED_EMAIL);
+
+        String mime = rawMime(sentMessage());
+
+        assertThat(mime).contains("Content-Type: multipart/related");
+        assertThat(mime).contains("Content-Disposition: inline");
+        assertThat(mime).contains("Content-ID: <logo>");
+        assertThat(mime).doesNotContain("filename=");
+        assertThat(mime).contains("From: Manada Solidaria <");
+    }
+
+    @Test
     @DisplayName("El codigo se persiste hasheado, nunca en texto plano")
     void codeIsStoredHashed() throws Exception {
         requestRecovery(REGISTERED_EMAIL);
@@ -134,19 +154,6 @@ class PasswordRecoveryControllerTest extends BaseIntegrationTest {
         }
 
         assertThat(currentRecovery().getAttempts()).isEqualTo(5);
-        verifyCode(REGISTERED_EMAIL, code).andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @DisplayName("Un codigo vencido no permite continuar")
-    void expiredCodeIsRejected() throws Exception {
-        String code = "654321";
-        passwordRecoveryRepository.save(new PasswordRecovery(
-                registeredUser(),
-                passwordEncoder.encode(code),
-                LocalDateTime.now().minusMinutes(1)
-        ));
-
         verifyCode(REGISTERED_EMAIL, code).andExpect(status().isBadRequest());
     }
 
@@ -206,9 +213,29 @@ class PasswordRecoveryControllerTest extends BaseIntegrationTest {
     }
 
     private String sentCode() {
+        return extractCode(sentMessage());
+    }
+
+    private MimeMessage sentMessage() {
         ArgumentCaptor<MimeMessage> captor = ArgumentCaptor.forClass(MimeMessage.class);
         verify(mailSender, atLeastOnce()).send(captor.capture());
-        return extractCode(captor.getValue());
+        return captor.getValue();
+    }
+
+    private static String rawMime(MimeMessage message) throws Exception {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        message.writeTo(output);
+        return output.toString(StandardCharsets.UTF_8);
+    }
+
+    private String seedExpiredRecovery() {
+        String code = "654321";
+        passwordRecoveryRepository.save(new PasswordRecovery(
+                registeredUser(),
+                passwordEncoder.encode(code),
+                LocalDateTime.now().minusMinutes(1)
+        ));
+        return code;
     }
 
     private PasswordRecovery currentRecovery() {

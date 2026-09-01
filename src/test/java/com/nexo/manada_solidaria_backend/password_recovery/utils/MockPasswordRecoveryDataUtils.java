@@ -104,9 +104,16 @@ public class MockPasswordRecoveryDataUtils {
 
     private static Stream<Arguments> provideVerifyFailureCases() {
         return Stream.of(
-                Arguments.of("Sin una solicitud vigente", REGISTERED_EMAIL, false),
-                Arguments.of("Con un codigo incorrecto", REGISTERED_EMAIL, true),
-                Arguments.of("Con un email sin usuario", UNREGISTERED_EMAIL, false)
+                Arguments.of("Sin una solicitud vigente", REGISTERED_EMAIL, RecoverySetup.NONE),
+                Arguments.of("Con un codigo incorrecto", REGISTERED_EMAIL, RecoverySetup.WRONG_CODE),
+                Arguments.of("Con un codigo vencido", REGISTERED_EMAIL, RecoverySetup.EXPIRED_CODE),
+                Arguments.of("Con un email sin usuario", UNREGISTERED_EMAIL, RecoverySetup.NONE)
         );
+    }
+
+    public enum RecoverySetup {
+        NONE,
+        WRONG_CODE,
+        EXPIRED_CODE
     }
 }

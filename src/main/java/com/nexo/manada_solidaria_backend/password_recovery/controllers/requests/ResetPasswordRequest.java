@@ -5,7 +5,7 @@ import com.nexo.manada_solidaria_backend.common.controllers.validations.Password
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-@PasswordMatches(field = "newPasswordVerification")
+@PasswordMatches
 public record ResetPasswordRequest(
         @NotBlank(message = "Debe ingresar el token de recuperación")
         String resetToken,
