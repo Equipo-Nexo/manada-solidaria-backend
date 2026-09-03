@@ -28,8 +28,10 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HexFormat;
-import java.util.List;
+import java.util.Optional;
 
+import static com.nexo.manada_solidaria_backend.password_recovery.data.enums.PasswordRecoveryStatus.ACTIVE;
+import static com.nexo.manada_solidaria_backend.password_recovery.data.enums.PasswordRecoveryStatus.OPEN;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 @Service
@@ -58,12 +60,12 @@ public class PasswordRecoveryServiceImpl implements PasswordRecoveryService {
     @Override
     @Transactional(noRollbackFor = ResponseStatusException.class)
     public RecoveryTokenResponse verifyCode(VerifyRecoveryCodeRequest request) {
-        PasswordRecovery recovery = userService.findByEmail(request.email())
-                .flatMap(passwordRecoveryRepository::findFirstByUserAndUsedAtIsNullOrderByCreatedAtDesc)
+        PasswordRecovery recovery = passwordRecoveryRepository
+                .findByUserProfileEmailAndStatus(request.email(), ACTIVE)
                 .filter(this::isCodeUsable)
                 .orElseThrow(() -> new ResponseStatusException(BAD_REQUEST, INVALID_CODE_MESSAGE));
 
-        if (!passwordEncoder.matches(request.code(), recovery.getCodeHash())) {
+        if (!passwordEncoder.matches(request.code(), recovery.getVerificationCode())) {
             recovery.registerFailedAttempt();
             log.info("Invalid password recovery code: user={}", recovery.getUser().getId());
             throw new ResponseStatusException(BAD_REQUEST, INVALID_CODE_MESSAGE);
@@ -81,7 +83,7 @@ public class PasswordRecoveryServiceImpl implements PasswordRecoveryService {
     @Override
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
-        PasswordRecovery recovery = passwordRecoveryRepository.findByResetTokenHash(hash(request.resetToken()))
+        PasswordRecovery recovery = passwordRecoveryRepository.findByResetToken(hash(request.resetToken()))
                 .filter(this::isResetTokenUsable)
                 .orElseThrow(() -> new ResponseStatusException(BAD_REQUEST, INVALID_TOKEN_MESSAGE));
 
@@ -91,13 +93,13 @@ public class PasswordRecoveryServiceImpl implements PasswordRecoveryService {
     }
 
     private void startRecovery(User user) {
-        List<PasswordRecovery> activeRecoveries = passwordRecoveryRepository.findByUserAndUsedAtIsNull(user);
-        if (isWithinResendCooldown(activeRecoveries)) {
+        Optional<PasswordRecovery> open = passwordRecoveryRepository.findByUserAndStatusIn(user, OPEN);
+        if (open.filter(this::isWithinResendCooldown).isPresent()) {
             log.info("Password recovery request ignored, resend cooldown is active: user={}", user.getId());
             return;
         }
 
-        activeRecoveries.forEach(PasswordRecovery::markUsed);
+        open.ifPresent(this::revokeAndFlush);
         String code = generateCode();
         passwordRecoveryRepository.save(new PasswordRecovery(
                 user,
@@ -105,6 +107,11 @@ public class PasswordRecoveryServiceImpl implements PasswordRecoveryService {
                 LocalDateTime.now().plusMinutes(properties.getCodeExpiration())
         ));
         sendRecoveryCode(user, code);
+    }
+
+    private void revokeAndFlush(PasswordRecovery recovery) {
+        recovery.revoke();
+        passwordRecoveryRepository.flush();
     }
 
     private void sendRecoveryCode(User user, String code) {
@@ -116,20 +123,17 @@ public class PasswordRecoveryServiceImpl implements PasswordRecoveryService {
         }
     }
 
-    private boolean isWithinResendCooldown(List<PasswordRecovery> activeRecoveries) {
-        LocalDateTime cooldownStart = LocalDateTime.now().minusSeconds(properties.getResendCooldown());
-        return activeRecoveries.stream()
-                .anyMatch(recovery -> recovery.getCreatedAt().isAfter(cooldownStart));
+    private boolean isWithinResendCooldown(PasswordRecovery recovery) {
+        return recovery.getCreatedAt()
+                .isAfter(LocalDateTime.now().minusSeconds(properties.getResendCooldown()));
     }
 
     private boolean isCodeUsable(PasswordRecovery recovery) {
-        return !recovery.isVerified()
-                && !recovery.isCodeExpired()
-                && recovery.getAttempts() < properties.getMaxAttempts();
+        return !recovery.isCodeExpired() && recovery.getAttempts() < properties.getMaxAttempts();
     }
 
     private boolean isResetTokenUsable(PasswordRecovery recovery) {
-        return !recovery.isUsed() && !recovery.isResetTokenExpired();
+        return recovery.isVerified() && !recovery.isResetTokenExpired();
     }
 
     private static String generateCode() {

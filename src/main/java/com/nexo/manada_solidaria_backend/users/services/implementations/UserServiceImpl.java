@@ -54,7 +54,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Optional<User> findByEmail(String email) {
-        return userRepository.findFirstByProfileEmail(email);
+        return userRepository.findByProfileEmail(email);
     }
 
     @Override
@@ -69,8 +69,8 @@ public class UserServiceImpl implements UserService {
             User created = userRepository.saveAndFlush(buildUser(createUserRequest));
             log.info("User created: id={} username={}", created.getId(), created.getUsername());
         } catch (DataIntegrityViolationException e) {
-            log.error("Username already exists", e);
-            throw new ResponseStatusException(BAD_REQUEST, "El nombre de usuario ya existe");
+            log.error("Username or email already exists", e);
+            throw new ResponseStatusException(BAD_REQUEST, "El nombre de usuario o el correo electrónico ya están en uso");
         } catch (Exception e) {
             log.error("Error creating user", e);
             throw new ResponseStatusException(INTERNAL_SERVER_ERROR, "Error creando el usuario");

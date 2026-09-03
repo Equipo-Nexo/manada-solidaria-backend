@@ -35,6 +35,7 @@ import static com.nexo.manada_solidaria_backend.password_recovery.utils.MockPass
 import static com.nexo.manada_solidaria_backend.password_recovery.utils.MockPasswordRecoveryDataUtils.UNREGISTERED_EMAIL;
 import static com.nexo.manada_solidaria_backend.password_recovery.utils.MockPasswordRecoveryDataUtils.extractCode;
 import static com.nexo.manada_solidaria_backend.password_recovery.utils.MockPasswordRecoveryDataUtils.newMimeMessage;
+import static com.nexo.manada_solidaria_backend.password_recovery.data.enums.PasswordRecoveryStatus.USED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -103,6 +104,10 @@ class PasswordRecoveryControllerTest extends BaseIntegrationTest {
 
         resetPassword(resetToken, NEW_PASSWORD).andExpect(status().isNoContent());
 
+        PasswordRecovery used = onlyRecovery();
+        assertThat(used.getStatus()).isEqualTo(USED);
+        assertThat(used.getUsedAt()).isNotNull();
+
         mockMvc.perform(post("/auth/login").header("Authorization", getCredentials("admin", NEW_PASSWORD)))
                 .andExpect(status().isOk());
     }
@@ -134,10 +139,10 @@ class PasswordRecoveryControllerTest extends BaseIntegrationTest {
         requestRecovery(REGISTERED_EMAIL);
         String code = sentCode();
 
-        PasswordRecovery recovery = currentRecovery();
+        PasswordRecovery recovery = onlyRecovery();
 
-        assertThat(recovery.getCodeHash()).isNotEqualTo(code);
-        assertThat(passwordEncoder.matches(code, recovery.getCodeHash())).isTrue();
+        assertThat(recovery.getVerificationCode()).isNotEqualTo(code);
+        assertThat(passwordEncoder.matches(code, recovery.getVerificationCode())).isTrue();
     }
 
     @Test
@@ -152,7 +157,7 @@ class PasswordRecoveryControllerTest extends BaseIntegrationTest {
             verifyCode(REGISTERED_EMAIL, wrongCode).andExpect(status().isBadRequest());
         }
 
-        assertThat(currentRecovery().getAttempts()).isEqualTo(5);
+        assertThat(onlyRecovery().getAttempts()).isEqualTo(5);
         verifyCode(REGISTERED_EMAIL, code).andExpect(status().isBadRequest());
     }
 
@@ -237,14 +242,12 @@ class PasswordRecoveryControllerTest extends BaseIntegrationTest {
         return code;
     }
 
-    private PasswordRecovery currentRecovery() {
-        return passwordRecoveryRepository
-                .findFirstByUserAndUsedAtIsNullOrderByCreatedAtDesc(registeredUser())
-                .orElseThrow();
+    private PasswordRecovery onlyRecovery() {
+        return passwordRecoveryRepository.findAll().getFirst();
     }
 
     private User registeredUser() {
-        return userRepository.findFirstByProfileEmail(REGISTERED_EMAIL).orElseThrow();
+        return userRepository.findByProfileEmail(REGISTERED_EMAIL).orElseThrow();
     }
 
     private static String anyCodeOtherThan(String code) {
