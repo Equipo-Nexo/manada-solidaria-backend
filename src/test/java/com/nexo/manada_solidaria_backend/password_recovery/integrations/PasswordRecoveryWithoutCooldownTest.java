@@ -18,6 +18,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
@@ -37,9 +39,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Sql(
         scripts = {"/sql/data-setup.sql", "/sql/users/user-profile-data.sql"},
+        statements = "DELETE FROM password_recovery",
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
 )
 @TestPropertySource(properties = "security.password-recovery.resend-cooldown=0")
+@Transactional(propagation = Propagation.NOT_SUPPORTED)
 class PasswordRecoveryWithoutCooldownTest extends BaseIntegrationTest {
 
     @MockitoBean
@@ -65,6 +69,7 @@ class PasswordRecoveryWithoutCooldownTest extends BaseIntegrationTest {
                 .min(Comparator.comparing(PasswordRecovery::getCreatedAt))
                 .orElseThrow();
         assertThat(previous.getStatus()).isEqualTo(REVOKED);
+        assertThat(previous.getRevokedAt()).isNotNull();
         assertThat(previous.getUsedAt()).isNull();
 
         verifyCode(codes.getFirst()).andExpect(status().isBadRequest());

@@ -37,6 +37,7 @@ public class PasswordRecovery {
     private String resetToken;
     private LocalDateTime resetTokenExpiresAt;
     private LocalDateTime usedAt;
+    private LocalDateTime revokedAt;
 
     public PasswordRecovery(User user, String verificationCode, LocalDateTime expiresAt) {
         this.user = user;
@@ -62,6 +63,7 @@ public class PasswordRecovery {
 
     public void revoke() {
         this.status = PasswordRecoveryStatus.REVOKED;
+        this.revokedAt = LocalDateTime.now();
     }
 
     public void markVerified(String resetToken, LocalDateTime resetTokenExpiresAt) {

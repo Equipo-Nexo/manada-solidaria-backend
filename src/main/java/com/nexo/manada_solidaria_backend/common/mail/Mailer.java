@@ -6,13 +6,15 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.util.ByteArrayDataSource;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.mail.autoconfigure.MailProperties;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.mail.MailException;
 import org.springframework.mail.MailParseException;
 import org.springframework.mail.MailPreparationException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.stereotype.Component;
+import org.springframework.scheduling.annotation.Async;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -22,8 +24,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Component
-public class Mailer {
+@Slf4j
+public abstract class Mailer<INFORMATION> {
 
     private static final String SENDER_NAME = "Manada Solidaria";
     private static final String TEMPLATES_PATH = "mail/";
@@ -40,39 +42,55 @@ public class Mailer {
     private final DataSource logo;
     private final Map<String, String> templates = new ConcurrentHashMap<>();
 
-    public Mailer(JavaMailSender javaMailSender, @Value("${spring.mail.username}") String sender) {
+    protected Mailer(JavaMailSender javaMailSender, MailProperties mailProperties) {
         this.javaMailSender = javaMailSender;
-        this.sender = sender;
+        this.sender = mailProperties.getUsername();
         this.logo = new ByteArrayDataSource(read(LOGO_PATH), LOGO_CONTENT_TYPE);
     }
 
-    public void send(MailMessage message) {
+    protected abstract String subject();
+
+    protected abstract String template();
+
+    protected abstract Map<String, String> variables(INFORMATION information);
+
+    @Async
+    public void send(String to, INFORMATION information) {
+        try {
+            javaMailSender.send(build(to, information));
+            log.info("Mail sent: template={}, to={}", template(), to);
+        } catch (MailException exception) {
+            log.error("Error sending mail: template={}, to={}", template(), to, exception);
+        }
+    }
+
+    private MimeMessage build(String to, INFORMATION information) {
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         try {
             MimeMessageHelper helper = new MimeMessageHelper(
                     mimeMessage, MimeMessageHelper.MULTIPART_MODE_RELATED, StandardCharsets.UTF_8.name()
             );
             helper.setFrom(sender, SENDER_NAME);
-            helper.setTo(message.to());
-            helper.setSubject(message.subject());
-            helper.setText(render(message, TEXT_EXTENSION), render(message, HTML_EXTENSION));
+            helper.setTo(to);
+            helper.setSubject(subject());
+            helper.setText(render(information, TEXT_EXTENSION), render(information, HTML_EXTENSION));
             helper.getMimeMultipart().addBodyPart(buildLogoPart());
         } catch (MessagingException | UnsupportedEncodingException exception) {
             throw new MailParseException(exception);
         }
-        javaMailSender.send(mimeMessage);
+        return mimeMessage;
     }
 
-    private String render(MailMessage message, String extension) {
-        String content = template(message.template() + extension);
-        for (Map.Entry<String, String> variable : message.variables().entrySet()) {
+    private String render(INFORMATION information, String extension) {
+        String content = template(template() + extension);
+        for (Map.Entry<String, String> variable : variables(information).entrySet()) {
             content = content.replace("{{" + variable.getKey() + "}}", variable.getValue());
         }
 
         Matcher pending = PENDING_VARIABLE.matcher(content);
         if (pending.find()) {
             throw new MailPreparationException(
-                    "Falta la variable " + pending.group(1) + " en la plantilla " + message.template()
+                    "Falta la variable " + pending.group(1) + " en la plantilla " + template()
             );
         }
         return content;

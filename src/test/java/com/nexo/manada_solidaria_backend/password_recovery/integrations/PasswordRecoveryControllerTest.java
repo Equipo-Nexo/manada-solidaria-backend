@@ -35,6 +35,7 @@ import static com.nexo.manada_solidaria_backend.password_recovery.utils.MockPass
 import static com.nexo.manada_solidaria_backend.password_recovery.utils.MockPasswordRecoveryDataUtils.UNREGISTERED_EMAIL;
 import static com.nexo.manada_solidaria_backend.password_recovery.utils.MockPasswordRecoveryDataUtils.extractCode;
 import static com.nexo.manada_solidaria_backend.password_recovery.utils.MockPasswordRecoveryDataUtils.newMimeMessage;
+import static com.nexo.manada_solidaria_backend.password_recovery.data.enums.PasswordRecoveryStatus.REVOKED;
 import static com.nexo.manada_solidaria_backend.password_recovery.data.enums.PasswordRecoveryStatus.USED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -51,6 +52,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         statements = "DELETE FROM password_recovery",
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
 )
+@Transactional(propagation = Propagation.NOT_SUPPORTED)
 class PasswordRecoveryControllerTest extends BaseIntegrationTest {
 
     private static final String MOCK_DATA =
@@ -106,7 +108,9 @@ class PasswordRecoveryControllerTest extends BaseIntegrationTest {
 
         PasswordRecovery used = onlyRecovery();
         assertThat(used.getStatus()).isEqualTo(USED);
+        assertThat(used.getVerifiedAt()).isNotNull();
         assertThat(used.getUsedAt()).isNotNull();
+        assertThat(used.getRevokedAt()).isNull();
 
         mockMvc.perform(post("/auth/login").header("Authorization", getCredentials("admin", NEW_PASSWORD)))
                 .andExpect(status().isOk());
@@ -146,7 +150,6 @@ class PasswordRecoveryControllerTest extends BaseIntegrationTest {
     }
 
     @Test
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     @DisplayName("Agotados los intentos, el codigo correcto tampoco sirve")
     void exhaustedAttemptsRejectEvenTheCorrectCode() throws Exception {
         requestRecovery(REGISTERED_EMAIL);
@@ -157,7 +160,12 @@ class PasswordRecoveryControllerTest extends BaseIntegrationTest {
             verifyCode(REGISTERED_EMAIL, wrongCode).andExpect(status().isBadRequest());
         }
 
-        assertThat(onlyRecovery().getAttempts()).isEqualTo(5);
+        PasswordRecovery exhausted = onlyRecovery();
+        assertThat(exhausted.getAttempts()).isEqualTo(5);
+        assertThat(exhausted.getStatus()).isEqualTo(REVOKED);
+        assertThat(exhausted.getRevokedAt()).isNotNull();
+        assertThat(exhausted.getUsedAt()).isNull();
+
         verifyCode(REGISTERED_EMAIL, code).andExpect(status().isBadRequest());
     }
 
