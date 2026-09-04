@@ -38,3 +38,7 @@ clients:
         paths:
           geocode-autocomplete: ${clients.rest.apis.geoapify.host}/v1/geocode/autocomplete
           geocode-reverse: ${clients.rest.apis.geoapify.host}/v1/geocode/reverse?apiKey={apiKey}&lat={latitude}&lon={longitude}
+      holidays:
+        host: http://localhost:18080
+        paths:
+          by-year: ${clients.rest.apis.holidays.host}/v1/feriados/{year}
