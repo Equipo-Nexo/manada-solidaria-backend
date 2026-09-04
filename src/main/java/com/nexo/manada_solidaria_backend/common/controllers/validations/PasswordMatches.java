@@ -1,6 +1,5 @@
-package com.nexo.manada_solidaria_backend.auth.validations.annotations;
+package com.nexo.manada_solidaria_backend.common.controllers.validations;
 
-import com.nexo.manada_solidaria_backend.auth.validations.validators.PasswordMatchesValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
