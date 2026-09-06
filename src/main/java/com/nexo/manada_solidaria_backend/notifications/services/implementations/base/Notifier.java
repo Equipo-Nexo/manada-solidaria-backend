@@ -10,21 +10,20 @@ import com.nexo.manada_solidaria_backend.notifications.services.interfaces.base.
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import com.nexo.manada_solidaria_backend.users.services.interfaces.UserService;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.List;
+import org.springframework.scheduling.annotation.Async;
 
 /**
  * Abstract implementation of the NotificationService interface.
  * This class provides a base implementation for notifying users with notifications.
  */
 @Slf4j
-public abstract class NotificationServiceImpl implements NotificationService {
+public abstract class Notifier implements NotificationService {
 
     private final NotificationDeliveryRepository notificationDeliveryRepository;
     private final NotificationRepository notificationRepository;
     private final UserService userService;
 
-    protected NotificationServiceImpl(
+    protected Notifier(
             NotificationRepository notificationRepository,
             NotificationDeliveryRepository notificationDeliveryRepository,
             UserService userService
@@ -35,12 +34,12 @@ public abstract class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @Async("notificationExecutor")
     public void notify(Notification notification) {
         log.info("Sending notification {}", notification);
         notificationRepository.save(notification);
-
-        List<User> usersToNotify = userService.findAll();
-        usersToNotify
+        userService
+                .findAll()
                 .forEach(user -> {
                     try {
                         log.debug("Sending notification {} to user {}", notification.getTitle(), user.getId());

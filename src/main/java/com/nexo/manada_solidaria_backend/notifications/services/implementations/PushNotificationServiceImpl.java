@@ -9,7 +9,7 @@ import com.nexo.manada_solidaria_backend.notifications.models.data.PushSubscript
 import com.nexo.manada_solidaria_backend.notifications.models.repositories.NotificationDeliveryRepository;
 import com.nexo.manada_solidaria_backend.notifications.models.repositories.NotificationRepository;
 import com.nexo.manada_solidaria_backend.notifications.models.repositories.PushSuscriptionRepository;
-import com.nexo.manada_solidaria_backend.notifications.services.implementations.base.NotificationServiceImpl;
+import com.nexo.manada_solidaria_backend.notifications.services.implementations.base.Notifier;
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.PushNotificationService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import com.nexo.manada_solidaria_backend.users.services.interfaces.UserService;
@@ -31,7 +31,7 @@ import java.util.concurrent.ExecutionException;
 
 @Service
 @Slf4j
-public class PushNotificationServiceImpl extends NotificationServiceImpl implements PushNotificationService {
+public class PushNotificationServiceImpl extends Notifier implements PushNotificationService {
 
     private final PushService pushService;
     private final PushSuscriptionRepository pushSuscriptionRepository;
