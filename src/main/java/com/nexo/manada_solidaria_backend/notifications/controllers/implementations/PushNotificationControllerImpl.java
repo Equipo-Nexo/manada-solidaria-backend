@@ -4,7 +4,6 @@ import com.nexo.manada_solidaria_backend.notifications.controllers.interfaces.Pu
 import com.nexo.manada_solidaria_backend.notifications.controllers.requests.PushNotificationSubscriptionRequest;
 import com.nexo.manada_solidaria_backend.notifications.controllers.requests.PushNotificationUnsuscribeRequest;
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.PushNotificationService;
-import com.nexo.manada_solidaria_backend.notifications.services.interfaces.base.NotificationService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,8 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class PushNotificationControllerImpl implements PushNotificationController {
 
     private final PushNotificationService pushNotificationService;
-    private final NotificationService notificationService;
-
 
     @Override
     public void suscribe(User user, PushNotificationSubscriptionRequest request) {
