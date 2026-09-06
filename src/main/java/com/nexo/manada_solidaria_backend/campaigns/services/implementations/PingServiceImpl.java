@@ -23,6 +23,5 @@ public class PingServiceImpl implements PingService {
                 NotificationType.NEW_DONATION_CAMPAIGN
         ));
         return "pong";
-
     }
 }
