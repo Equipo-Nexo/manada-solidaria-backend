@@ -7,6 +7,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -14,6 +15,7 @@ import java.util.UUID;
 @Entity
 @Getter
 @NoArgsConstructor
+@ToString
 public class Notification {
     private String title;
     private String message;
