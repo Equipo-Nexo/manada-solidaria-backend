@@ -3,12 +3,16 @@ package com.nexo.manada_solidaria_backend.notifications.services.implementations
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nexo.manada_solidaria_backend.notifications.controllers.requests.PushNotificationSubscriptionRequest;
 import com.nexo.manada_solidaria_backend.notifications.controllers.requests.PushNotificationUnsuscribeRequest;
+import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationChannel;
 import com.nexo.manada_solidaria_backend.notifications.models.data.PushNotification;
 import com.nexo.manada_solidaria_backend.notifications.models.data.PushSubscription;
+import com.nexo.manada_solidaria_backend.notifications.models.repositories.NotificationDeliveryRepository;
+import com.nexo.manada_solidaria_backend.notifications.models.repositories.NotificationRepository;
 import com.nexo.manada_solidaria_backend.notifications.models.repositories.PushSuscriptionRepository;
+import com.nexo.manada_solidaria_backend.notifications.services.implementations.base.NotificationServiceImpl;
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.PushNotificationService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
-import lombok.AllArgsConstructor;
+import com.nexo.manada_solidaria_backend.users.services.interfaces.UserService;
 import lombok.extern.slf4j.Slf4j;
 import nl.martijndwars.webpush.Notification;
 import nl.martijndwars.webpush.PushService;
@@ -22,13 +26,26 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 @Service
-@AllArgsConstructor
 @Slf4j
-public class PushNotificationServiceImpl implements PushNotificationService {
+public class PushNotificationServiceImpl extends NotificationServiceImpl implements PushNotificationService {
 
     private final PushService pushService;
     private final PushSuscriptionRepository pushSuscriptionRepository;
     private final ObjectMapper objectMapper;
+
+    public PushNotificationServiceImpl(
+            NotificationRepository notificationRepository,
+            NotificationDeliveryRepository notificationDeliveryRepository,
+            PushService pushService,
+            PushSuscriptionRepository pushSuscriptionRepository,
+            ObjectMapper objectMapper,
+            UserService userService
+    ) {
+        super(notificationRepository, notificationDeliveryRepository, userService);
+        this.pushService = pushService;
+        this.pushSuscriptionRepository = pushSuscriptionRepository;
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public void suscribe(User user, PushNotificationSubscriptionRequest request) {
@@ -57,13 +74,22 @@ public class PushNotificationServiceImpl implements PushNotificationService {
         );
     }
 
-    @Override
-    public void notify(User user, PushNotification pushNotification) {
+    public void sendNotification(User user, com.nexo.manada_solidaria_backend.notifications.models.data.Notification notification) {
         List<PushSubscription> subscriptions = pushSuscriptionRepository.findAllByUser(user);
         log.debug("Sending notification to user {}", user.getId());
         subscriptions.forEach(subscription ->
-                send(subscription, pushNotification)
+                send(subscription, new PushNotification(
+                        notification.getTitle(),
+                        notification.getMessage(),
+                        notification.getIcon(),
+                        notification.getRedirectTo()
+                ))
         );
+    }
+
+    @Override
+    public NotificationChannel getNotificationChannel() {
+        return NotificationChannel.PUSH;
     }
 
     private void send(

@@ -25,10 +25,4 @@ public interface PushNotificationController {
             @AuthenticationPrincipal User user,
             @RequestBody @Valid PushNotificationUnsuscribeRequest request
     );
-
-    @PostMapping("/test")
-    @ResponseStatus(NO_CONTENT)
-    void test(
-            @AuthenticationPrincipal User user
-    );
 }
