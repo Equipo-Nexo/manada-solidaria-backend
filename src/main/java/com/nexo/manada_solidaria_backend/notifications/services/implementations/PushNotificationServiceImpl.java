@@ -17,13 +17,17 @@ import lombok.extern.slf4j.Slf4j;
 import nl.martijndwars.webpush.Notification;
 import nl.martijndwars.webpush.PushService;
 import org.apache.http.HttpResponse;
+import org.jose4j.lang.JoseException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 @Service
 @Slf4j
@@ -77,14 +81,25 @@ public class PushNotificationServiceImpl extends NotificationServiceImpl impleme
     public void sendNotification(User user, com.nexo.manada_solidaria_backend.notifications.models.data.Notification notification) {
         List<PushSubscription> subscriptions = pushSuscriptionRepository.findAllByUser(user);
         log.debug("Sending notification to user {}", user.getId());
-        subscriptions.forEach(subscription ->
+        subscriptions.forEach(subscription -> {
+            try {
                 send(subscription, new PushNotification(
                         notification.getTitle(),
                         notification.getMessage(),
                         notification.getIcon(),
                         notification.getRedirectTo()
-                ))
-        );
+                ));
+                recordNotificationDeliverySuccess(user, notification);
+            } catch (Exception e) {
+                log.error(
+                        "Failed to send push notification to user {}: subscription={}",
+                        user.getId(),
+                        subscription.getId(),
+                        e
+                );
+                recordNotificationDeliveryFailed(user, notification);
+            }
+        });
     }
 
     @Override
@@ -95,32 +110,30 @@ public class PushNotificationServiceImpl extends NotificationServiceImpl impleme
     private void send(
             PushSubscription subscription,
             PushNotification payload
-    ) {
-        try {
-            String json = objectMapper.writeValueAsString(payload);
-            Notification notification = new Notification(
-                    subscription.getEndpoint(),
-                    subscription.getP256dh(),
-                    subscription.getAuth(),
-                    json
-            );
-            HttpResponse response = pushService.send(notification);
+    ) throws IOException, JoseException, GeneralSecurityException, ExecutionException, InterruptedException {
+        String json = objectMapper.writeValueAsString(payload);
+        Notification notification = new Notification(
+                subscription.getEndpoint(),
+                subscription.getP256dh(),
+                subscription.getAuth(),
+                json
+        );
+        HttpResponse response = pushService.send(notification);
+        int statusCode = response.getStatusLine().getStatusCode();
 
-            log.debug("Push notification sent: subscription={}", subscription.getId());
-            log.info(
-                    "Push sent: status={} reason={}",
-                    response.getStatusLine().getStatusCode(),
+        if (!wasSent(statusCode)) {
+            log.error(
+                    "Push notification failed. Status: {}, Reason: {}",
+                    statusCode,
                     response.getStatusLine().getReasonPhrase()
             );
-        } catch (Exception exception) {
-            log.error(
-                    "Failed to send push notification: subscription={}",
-                    subscription.getId(),
-                    exception
-            );
+            throw new IOException("Failed to send push notification. Status: " + statusCode);
         }
     }
 
+    private static boolean wasSent(int statusCode) {
+        return statusCode >= 200 && statusCode < 300;
+    }
 
     private PushSubscription createEmptySubscription() {
         return new PushSubscription();

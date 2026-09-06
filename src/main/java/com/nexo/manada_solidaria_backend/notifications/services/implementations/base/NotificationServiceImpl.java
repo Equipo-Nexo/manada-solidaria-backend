@@ -45,24 +45,33 @@ public abstract class NotificationServiceImpl implements NotificationService {
                     try {
                         log.debug("Sending notification {} to user {}", notification.getTitle(), user.getId());
                         sendNotification(user, notification);
-                        recordNotificationDelivery(user, notification, NotificationStatus.SENT);
                     } catch (Exception e) {
                         log.error("Error sending notification to user {}: {}", user.getId(), e.getMessage());
-                        recordNotificationDelivery(user, notification, NotificationStatus.FAILED);
+                        recordNotificationDeliveryFailed(user, notification);
                     }
                 });
     }
 
-    private void recordNotificationDelivery(
+    protected void recordNotificationDeliverySuccess(
             User user,
-            Notification notification,
-            NotificationStatus notificationStatus
+            Notification notification
     ) {
+        recordNotificationDelivery(user, notification, NotificationStatus.SENT);
+    }
+
+    protected void recordNotificationDeliveryFailed(
+            User user,
+            Notification notification
+    ) {
+        recordNotificationDelivery(user, notification, NotificationStatus.FAILED);
+    }
+
+    private void recordNotificationDelivery(User user, Notification notification, NotificationStatus status) {
         notificationDeliveryRepository.save(new NotificationDelivery(
                 user,
                 notification,
                 getNotificationChannel(),
-                notificationStatus
+                status
         ));
     }
 

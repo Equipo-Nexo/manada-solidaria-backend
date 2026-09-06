@@ -2,6 +2,7 @@ package com.nexo.manada_solidaria_backend.notifications.models.data;
 
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import lombok.Getter;
@@ -18,7 +19,7 @@ public class Notification {
     private String message;
     private String icon;
     private String redirectTo;
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     private NotificationType type;
     private LocalDateTime createdAt = LocalDateTime.now();
     @Id
