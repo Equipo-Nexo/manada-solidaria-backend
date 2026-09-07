@@ -121,6 +121,11 @@ public class UserServiceImpl implements UserService {
         return updated;
     }
 
+    @Override
+    public List<User> findAll() {
+        return userRepository.findAll();
+    }
+
     private static boolean requireAllPosts(String type) {
         return type == null || type.isBlank();
     }

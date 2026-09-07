@@ -38,3 +38,8 @@ clients:
         paths:
           geocode-autocomplete: ${clients.rest.apis.geoapify.host}/v1/geocode/autocomplete
           geocode-reverse: ${clients.rest.apis.geoapify.host}/v1/geocode/reverse?apiKey={apiKey}&lat={latitude}&lon={longitude}
+push:
+  vapid:
+    public-key: VAPID_PUBLIC_KEY
+    private-key: VAPID_PRIVATE_KEY
+    subject: mailto:06nexo@gmail.com
