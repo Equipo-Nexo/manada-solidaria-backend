@@ -112,13 +112,12 @@ public class PushNotificationServiceImpl extends Notifier implements PushNotific
             PushNotification payload
     ) throws IOException, JoseException, GeneralSecurityException, ExecutionException, InterruptedException {
         String json = objectMapper.writeValueAsString(payload);
-        Notification notification = new Notification(
+        HttpResponse response = pushService.send(new Notification(
                 subscription.getEndpoint(),
                 subscription.getP256dh(),
                 subscription.getAuth(),
                 json
-        );
-        HttpResponse response = pushService.send(notification);
+        ));
         int statusCode = response.getStatusLine().getStatusCode();
 
         if (!wasSent(statusCode)) {
