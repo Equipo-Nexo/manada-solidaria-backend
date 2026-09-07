@@ -45,6 +45,13 @@ import java.math.BigDecimal;
         expectedValue = "true",
         message = "El número de teléfono es obligatorio cuando el animal tiene dueño"
 )
+@ConditionalField(
+        field = "needTransport",
+        dependsOn = "type",
+        expectedValue = "ADOPTION",
+        rule = ConditionalField.Rule.ONLY_ALLOWED,
+        message = "El parámetro needTransport solo es necesario cuando el tipo de publicación es ADOPTION"
+)
 public record CreateAnimalPostRequest(
         @NotNull(message = "El tipo de publicación es obligatorio (LOST o ADOPTION)")
         AnimalPostType type,
@@ -64,6 +71,8 @@ public record CreateAnimalPostRequest(
         Boolean hasOwner,
 
         Boolean inTransit,
+
+        Boolean needTransport,
 
         @PositiveOrZero(message = "La recompensa no puede ser negativa")
         BigDecimal reward,

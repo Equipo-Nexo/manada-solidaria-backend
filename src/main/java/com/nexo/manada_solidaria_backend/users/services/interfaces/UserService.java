@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public interface UserService extends UserDetailsService {
@@ -30,7 +31,9 @@ public interface UserService extends UserDetailsService {
 
     ProfileResponse updateProfile(UpdateProfileRequest request, User authenticatedUser);
 
-    List<Rol> updateRoles(UpdateRolesRequest request, User authenticatedUser);
+    Set<Rol> updateRoles(UpdateRolesRequest request, User authenticatedUser);
 
     List<User> findAll();
+
+    List<User> findAllByRole(String role);
 }

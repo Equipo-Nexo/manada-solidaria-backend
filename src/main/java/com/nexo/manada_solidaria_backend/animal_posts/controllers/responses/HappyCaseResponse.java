@@ -5,8 +5,8 @@ import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.Profile;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 public record HappyCaseResponse(
@@ -33,7 +33,7 @@ public record HappyCaseResponse(
 
     public record OwnerResponse(
             String username,
-            List<Rol> roles,
+            Set<Rol> roles,
             String profileImageURL
     ) {
 

@@ -4,12 +4,15 @@ import com.nexo.manada_solidaria_backend.auth.validations.annotations.PasswordMa
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.util.List;
+import java.util.Set;
 
 @Builder
 @AllArgsConstructor
@@ -24,7 +27,7 @@ public class CreateUserRequest {
     private String password;
     @NotBlank(message = "Debe repetir la contraseña")
     private String repeatedPassword;
-    private List<Rol> roles;
+    private Set<Rol> roles;
     @Email
     @NotNull(message = "Debe ingresar un correo electrónico")
     private String email;

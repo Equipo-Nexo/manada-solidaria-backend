@@ -5,18 +5,14 @@ import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -32,12 +28,18 @@ public class Profile {
     private String email;
     @Embedded
     private PhoneNumber phoneNumber;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "profile_roles",
+            joinColumns = @JoinColumn(name = "profile_id")
+    )
+    @Column(name = "role", nullable = false)
     @Enumerated(EnumType.STRING)
-    private List<Rol> roles = new ArrayList<>();
+    private Set<Rol> roles = new HashSet<>();
     @Id
     private UUID id = UUID.randomUUID();
 
-    public Profile(String email, PhoneNumber phoneNumber, List<Rol> roles) {
+    public Profile(String email, PhoneNumber phoneNumber, Set<Rol> roles) {
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.roles = roles;
@@ -56,7 +58,7 @@ public class Profile {
     }
 
     public void updateRoles(UpdateRolesRequest request) {
-        List<Rol> updated = new ArrayList<>(request.toRoles());
+        Set<Rol> updated = new HashSet<>(request.toRoles());
         if (!updated.contains(Rol.RESCUER)) {
             updated.add(Rol.COMMUNITY);
         }

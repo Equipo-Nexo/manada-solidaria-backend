@@ -21,10 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -113,10 +110,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<Rol> updateRoles(UpdateRolesRequest request, User authenticatedUser) {
+    public Set<Rol> updateRoles(UpdateRolesRequest request, User authenticatedUser) {
         authenticatedUser.getProfile().updateRoles(request);
         userRepository.save(authenticatedUser);
-        List<Rol> updated = authenticatedUser.getProfile().getRoles();
+        Set<Rol> updated = authenticatedUser.getProfile().getRoles();
         log.info("Roles updated: user={} roles={}", authenticatedUser.getId(), updated);
         return updated;
     }
@@ -124,6 +121,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> findAll() {
         return userRepository.findAll();
+    }
+
+    @Override
+    public List<User> findAllByRole(String role) {
+        return userRepository.findAllByProfileRolesName(role);
     }
 
     private static boolean requireAllPosts(String type) {
@@ -170,7 +172,7 @@ public class UserServiceImpl implements UserService {
                         createUserRequest.getEmail(),
                         PhoneNumberRequest.toDomain(createUserRequest.getPhoneNumber()),
                         Optional.ofNullable(createUserRequest.getRoles())
-                                .orElse(List.of(Rol.COMMUNITY))
+                                .orElse(Set.of(Rol.COMMUNITY))
 
                 )
         );
