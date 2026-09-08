@@ -46,7 +46,7 @@ class PasswordRecoveryTokenExpirationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("Un token de recuperacion vencido no permite cambiar la contrasena")
+    @DisplayName("Un token de recuperacion vencido no permite cambiar la contraseña")
     void expiredResetTokenIsRejected() throws Exception {
         perform("/password-recovery/request", new RequestRecoveryRequest(REGISTERED_EMAIL));
 
