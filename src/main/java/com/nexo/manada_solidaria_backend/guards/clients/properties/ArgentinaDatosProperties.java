@@ -2,8 +2,8 @@ package com.nexo.manada_solidaria_backend.guards.clients.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(prefix = "clients.rest.apis.holidays")
-public record HolidaysProperties(
+@ConfigurationProperties(prefix = "clients.rest.apis.argentina-datos")
+public record ArgentinaDatosProperties(
         Paths paths
 ) {
     public record Paths(

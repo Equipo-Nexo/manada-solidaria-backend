@@ -47,7 +47,7 @@ clients:
         paths:
           geocode-autocomplete: ${clients.rest.apis.geoapify.host}/v1/geocode/autocomplete
           geocode-reverse: ${clients.rest.apis.geoapify.host}/v1/geocode/reverse?apiKey={apiKey}&lat={latitude}&lon={longitude}
-      holidays:
+      argentina-datos:
         host: https://api.argentinadatos.com
         paths:
-          by-year: ${clients.rest.apis.holidays.host}/v1/feriados/{year}
+          by-year: ${clients.rest.apis.argentina-datos.host}/v1/feriados/{year}
