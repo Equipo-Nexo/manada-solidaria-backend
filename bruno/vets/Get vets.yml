@@ -1,0 +1,33 @@
+info:
+  name: Get vets
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{MANADA_SOLIDARIA_HOST}}/vets"
+  params:
+    - name: user_latitude
+      value: "-32.409314"
+      type: query
+      disabled: true
+    - name: user_longitude
+      value: "-63.254534"
+      type: query
+      disabled: true
+    - name: search
+      value: bel
+      type: query
+      disabled: true
+    - name: open_only
+      value: "true"
+      type: query
+      disabled: true
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
