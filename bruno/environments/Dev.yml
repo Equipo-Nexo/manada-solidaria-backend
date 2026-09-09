@@ -1,11 +1,7 @@
 name: Dev
 variables:
-  - name: SLOT_APP_HOST
-    value: https://slotapp-backend-dev.duckdns.org
   - name: MANADA_SOLIDARIA_HOST
     value: https://manada-solidaria-backend-dev.duckdns.org
-  - name: EXPIN_HOST
-    value: https://expin-backend-dev.duckdns.org
   - name: access_token
     value: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiIxOGY1ZmI4ZS1lMmY4LTRlNTMtOWNjZS03ZDRhYWM4MTYyZjciLCJleHAiOjE3ODg5MjM2MDksImlhdCI6MTc4ODkyMDAxMCwicm9sZXMiOlsiVFJBTlNJVElPTkFMX0hPTUUiLCJDT01NVU5JVFkiXX0.SkEYK7VSmEM2vNS-lvLvMDUjeduBHMyx4ZQUB-mgoW-3pOoQEe5dEnjsKYHhavca
   - name: refresh_token
