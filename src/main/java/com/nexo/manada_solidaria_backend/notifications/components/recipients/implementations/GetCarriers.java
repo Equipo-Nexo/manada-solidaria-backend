@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.notifications.components.recipients.implementations;
 
 import com.nexo.manada_solidaria_backend.notifications.components.recipients.NotificationRecipient;
+import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import com.nexo.manada_solidaria_backend.users.services.interfaces.UserService;
 import org.springframework.context.annotation.Lazy;
@@ -19,6 +20,6 @@ public class GetCarriers implements NotificationRecipient {
 
     @Override
     public List<User> getRecipients() {
-        return userService.findAllByRole("CARRIER");
+        return userService.findAllByRole(Rol.CARRIAGE);
     }
 }

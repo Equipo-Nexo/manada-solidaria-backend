@@ -124,8 +124,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<User> findAllByRole(String role) {
-        return userRepository.findAllByProfileRolesName(role);
+    public List<User> findAllByRole(Rol role) {
+        return userRepository.findAllByRole(role);
     }
 
     private static boolean requireAllPosts(String type) {
