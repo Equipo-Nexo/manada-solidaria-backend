@@ -24,7 +24,7 @@ public class HolidayCalendar {
         if (current == null || !current.date().equals(date)) {
             current = reload(date);
         }
-        return current.holiday();
+        return current.isHoliday();
     }
 
     private CachedAnswer reload(LocalDate date) {
@@ -47,6 +47,6 @@ public class HolidayCalendar {
                 .anyMatch(date::equals);
     }
 
-    private record CachedAnswer(LocalDate date, boolean holiday) {
+    private record CachedAnswer(LocalDate date, boolean isHoliday) {
     }
 }
