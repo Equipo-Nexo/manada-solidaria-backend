@@ -1,0 +1,8 @@
+name: Prod
+variables:
+  - name: SLOT_APP_HOST
+    value: https://slotapp-backend.duckdns.org
+    description: ""
+  - name: EXPIN_HOST
+    value: https://expin-backend.duckdns.org
+    description: ""
