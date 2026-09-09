@@ -15,6 +15,7 @@ import com.nexo.manada_solidaria_backend.users.services.interfaces.UserService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -126,6 +127,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> findAllByRole(Rol role) {
         return userRepository.findAllByRole(role);
+    }
+
+    @Override
+    public List<User> getUserBySpecifications(Specification<User> userSpecification) {
+        return userRepository.findAll(userSpecification);
     }
 
     private static boolean requireAllPosts(String type) {

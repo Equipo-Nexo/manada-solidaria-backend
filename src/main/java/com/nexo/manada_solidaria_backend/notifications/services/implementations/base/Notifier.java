@@ -1,6 +1,6 @@
 package com.nexo.manada_solidaria_backend.notifications.services.implementations.base;
 
-import com.nexo.manada_solidaria_backend.notifications.components.recipients.NotificationRecipientResolver;
+import com.nexo.manada_solidaria_backend.notifications.components.recipients.NotificationRecipientFactory;
 import com.nexo.manada_solidaria_backend.notifications.models.data.Notification;
 import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationChannel;
 import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationDelivery;
@@ -21,16 +21,16 @@ public abstract class Notifier implements NotificationService {
 
     private final NotificationDeliveryRepository notificationDeliveryRepository;
     private final NotificationRepository notificationRepository;
-    private final NotificationRecipientResolver notificationRecipientResolver;
+    private final NotificationRecipientFactory notificationRecipientFactory;
 
     protected Notifier(
             NotificationRepository notificationRepository,
             NotificationDeliveryRepository notificationDeliveryRepository,
-            NotificationRecipientResolver notificationRecipientResolver
+            NotificationRecipientFactory notificationRecipientFactory
     ) {
         this.notificationRepository = notificationRepository;
         this.notificationDeliveryRepository = notificationDeliveryRepository;
-        this.notificationRecipientResolver = notificationRecipientResolver;
+        this.notificationRecipientFactory = notificationRecipientFactory;
     }
 
     @Override
@@ -38,7 +38,7 @@ public abstract class Notifier implements NotificationService {
     public void notify(Notification notification) {
         log.info("Sending notification {}", notification);
         notificationRepository.save(notification);
-        notificationRecipientResolver
+        notificationRecipientFactory
                 .resolve(notification.getType())
                 .getRecipients()
                 .forEach(user -> {

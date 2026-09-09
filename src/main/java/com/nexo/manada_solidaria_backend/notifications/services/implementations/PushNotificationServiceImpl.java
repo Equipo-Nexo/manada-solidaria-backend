@@ -1,7 +1,7 @@
 package com.nexo.manada_solidaria_backend.notifications.services.implementations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nexo.manada_solidaria_backend.notifications.components.recipients.NotificationRecipientResolver;
+import com.nexo.manada_solidaria_backend.notifications.components.recipients.NotificationRecipientFactory;
 import com.nexo.manada_solidaria_backend.notifications.controllers.requests.PushNotificationSubscriptionRequest;
 import com.nexo.manada_solidaria_backend.notifications.controllers.requests.PushNotificationUnsuscribeRequest;
 import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationChannel;
@@ -43,9 +43,9 @@ public class PushNotificationServiceImpl extends Notifier implements PushNotific
             PushService pushService,
             PushSuscriptionRepository pushSuscriptionRepository,
             ObjectMapper objectMapper,
-            NotificationRecipientResolver notificationRecipientResolver
+            NotificationRecipientFactory notificationRecipientFactory
     ) {
-        super(notificationRepository, notificationDeliveryRepository, notificationRecipientResolver);
+        super(notificationRepository, notificationDeliveryRepository, notificationRecipientFactory);
         this.pushService = pushService;
         this.pushSuscriptionRepository = pushSuscriptionRepository;
         this.objectMapper = objectMapper;

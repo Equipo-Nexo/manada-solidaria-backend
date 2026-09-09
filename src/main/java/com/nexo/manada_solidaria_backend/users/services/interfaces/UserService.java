@@ -6,6 +6,7 @@ import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesR
 import com.nexo.manada_solidaria_backend.users.controllers.responses.*;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
@@ -36,4 +37,6 @@ public interface UserService extends UserDetailsService {
     List<User> findAll();
 
     List<User> findAllByRole(Rol role);
+
+    List<User> getUserBySpecifications(Specification<User> userSpecification);
 }
