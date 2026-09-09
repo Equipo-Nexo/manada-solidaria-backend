@@ -10,7 +10,8 @@ public class WhitelistUtils {
             "/swagger-ui/**",
             "/v3/api-docs/**",
             "/actuator/info",
-            "/auth/signup"
+            "/auth/signup",
+            "/password-recovery/**"
     };
 
     public static String[] BEARER_TOKEN_FILTER_WHITELIST = {
@@ -19,6 +20,7 @@ public class WhitelistUtils {
             "/v3/api-docs/**",
             "/actuator/info",
             "/auth/signup",
-            "/auth/login"
+            "/auth/login",
+            "/password-recovery"
     };
 }
