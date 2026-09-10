@@ -24,25 +24,10 @@ import java.util.Set;
 public class AdoptionPost extends AnimalPost<StatusAdoptionPost, AdoptionPostStatusHistory> {
 
     public static final Set<StatusAdoptionPost> HAPPY_STATUSES = Set.of(StatusAdoptionPost.ADOPTED);
-    @OneToMany(
-            mappedBy = "post",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    private List<AdoptionPostStatusHistory> statusHistory = new ArrayList<>(
-            List.of(new AdoptionPostStatusHistory(StatusAdoptionPost.CREATED, this))
-    );
 
     public AdoptionPost(String name, String description, String imageUrl, String sharePostUrl, PhoneNumber phoneNumber, User owner, Animal animal, Location location, boolean inTransit) {
         super(name, description, imageUrl, sharePostUrl, phoneNumber, owner, animal, location);
         startSearching(inTransit);
-    }
-    private void startSearching(boolean inTransit) {
-        getCurrentStatus().finish();
-        StatusAdoptionPost next = inTransit
-                ? StatusAdoptionPost.SEARCHING_ADOPT
-                : StatusAdoptionPost.SEARCHING_ADOPT_AND_TRANSIT;
-        this.statusHistory.add(new AdoptionPostStatusHistory(next, this));
     }
 
     @Override
@@ -72,5 +57,27 @@ public class AdoptionPost extends AnimalPost<StatusAdoptionPost, AdoptionPostSta
     @Override
     protected void addStatus(StatusAdoptionPost status) {
         this.statusHistory.add(new AdoptionPostStatusHistory(status, this));
+    }
+
+    @OneToMany(
+            mappedBy = "post",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<AdoptionPostStatusHistory> statusHistory = new ArrayList<>(
+            List.of(new AdoptionPostStatusHistory(StatusAdoptionPost.CREATED, this))
+    );
+
+    private void startSearching(boolean inTransit) {
+        getCurrentStatus().finish();
+        StatusAdoptionPost next = inTransit
+                ? StatusAdoptionPost.SEARCHING_ADOPT
+                : StatusAdoptionPost.SEARCHING_ADOPT_AND_TRANSIT;
+        this.statusHistory.add(new AdoptionPostStatusHistory(next, this));
+    }
+
+    public boolean isAdopted() {
+        return getCurrentStatus() != null
+                && getCurrentStatus().getStatus() == StatusAdoptionPost.ADOPTED;
     }
 }
