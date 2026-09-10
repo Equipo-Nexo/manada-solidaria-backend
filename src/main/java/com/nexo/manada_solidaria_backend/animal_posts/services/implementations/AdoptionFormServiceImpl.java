@@ -34,6 +34,8 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
         AdoptionPost post = getAdoptionPostOrThrow(request.adoptionPostId());
 
         validateNotOwner(post, applicant);
+        validateNotAlreadyApplied(post, applicant);
+        validatePostIsActive(post);
 
         AdoptionForm form = buildAdoptionForm(request, applicant, post);
 
@@ -77,5 +79,20 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
                         HttpStatus.NOT_FOUND,
                         "La publicación de adopción no fue encontrada"
                 ));
+    }
+
+    private void validateNotAlreadyApplied(AdoptionPost post, User applicant) {
+        if (adoptionFormRepository.existsByAdoptionPostIdAndApplicantId(post.getId(), applicant.getId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ya has enviado una postulación para esta publicación");
+        }
+    }
+
+    private void validatePostIsActive(AdoptionPost post) {
+        if (post.isAdopted()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "No se pueden enviar formularios a publicaciones cerradas o adoptadas"
+            );
+        }
     }
 }

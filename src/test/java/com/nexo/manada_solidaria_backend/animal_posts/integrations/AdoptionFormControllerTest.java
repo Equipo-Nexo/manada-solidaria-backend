@@ -1,8 +1,11 @@
 package com.nexo.manada_solidaria_backend.animal_posts.integrations;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAdoptionFormRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusAdoptionPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionForm;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPostStatusHistory;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AdoptionFormRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.utils.MockAdoptionFormDataUtils;
@@ -47,6 +50,9 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @Test
     @DisplayName("POST /adoption-forms válido: persiste el formulario, sus preguntas y asocia el usuario autenticado")
     void createForm_persistsFormAndReturnsCreated() throws Exception {
@@ -54,7 +60,8 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
         AdoptionPost post = saveAdoptionPost("Gatito en adopción", postOwner);
         User authenticatedUser = admin();
 
-        String body = MockAdoptionFormDataUtils.buildValidFormRequest(post.getId());
+        CreateAdoptionFormRequest requestDto = MockAdoptionFormDataUtils.createValidRequest(post.getId());
+        String body = objectMapper.writeValueAsString(requestDto);
 
         mockMvc.perform(
                         post("/adoption-forms")
@@ -92,7 +99,8 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
         User ownerAndApplicant = admin(); // El usuario autenticado mediante el accessToken
         AdoptionPost post = saveAdoptionPost("Mi perro en adopción", ownerAndApplicant);
 
-        String body = MockAdoptionFormDataUtils.buildValidFormRequest(post.getId());
+        CreateAdoptionFormRequest requestDto = MockAdoptionFormDataUtils.createValidRequest(post.getId());
+        String body = objectMapper.writeValueAsString(requestDto);
 
         mockMvc.perform(
                         post("/adoption-forms")
@@ -106,7 +114,8 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
     @Test
     @DisplayName("POST /adoption-forms para una publicación inexistente devuelve NOT_FOUND 404")
     void createForm_nonExistentPost_returnsNotFound() throws Exception {
-        String body = MockAdoptionFormDataUtils.buildValidFormRequest(UUID.randomUUID());
+        CreateAdoptionFormRequest requestDto = MockAdoptionFormDataUtils.createValidRequest(UUID.randomUUID());
+        String body = objectMapper.writeValueAsString(requestDto);
 
         mockMvc.perform(
                         post("/adoption-forms")
@@ -120,7 +129,9 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
     @DisplayName("POST /adoption-forms — validación de campos obligatorios en la request")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource(MOCK_DATA + "provideCreateFormValidationCases")
-    void createForm_validationCases(String testName, String body, HttpStatus expectedStatus) throws Exception {
+    void createForm_validationCases(String testName, Object requestObj, HttpStatus expectedStatus) throws Exception {
+        String body = objectMapper.writeValueAsString(requestObj);
+
         mockMvc.perform(
                         post("/adoption-forms")
                                 .header("Authorization", "Bearer " + accessToken)
@@ -134,7 +145,8 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource(MOCK_DATA + "provideCreateFormUnauthorizedCases")
     void createForm_unauthorizedCases(String testName, String token) throws Exception {
-        String body = MockAdoptionFormDataUtils.buildValidFormRequest(UUID.randomUUID());
+        CreateAdoptionFormRequest requestDto = MockAdoptionFormDataUtils.createValidRequest(UUID.randomUUID());
+        String body = objectMapper.writeValueAsString(requestDto);
 
         MockHttpServletRequestBuilder request = post("/adoption-forms")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -159,7 +171,7 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
                 new Location("Córdoba", "Av. Siempre Viva", 123, -31.4, -64.1),
                 false
         );
-        post.getStatusHistory().add(new com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPostStatusHistory(StatusAdoptionPost.SEARCHING_ADOPT, post));
+        post.getStatusHistory().add(new AdoptionPostStatusHistory(StatusAdoptionPost.SEARCHING_ADOPT, post));
         return animalPostRepository.save(post);
     }
 

@@ -30,13 +30,19 @@ public class AdoptionForm {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    /**
+     * User who submitted the adoption application.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "applicant_id", nullable = false)
-    private User applicant; // Usuario postulante que envía el formulario
+    private User applicant;
 
+    /**
+     * Adoption post for which the user submitted the application.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "adoption_post_id", nullable = false)
-    private AdoptionPost adoptionPost; // Publicación de adopción a la que aplica
+    private AdoptionPost adoptionPost;
 
     @ElementCollection
     @CollectionTable(

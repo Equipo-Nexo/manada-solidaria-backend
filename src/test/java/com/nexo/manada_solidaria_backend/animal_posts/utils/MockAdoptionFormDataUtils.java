@@ -1,8 +1,12 @@
 package com.nexo.manada_solidaria_backend.animal_posts.utils;
 
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAdoptionFormRequest;
+import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.springframework.http.HttpStatus;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -10,82 +14,72 @@ import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.I
 
 public class MockAdoptionFormDataUtils {
 
-    public static final String ADOPTION_FORM_VALID_TEMPLATE = """
-            {
-              "adoptionPostId": "%s",
-              "phoneNumber": { "areaCode": "353", "number": "4123456" },
-              "questions": [
-                { "question": "¿Alquilás? ¿Te permiten mascotas?", "answer": "Alquilo y sí me permiten." },
-                { "question": "¿Contás con patio cerrado?", "answer": "Sí, totalmente cerrado." }
-              ]
-            }
-            """;
+    public static CreateAdoptionFormRequest createValidRequest(UUID postId) {
+        return new CreateAdoptionFormRequest(
+                postId,
+                new PhoneNumberRequest("353", "4123456"),
+                List.of(
+                        new CreateAdoptionFormRequest.QuestionFormRequest("¿Alquilás? ¿Te permiten mascotas?", "Alquilo y sí me permiten."),
+                        new CreateAdoptionFormRequest.QuestionFormRequest("¿Contás con patio cerrado?", "Sí, totalmente cerrado.")
+                )
+        );
+    }
 
-    private static final String WITHOUT_POST_ID = """
-            {
-              "phoneNumber": { "areaCode": "353", "number": "4123456" },
-              "questions": [
-                { "question": "¿Tenés patio?", "answer": "Sí." }
-              ]
-            }
-            """;
+    public static CreateAdoptionFormRequest createWithoutPostId() {
+        return new CreateAdoptionFormRequest(
+                null,
+                new PhoneNumberRequest("353", "4123456"),
+                List.of(new CreateAdoptionFormRequest.QuestionFormRequest("¿Tenés patio?", "Sí."))
+        );
+    }
 
-    private static final String WITHOUT_PHONE = """
-            {
-              "adoptionPostId": "%s",
-              "questions": [
-                { "question": "¿Tenés patio?", "answer": "Sí." }
-              ]
-            }
-            """;
+    public static CreateAdoptionFormRequest createWithoutPhone(UUID postId) {
+        return new CreateAdoptionFormRequest(
+                postId,
+                null,
+                List.of(new CreateAdoptionFormRequest.QuestionFormRequest("¿Tenés patio?", "Sí."))
+        );
+    }
 
-    private static final String WITHOUT_QUESTIONS = """
-            {
-              "adoptionPostId": "%s",
-              "phoneNumber": { "areaCode": "353", "number": "4123456" },
-              "questions": []
-            }
-            """;
+    public static CreateAdoptionFormRequest createWithoutQuestions(UUID postId) {
+        return new CreateAdoptionFormRequest(
+                postId,
+                new PhoneNumberRequest("353", "4123456"),
+                Collections.emptyList()
+        );
+    }
 
-    private static final String WITH_BLANK_QUESTION = """
-            {
-              "adoptionPostId": "%s",
-              "phoneNumber": { "areaCode": "353", "number": "4123456" },
-              "questions": [
-                { "question": "", "answer": "Respuesta sin pregunta" }
-              ]
-            }
-            """;
+    public static CreateAdoptionFormRequest createWithBlankQuestion(UUID postId) {
+        return new CreateAdoptionFormRequest(
+                postId,
+                new PhoneNumberRequest("353", "4123456"),
+                List.of(new CreateAdoptionFormRequest.QuestionFormRequest("", "Respuesta sin pregunta"))
+        );
+    }
 
-    private static final String WITH_BLANK_ANSWER = """
-            {
-              "adoptionPostId": "%s",
-              "phoneNumber": { "areaCode": "353", "number": "4123456" },
-              "questions": [
-                { "question": "Pregunta válida", "answer": "" }
-              ]
-            }
-            """;
-
-    public static String buildValidFormRequest(UUID postId) {
-        return String.format(ADOPTION_FORM_VALID_TEMPLATE, postId);
+    public static CreateAdoptionFormRequest createWithBlankAnswer(UUID postId) {
+        return new CreateAdoptionFormRequest(
+                postId,
+                new PhoneNumberRequest("353", "4123456"),
+                List.of(new CreateAdoptionFormRequest.QuestionFormRequest("Pregunta válida", ""))
+        );
     }
 
     public static Stream<Arguments> provideCreateFormValidationCases() {
-        UUID validPostId = UUID.randomUUID();
+        UUID postId = UUID.randomUUID();
         return Stream.of(
-                Arguments.of("Sin adoptionPostId devuelve BAD_REQUEST", WITHOUT_POST_ID, HttpStatus.BAD_REQUEST),
-                Arguments.of("Sin teléfono devuelve BAD_REQUEST", String.format(WITHOUT_PHONE, validPostId), HttpStatus.BAD_REQUEST),
-                Arguments.of("Lista de preguntas vacía devuelve BAD_REQUEST", String.format(WITHOUT_QUESTIONS, validPostId), HttpStatus.BAD_REQUEST),
-                Arguments.of("Pregunta vacía devuelve BAD_REQUEST", String.format(WITH_BLANK_QUESTION, validPostId), HttpStatus.BAD_REQUEST),
-                Arguments.of("Respuesta vacía devuelve BAD_REQUEST", String.format(WITH_BLANK_ANSWER, validPostId), HttpStatus.BAD_REQUEST)
+                Arguments.of("Sin id de publicación", createWithoutPostId(), HttpStatus.BAD_REQUEST),
+                Arguments.of("Sin teléfono de contacto", createWithoutPhone(postId), HttpStatus.BAD_REQUEST),
+                Arguments.of("Sin preguntas respondidas", createWithoutQuestions(postId), HttpStatus.BAD_REQUEST),
+                Arguments.of("Pregunta en blanco", createWithBlankQuestion(postId), HttpStatus.BAD_REQUEST),
+                Arguments.of("Respuesta en blanco", createWithBlankAnswer(postId), HttpStatus.BAD_REQUEST)
         );
     }
 
     public static Stream<Arguments> provideCreateFormUnauthorizedCases() {
         return Stream.of(
-                Arguments.of("Sin token de autenticación devuelve 401", null),
-                Arguments.of("Con token inválido devuelve 401", INVALID_ACCESS_TOKEN)
+                Arguments.of("Sin token de autorización", null),
+                Arguments.of("Con token inválido o expirado", INVALID_ACCESS_TOKEN)
         );
     }
 }
