@@ -14,13 +14,21 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.DayOfWeek;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 @Service
 @AllArgsConstructor
 public class VetInformationServiceImpl implements VetInformationService {
+
+    private static final String ZONE_ID = "America/Argentina/Buenos_Aires";
 
     private final VetInformationRepository repository;
 
@@ -33,8 +41,8 @@ public class VetInformationServiceImpl implements VetInformationService {
     }
 
     @Override
-    public List<VetInformationResponse> getAll() {
-        return repository.findAllByOrderByNameAsc()
+    public List<VetInformationResponse> getAll(String query, Boolean openOnly, Double userLat, Double userLng) {
+        return getVets(userLat, userLng, query, openOnly)
                 .stream()
                 .map(VetInformationResponse::new)
                 .toList();
@@ -102,6 +110,27 @@ public class VetInformationServiceImpl implements VetInformationService {
                         HttpStatus.NOT_FOUND,
                         "La veterinaria no existe"
                 ));
+    }
+
+    private List<VetInformation> getVets(
+            Double userLat,
+            Double userLng,
+            String query,
+            Boolean openOnly
+    ) {
+        LocalDateTime now = LocalDateTime.now(ZoneId.of(ZONE_ID));
+        return repository.searchVets(
+                normalizeQuery(query),
+                Boolean.TRUE.equals(openOnly),
+                now.getDayOfWeek(),
+                now.toLocalTime(),
+                userLat,
+                userLng
+        );
+    }
+
+    private static String normalizeQuery(String query) {
+        return (query != null && !query.trim().isEmpty()) ? query.trim() : null;
     }
 
 }
