@@ -6,10 +6,10 @@ import com.nexo.manada_solidaria_backend.users.data.models.User;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
 
 @RequestMapping("/adoption-forms")
 public interface AdoptionFormController {
@@ -18,6 +18,13 @@ public interface AdoptionFormController {
     @ResponseStatus(HttpStatus.CREATED)
     AdoptionFormResponse createForm(
             @Valid @RequestBody CreateAdoptionFormRequest request,
+            @AuthenticationPrincipal User authenticatedUser
+    );
+
+    @GetMapping("/post/{postId}")
+    @ResponseStatus(HttpStatus.OK)
+    List<AdoptionFormResponse> getFormsByPostId(
+            @PathVariable("postId") UUID postId,
             @AuthenticationPrincipal User authenticatedUser
     );
 }

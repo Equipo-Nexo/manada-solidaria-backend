@@ -29,9 +29,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -159,6 +160,57 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
         mockMvc.perform(request).andExpect(status().isUnauthorized());
     }
 
+    @Test
+    @DisplayName("GET /adoption-forms/post/{postId} — El dueño de la publicación obtiene sus formularios exitosamente")
+    void getFormsByPostId_asOwner_returnsOk() throws Exception {
+        User owner = admin();
+        AdoptionPost post = saveAdoptionPost("Mi gato en adopcion", owner);
+
+        mockMvc.perform(
+                        get("/adoption-forms/post/{postId}", post.getId())
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
+    }
+
+    @DisplayName("GET /adoption-forms/post/{postId} — Casos de error (404 Not Found)")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideGetFormsByPostIdErrorCases")
+    void getFormsByPostId_errorCases(String testName, UUID postId, HttpStatus expectedStatus) throws Exception {
+        mockMvc.perform(
+                        get("/adoption-forms/post/{postId}", postId)
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().is(expectedStatus.value()));
+    }
+
+    @Test
+    @DisplayName("GET /adoption-forms/post/{postId} cuando el usuario autenticado NO es el dueño devuelve FORBIDDEN 403")
+    void getFormsByPostId_whenUserIsNotOwner_returnsForbidden() throws Exception {
+        User postOwner = createOtherUser("other-post-owner", "otherowner@mail.com");
+        AdoptionPost postOfOtherUser = saveAdoptionPost("Mascota de otro dueño", postOwner);
+
+        mockMvc.perform(
+                        get("/adoption-forms/post/{postId}", postOfOtherUser.getId())
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isForbidden());
+    }
+
+    @DisplayName("GET /adoption-forms/post/{postId} sin autenticación o con token inválido devuelve UNAUTHORIZED 401")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideGetFormsUnauthorizedCases")
+    void getFormsByPostId_unauthorizedCases(String testName, String token) throws Exception {
+        MockHttpServletRequestBuilder request = get("/adoption-forms/post/{postId}", MockAdoptionFormDataUtils.POST_WITH_FORMS_ID);
+
+        if (token != null) {
+            request = request.header("Authorization", "Bearer " + token);
+        }
+
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
+    }
+
     private AdoptionPost saveAdoptionPost(String name, User owner) {
         AdoptionPost post = new AdoptionPost(
                 name,
@@ -183,4 +235,5 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
     private User admin() {
         return userRepository.findByUsername("admin").orElseThrow();
     }
+
 }
