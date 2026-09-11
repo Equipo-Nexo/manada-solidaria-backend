@@ -7,6 +7,8 @@ import com.nexo.manada_solidaria_backend.vets.controllers.requests.CreateVetInfo
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.CreateVetInformationRequest;
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.UpdateVetInformationRequest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
@@ -144,6 +146,47 @@ public class MockVetInformationDataUtils {
                             )
                     )
             );
+
+    public static Stream<Arguments> provideGetAllVetInformationCases() {
+        return Stream.of(
+                Arguments.of(
+                        "Sin parámetros devuelve todas ordenadas alfabéticamente",
+                        new LinkedMultiValueMap<String, String>(),
+                        3,
+                        List.of("Veterinaria Animalia", "Veterinaria El Sol", "Veterinaria San Roque")
+                ),
+                Arguments.of(
+                        "Filtro por búsqueda por nombre (coincidencia parcial insensible a mayúsculas)",
+                        createParams("query", "Sol"), // Cambiado de 'search' a 'query'
+                        1,
+                        List.of("Veterinaria El Sol")
+                ),
+                Arguments.of(
+                        "Filtro por búsqueda por dirección",
+                        createParams("query", "España"), // Cambiado de 'search' a 'query'
+                        1,
+                        List.of("Veterinaria San Roque")
+                ),
+                Arguments.of(
+                        "Filtro solo abiertas devuelve únicamente las que están operativas",
+                        createParams("open_only", "true"), // Cambiado a snake_case 'open_only'
+                        1,
+                        List.of("Veterinaria Animalia")
+                ),
+                Arguments.of(
+                        "Ordena por la más cercana a las coordenadas del usuario",
+                        createParams("user_latitude", "-32.4050", "user_longitude", "-63.2380"), // Cambiado a snake_case
+                        3,
+                        List.of("Veterinaria San Roque", "Veterinaria El Sol", "Veterinaria Animalia")
+                ),
+                Arguments.of(
+                        "Búsqueda por nombre combinada con ordenamiento por cercanía",
+                        createParams("query", "Veterinaria", "user_latitude", "-32.4070", "user_longitude", "-63.2400"), // Cambiado a 'query' y snake_case
+                        3,
+                        List.of("Veterinaria Animalia", "Veterinaria El Sol", "Veterinaria San Roque")
+                )
+        );
+    }
 
     private static final UpdateVetInformationRequest UPDATE_VET_WITHOUT_NAME =
             new UpdateVetInformationRequest(
@@ -474,5 +517,13 @@ public class MockVetInformationDataUtils {
                         is(2)
                 )
         );
+    }
+
+    private static MultiValueMap<String, String> createParams(String... kvs) {
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        for (int i = 0; i < kvs.length; i += 2) {
+            params.add(kvs[i], kvs[i + 1]);
+        }
+        return params;
     }
 }

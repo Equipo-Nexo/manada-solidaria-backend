@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -20,7 +21,11 @@ public interface UserService extends UserDetailsService {
 
     User getUserById(UUID userId);
 
+    Optional<User> findByEmail(String email);
+
     void createUser(CreateUserRequest createUserRequest);
+
+    void updatePassword(User user, String rawPassword);
 
     UserDetailResponse getUser(UUID userId);
 
@@ -35,8 +40,6 @@ public interface UserService extends UserDetailsService {
     Set<Rol> updateRoles(UpdateRolesRequest request, User authenticatedUser);
 
     List<User> findAll();
-
-    List<User> findAllByRole(Rol role);
 
     List<User> getUserBySpecifications(Specification<User> userSpecification);
 }

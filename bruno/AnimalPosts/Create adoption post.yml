@@ -1,0 +1,87 @@
+info:
+  name: Create adoption post
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{MANADA_SOLIDARIA_HOST}}/animal-posts"
+  headers:
+    - name: Content-Type
+      value: application/json
+    - name: Authorization
+      value: Bearer {{json_web_token_07k9}}
+    - name: Cookie
+      value: JSESSIONID=274D0D8B0A31A834112F58E109833541
+  body:
+    type: json
+    data: |-
+      {
+        "type": "ADOPTION",
+        "name": "Chari",
+        "description": "Se escapó en el parque",
+        "imageId": "cf-image-123",
+        "animal": {
+            "type": "CAT",
+            "size": "MEDIUM",
+            "gender": "FEMALE",
+            "age": "PUPPY"
+        },
+        "location": {
+            "name": "Parque Centenario",
+            "address": "Av. Patricias",
+            "number": 100,
+            "latitude": -34.6,
+            "longitude": -58.4
+        },
+        "phoneNumber": {
+          "areaCode": "0353",
+          "number": "4014524"
+        },
+        "inTransit": true,
+        "needTransport": true
+      }
+  auth:
+    type: bearer
+    token: "{{access_token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true
+
+docs: |-
+  Generated from cURL: curl --location 'http://localhost:8080/animal-post' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI1MWFkZWE2ZC01ZGM1LTQxZmUtYTJhMy0wNTVlZjM2ZmIxZTAiLCJleHAiOjE3ODEwNTU4NDQsImlhdCI6MTc4MTA1MjI0NCwicm9sZXMiOlsiQ09NTVVOSVRZIl19.6XcZETal-dQhxNo6sw0rSUhHQDtfK_0GXtBa8Za9C18' \
+  --header 'Cookie: JSESSIONID=274D0D8B0A31A834112F58E109833541' \
+  --data '{
+      "type": "LOST",
+      "title": "Perdí a mi perro",
+      "description": "Se escapó en el parque",
+      "imageId": "cf-image-123",
+      "hasOwner": true,
+      "animal": {
+          "type": "DOG",
+          "size": "MEDIUM",
+          "gender": "MALE"
+      },
+      "location": {
+          "name": "Parque Centenario",
+          "address": "Av. Patricias",
+          "number": 100,
+          "latitude": -34.6,
+          "longitude": -58.4
+      }
+  }'
+  response:
+  {
+      "status": 401,
+      "errors": [
+          "Hubo un error al autenticar. Intente nuevamente"
+      ],
+      "path": "/error",
+      "timestamp": "09/06/2026"
+  }

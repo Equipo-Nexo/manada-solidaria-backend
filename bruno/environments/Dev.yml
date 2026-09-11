@@ -1,0 +1,8 @@
+name: Dev
+variables:
+  - name: MANADA_SOLIDARIA_HOST
+    value: https://manada-solidaria-backend-dev.duckdns.org
+  - name: access_token
+    value: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJiZTcxZGE5MS0wNjJiLTQ3ZmYtYjM2My02OGVkNTk0NDgxZGYiLCJleHAiOjE3ODkxNzEwMzksImlhdCI6MTc4OTE2NzQzOSwicm9sZXMiOlsiUkVTQ1VFUiIsIkNBUlJJQUdFIl19.NnEUKyKiKF9OFVpDCY7cNL_m0mdmswNg8QHv6AcnlbPVtNgOX--AtiXVgU70FV5g
+  - name: refresh_token
+    value: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJiZTcxZGE5MS0wNjJiLTQ3ZmYtYjM2My02OGVkNTk0NDgxZGYiLCJleHAiOjE3ODkxNzQ2MzksImlhdCI6MTc4OTE2NzQzOX0.D-Ql38quYm84XQs2BC_eZDV5tCYRJwTDDoEJkXRhSiaIojdxH__K_LjXvOMSv-e4

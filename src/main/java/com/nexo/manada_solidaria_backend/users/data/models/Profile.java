@@ -25,6 +25,7 @@ public class Profile {
     private String lastname;
     private String userNotificationURL;
     private String profileImageURL;
+    @Column(unique = true)
     private String email;
     @Embedded
     private PhoneNumber phoneNumber;

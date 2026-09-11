@@ -1,0 +1,39 @@
+info:
+  name: Update animal post status
+  type: http
+  seq: 5
+
+http:
+  method: PATCH
+  url: "{{MANADA_SOLIDARIA_HOST}}/animal-posts/e7e7c957-338b-4c2e-b377-8243be9b641c/status"
+  params:
+    - name: type
+      value: LOST
+      type: query
+      disabled: true
+    - name: type
+      value: INSTREET
+      type: query
+      disabled: true
+    - name: status
+      value: SEARCHING_ADOPT_AND_TRANSIT
+      type: query
+      disabled: true
+    - name: status
+      value: SEARCHING_ADOPT
+      type: query
+      disabled: true
+  body:
+    type: json
+    data: |-
+      {
+          "status": "FOUND"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

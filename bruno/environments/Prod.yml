@@ -1,0 +1,5 @@
+name: Prod
+variables:
+  - name: MANADA_SOLIDARIA_HOST
+    value: https://manada-solidaria-backend.duckdns.org
+    description: ""

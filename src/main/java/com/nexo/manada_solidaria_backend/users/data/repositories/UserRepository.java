@@ -21,4 +21,6 @@ public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificat
         WHERE r = :role
     """)
     List<User> findAllByRole(@Param("role") Rol role);
+
+    Optional<User> findByProfileEmail(String email);
 }
