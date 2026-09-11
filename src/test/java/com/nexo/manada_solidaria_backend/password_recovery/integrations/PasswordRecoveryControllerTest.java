@@ -10,6 +10,7 @@ import com.nexo.manada_solidaria_backend.password_recovery.utils.MockPasswordRec
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import com.nexo.manada_solidaria_backend.users.data.repositories.UserRepository;
 import jakarta.mail.internet.MimeMessage;
+import org.hamcrest.Matcher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -45,6 +46,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Sql(
@@ -75,8 +77,10 @@ class PasswordRecoveryControllerTest extends BaseIntegrationTest {
     @DisplayName("Los pedidos mal formados son rechazados")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource(MOCK_DATA + "provideInvalidRequestCases")
-    void invalidRequestsAreRejected(String testName, String path, Object body) throws Exception {
-        perform(path, body).andExpect(status().isBadRequest());
+    void invalidRequestsAreRejected(String testName, String path, Object body, Matcher<?> expectedError) throws Exception {
+        perform(path, body)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors", expectedError));
     }
 
     @DisplayName("Validar el codigo falla")
