@@ -13,7 +13,6 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
 import com.nexo.manada_solidaria_backend.common.utils.EnumUtils;
-import com.nexo.manada_solidaria_backend.notifications.models.data.Notification;
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -48,13 +47,14 @@ public class AnimalPostServiceImpl implements AnimalPostService {
         );
 
         if (Boolean.TRUE.equals(request.needTransport())) {
-            notificationService.notify(new Notification(
-                    "\uD83D\uDE97 Se necesita ayuda con un traslado.",
-                    "Se busca transporte para trasladar un nuevo animal publicado. ¿Podés ayudar?",
-                    null,
-                    "/animal/detalle/".concat(saved.getId().toString()),
-                    NotificationType.NEW_CARRIAGE_REQUEST
-            ));
+//            notificationService.notify(new Notification(
+//                    "\uD83D\uDE97 Se necesita ayuda con un traslado.",
+//                    "Se busca transporte para trasladar un nuevo animal publicado. ¿Podés ayudar?",
+//                    null,
+//                    "/animal/detalle/".concat(saved.getId().toString()),
+//                    NotificationType.NEW_CARRIAGE_REQUEST
+//            ));
+            notificationService.notify(NotificationType.NEW_CARRIAGE_REQUEST);
         }
         log.info("Animal post created: id={} type={} owner={}", saved.getId(), saved.getType(), owner.getId());
         return AnimalPostResponse.from(saved);

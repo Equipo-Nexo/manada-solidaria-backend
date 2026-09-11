@@ -1,4 +1,4 @@
-package com.nexo.manada_solidaria_backend.notifications.services.interfaces;
+package com.nexo.manada_solidaria_backend.notifications.components.notifiers;
 
 import com.nexo.manada_solidaria_backend.notifications.models.data.Notification;
 import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationChannel;

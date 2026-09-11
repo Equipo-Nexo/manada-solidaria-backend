@@ -4,7 +4,7 @@ import com.nexo.manada_solidaria_backend.notifications.controllers.requests.Push
 import com.nexo.manada_solidaria_backend.notifications.controllers.requests.PushNotificationUnsuscribeRequest;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 
-public interface PushNotificationService extends NotificationResolver {
+public interface PushNotificationService {
     void suscribe(User user, PushNotificationSubscriptionRequest request);
 
     void unsubscribe(User user, PushNotificationUnsuscribeRequest request);

@@ -1,6 +1,5 @@
 package com.nexo.manada_solidaria_backend.notifications.units;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationChannel;
 import com.nexo.manada_solidaria_backend.notifications.models.data.PushSubscription;
 import com.nexo.manada_solidaria_backend.notifications.models.repositories.NotificationDeliveryRepository;
@@ -13,7 +12,6 @@ import nl.martijndwars.webpush.Notification;
 import nl.martijndwars.webpush.PushService;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -45,18 +43,6 @@ class PushNotificationUnitTest {
     private UserService userService;
 
     private PushNotificationServiceImpl service;
-
-    @BeforeEach
-    void setUp() {
-        service = new PushNotificationServiceImpl(
-                notificationRepository,
-                notificationDeliveryRepository,
-                pushService,
-                pushSuscriptionRepository,
-                new ObjectMapper(),
-                userService
-        );
-    }
 
     @Test
     void shouldSendPushNotificationAndRecordDeliveryAsSent() throws Exception {

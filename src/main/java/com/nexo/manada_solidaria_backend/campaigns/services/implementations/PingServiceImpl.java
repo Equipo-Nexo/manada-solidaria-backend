@@ -1,7 +1,6 @@
 package com.nexo.manada_solidaria_backend.campaigns.services.implementations;
 
 import com.nexo.manada_solidaria_backend.campaigns.services.interfaces.PingService;
-import com.nexo.manada_solidaria_backend.notifications.models.data.Notification;
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationService;
 import lombok.AllArgsConstructor;
@@ -15,13 +14,14 @@ public class PingServiceImpl implements PingService {
 
     @Override
     public String ping() {
-        notificationService.notify(new Notification(
-                "Ping",
-                "Pong",
-                null,
-                null,
-                NotificationType.NEW_DONATION_CAMPAIGN
-        ));
+//        notificationService.notify(new Notification(
+//                "Ping",
+//                "Pong",
+//                null,
+//                null,
+//                NotificationType.NEW_DONATION_CAMPAIGN
+//        ));
+        notificationService.notify(NotificationType.NEW_DONATION_CAMPAIGN);
         return "pong";
     }
 }
