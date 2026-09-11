@@ -1,15 +1,14 @@
 package com.nexo.manada_solidaria_backend.notifications.models.data;
 
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -23,6 +22,14 @@ public class Notification {
     private String redirectTo;
     @Enumerated(EnumType.STRING)
     private NotificationType type;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "notification_channels",
+            joinColumns = @JoinColumn(name = "notification_id")
+    )
+    @Column(name = "channel", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Set<NotificationChannel> channels = new HashSet<>();
     private LocalDateTime createdAt = LocalDateTime.now();
     @Id
     private final UUID id = UUID.randomUUID();

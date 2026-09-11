@@ -15,7 +15,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.Animal
 import com.nexo.manada_solidaria_backend.common.utils.EnumUtils;
 import com.nexo.manada_solidaria_backend.notifications.models.data.Notification;
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
-import com.nexo.manada_solidaria_backend.notifications.services.interfaces.base.NotificationService;
+import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
