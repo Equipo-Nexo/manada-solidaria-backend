@@ -14,21 +14,29 @@ import java.util.List;
 @org.springframework.context.annotation.Profile("local | development")
 @Configuration
 public class DatabasePopulate {
+
+    public static final String ADMIN_USERNAME = "admin";
+    public static final String ADMIN_PASSWORD = "Admin123!";
+
     @Bean
     public CommandLineRunner initDatabase(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder
     ) {
         return args -> {
-            if (userRepository.findByUsername("admin").isEmpty()) {
-                User user = new User();
-                user.setUsername("admin");
-                user.setPassword(passwordEncoder.encode("admin"));
-                Profile profile = new Profile();
-                profile.setRoles(List.of(Rol.COMMUNITY));
-                user.setProfile(profile);
-                userRepository.save(user);
-            }
+            User admin = userRepository.findByUsername(ADMIN_USERNAME)
+                    .orElseGet(DatabasePopulate::newAdmin);
+            admin.setPassword(passwordEncoder.encode(ADMIN_PASSWORD));
+            userRepository.save(admin);
         };
+    }
+
+    private static User newAdmin() {
+        User admin = new User();
+        admin.setUsername(ADMIN_USERNAME);
+        Profile profile = new Profile();
+        profile.setRoles(List.of(Rol.COMMUNITY));
+        admin.setProfile(profile);
+        return admin;
     }
 }
