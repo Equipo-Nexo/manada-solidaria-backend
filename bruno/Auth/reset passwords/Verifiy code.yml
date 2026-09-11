@@ -1,0 +1,22 @@
+info:
+  name: Verifiy code
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{MANADA_SOLIDARIA_HOST}}/password-recovery/verify"
+  body:
+    type: json
+    data: |-
+      {
+        "email": "federicosan140200@gmail.com",
+        "code": "050387"
+      }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

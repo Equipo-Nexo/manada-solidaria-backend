@@ -1,0 +1,31 @@
+info:
+  name: Get presigned URL
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{MANADA_SOLIDARIA_HOST}}/images/presigned-url"
+  body:
+    type: json
+    data: "{\r
+
+      \    \"contentType\": \"image/jpg\",\r
+
+      \    \"fileSize\": 85000\r
+
+      }"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: "const response = res.getBody();\r
+
+        bru.setGlobalEnvVar(\"uploadCloudflareUrl\", response.uploadUrl);"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

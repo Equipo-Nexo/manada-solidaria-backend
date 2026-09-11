@@ -1,0 +1,44 @@
+info:
+  name: Create valid donation campaign
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{MANADA_SOLIDARIA_HOST}}/campaigns"
+  body:
+    type: json
+    data: |-
+      {
+        "type": "DONATION",
+        "category": null,
+        "title": "necesitamos donaciones",
+        "description": "jankjdanfda",
+        "imageId": "abc123",
+        "phoneNumber": {
+          "areaCode": "0353",
+          "number": "4014524"
+        },
+        "location": {
+          "name": "villa maria",
+          "address": "",
+          "number": 12,
+          "latitude": 0,
+          "longitude": 0
+        },
+        "items": [
+          {
+            "category": "pepe"
+          }
+        ],
+        "accountAlias": null,
+        "amountToBeCollected": null,
+        "campaignEndDate": "2026-07-25"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
