@@ -15,9 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.DayOfWeek;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +27,6 @@ import java.util.UUID;
 public class VetInformationServiceImpl implements VetInformationService {
 
     private static final String ZONE_ID = "America/Argentina/Buenos_Aires";
-    private static final double EARTH_RADIUS_METERS = 6371000.0;
 
     private final VetInformationRepository repository;
 
@@ -46,15 +43,8 @@ public class VetInformationServiceImpl implements VetInformationService {
     @Override
     public List<VetInformationResponse> getAll(String query, Boolean openOnly, Double userLat, Double userLng) {
         log.debug("Listing vets: query={} openOnly={} lat={} lng={}", query, openOnly, userLat, userLng);
-
-        LocalDateTime now = LocalDateTime.now(ZoneId.of(ZONE_ID));
-        DayOfWeek currentDay = now.getDayOfWeek();
-        LocalTime currentTime = now.toLocalTime();
-        boolean filterOpen = Boolean.TRUE.equals(openOnly);
-        String cleanedQuery = (query != null && !query.trim().isEmpty()) ? query.trim() : null;
-        List<VetInformation> vets = repository.searchVets(cleanedQuery, filterOpen, currentDay, currentTime, userLat, userLng);
-
-        return vets.stream()
+        return getVets(userLat, userLng, query, openOnly)
+                .stream()
                 .map(VetInformationResponse::new)
                 .toList();
     }
@@ -126,6 +116,27 @@ public class VetInformationServiceImpl implements VetInformationService {
                         HttpStatus.NOT_FOUND,
                         "La veterinaria no existe"
                 ));
+    }
+
+    private List<VetInformation> getVets(
+            Double userLat,
+            Double userLng,
+            String query,
+            Boolean openOnly
+    ) {
+        LocalDateTime now = LocalDateTime.now(ZoneId.of(ZONE_ID));
+        return repository.searchVets(
+                normalizeQuery(query),
+                Boolean.TRUE.equals(openOnly),
+                now.getDayOfWeek(),
+                now.toLocalTime(),
+                userLat,
+                userLng
+        );
+    }
+
+    private static String normalizeQuery(String query) {
+        return (query != null && !query.trim().isEmpty()) ? query.trim() : null;
     }
 
 }

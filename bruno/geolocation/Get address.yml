@@ -1,0 +1,55 @@
+info:
+  name: Get address
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{MANADA_SOLIDARIA_HOST}}/geolocation/reverse?latitude=-32.41702717084672&longitude=-63.225029153441895"
+  headers:
+    - name: Content-Type
+      value: application/json
+    - name: Authorization
+      value: "{{bearer_token_0ozb}}"
+    - name: Cookie
+      value: JSESSIONID=274D0D8B0A31A834112F58E109833541
+  params:
+    - name: latitude
+      value: "-32.41702717084672"
+      type: query
+    - name: longitude
+      value: "-63.225029153441895"
+      type: query
+  body:
+    type: json
+    data: |-
+      {
+          "type": "LOST",
+          "name": "Perdí a mi perro",
+          "description": "Se escapó en el parque",
+          "imageId": "cf-image-123",
+          "animal": {
+              "type": "DOG",
+              "size": "MEDIUM",
+              "gender": "MALE",
+              "age": "PUPPY"
+          },
+          "location": {
+              "name": "Parque Centenario",
+              "address": "Av. Patricias",
+              "number": 100,
+              "latitude": -34.6,
+              "longitude": -58.4
+          },
+          "hasOwner": false,
+          "phoneNumber": "3534014524"
+      }
+  auth:
+    type: bearer
+    token: "{{access_token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

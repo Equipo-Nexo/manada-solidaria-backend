@@ -157,31 +157,31 @@ public class MockVetInformationDataUtils {
                 ),
                 Arguments.of(
                         "Filtro por búsqueda por nombre (coincidencia parcial insensible a mayúsculas)",
-                        createParams("search", "Sol"), // <-- Cambiado a 'search'
+                        createParams("query", "Sol"), // Cambiado de 'search' a 'query'
                         1,
                         List.of("Veterinaria El Sol")
                 ),
                 Arguments.of(
                         "Filtro por búsqueda por dirección",
-                        createParams("search", "España"), // <-- Cambiado a 'search'
+                        createParams("query", "España"), // Cambiado de 'search' a 'query'
                         1,
                         List.of("Veterinaria San Roque")
                 ),
                 Arguments.of(
                         "Filtro solo abiertas devuelve únicamente las que están operativas",
-                        createParams("openOnly", "true"),
+                        createParams("open_only", "true"), // Cambiado a snake_case 'open_only'
                         1,
-                        List.of("Veterinaria Animalia") // Animalia tiene 24/7 en el SQL
+                        List.of("Veterinaria Animalia")
                 ),
                 Arguments.of(
                         "Ordena por la más cercana a las coordenadas del usuario",
-                        createParams("userLatitude", "-32.4050", "userLongitude", "-63.2380"), // <-- Nombres corregidos
+                        createParams("user_latitude", "-32.4050", "user_longitude", "-63.2380"), // Cambiado a snake_case
                         3,
                         List.of("Veterinaria San Roque", "Veterinaria El Sol", "Veterinaria Animalia")
                 ),
                 Arguments.of(
                         "Búsqueda por nombre combinada con ordenamiento por cercanía",
-                        createParams("search", "Veterinaria", "userLatitude", "-32.4070", "userLongitude", "-63.2400"), // <-- Nombres corregidos
+                        createParams("query", "Veterinaria", "user_latitude", "-32.4070", "user_longitude", "-63.2400"), // Cambiado a 'query' y snake_case
                         3,
                         List.of("Veterinaria Animalia", "Veterinaria El Sol", "Veterinaria San Roque")
                 )

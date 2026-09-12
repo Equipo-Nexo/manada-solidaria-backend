@@ -1,0 +1,28 @@
+info:
+  name: Get user posts
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{MANADA_SOLIDARIA_HOST}}/users/posts"
+  params:
+    - name: type
+      value: animal
+      type: query
+      disabled: true
+    - name: type
+      value: campaign
+      type: query
+      disabled: true
+    - name: type
+      value: fundraising
+      type: query
+      disabled: true
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

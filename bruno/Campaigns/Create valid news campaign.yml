@@ -1,0 +1,37 @@
+info:
+  name: Create valid news campaign
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{MANADA_SOLIDARIA_HOST}}/campaigns"
+  body:
+    type: json
+    data: |-
+      {
+        "type": "NEWS",
+        "title": "Campaña para alimento",
+        "description": "Recaudación para comprar alimento balanceado.",
+        "imageId": "img-123",
+        "phoneNumber": {
+          "areaCode": "0353",
+          "number": "4014524"
+        },
+        "category": "CASTRATION",
+        "newsEndDateTime": "2026-10-26T10:10:00",
+        "location": {
+          "name": "Refugio Manada Solidaria",
+          "address": "San Martín",
+          "number": 500,
+          "latitude": -32.4075,
+          "longitude": -63.2401
+        }
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

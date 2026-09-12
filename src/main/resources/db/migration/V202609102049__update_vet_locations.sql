@@ -1,0 +1,16 @@
+UPDATE location SET address = 'Gobernador Sabattini', number = '241' WHERE ID = UUID_TO_BIN('3840abfb-05ff-421e-88b3-895d88cfe3f9');
+UPDATE location SET address = 'San Luis', number = '1617' WHERE ID = UUID_TO_BIN('aecaacf8-059d-472b-a625-ca2d835d1266');
+UPDATE location SET address = 'Boulevard Sarmiento', number = '1165' WHERE ID = UUID_TO_BIN('eb0d678a-fead-477b-8172-c94126292743');
+UPDATE location SET address = 'Estados Unidos', number = '809' WHERE ID = UUID_TO_BIN('76c08e44-e776-459d-8dce-efae6998ceb9');
+UPDATE location SET address = 'Mendoza', number = '1913' WHERE ID = UUID_TO_BIN('ceda407b-867b-479d-9e25-c0487d1b437e');
+UPDATE location SET address = 'Independencia', number = '360' WHERE ID = UUID_TO_BIN('c6d78427-7718-43ac-a93f-66686dc36b8b');
+UPDATE location SET address = 'Corrientes', number = '571' WHERE ID = UUID_TO_BIN('408042a6-30f4-42c5-a010-4f0e53607d1e');
+UPDATE location SET address = 'Liniers', number = '439' WHERE ID = UUID_TO_BIN('d9269cbd-73fe-46c0-ad9b-9cae86d74351');
+UPDATE location SET address = 'San Luis', number = '627' WHERE ID = UUID_TO_BIN('5eb26647-a2fc-4c2c-bf0b-1556ddbfcfc1');
+UPDATE location SET address = 'Corrientes', number = '513' WHERE ID = UUID_TO_BIN('4b3ccfa6-2164-4cd7-836e-2d3f5689b1b4');
+UPDATE location SET address = 'Boulevard Ramón Carcano', number = '302' WHERE ID = UUID_TO_BIN('62c3c609-de6b-473e-aa15-b2eab8699682');
+UPDATE location SET address = 'La Rioja', number = '1431' WHERE ID = UUID_TO_BIN('dc478e5a-0858-462b-9fb8-c953cf2350ad');
+UPDATE location SET address = 'Avenida Presidente Juan Domingo Perón', number = '1240' WHERE ID = UUID_TO_BIN('ba8e65db-ff81-4d7e-927c-cefbfdefb111');
+UPDATE location SET address = 'Piedras', number = '1717' WHERE ID = UUID_TO_BIN('ac37b4fb-11ba-4d09-86fe-e3792905ef1e');
+UPDATE location SET address = 'Catamarca', number = '334' WHERE ID = UUID_TO_BIN('b02d8c46-b2c2-4a88-a0f0-0e618113b5b6');
+UPDATE location SET address = 'Boulevard Sarmiento', number = '898' WHERE ID = UUID_TO_BIN('16d11dfb-b1c6-488e-861b-c90abd02f492');
