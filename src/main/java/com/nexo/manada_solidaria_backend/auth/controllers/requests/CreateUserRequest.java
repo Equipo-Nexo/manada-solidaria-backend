@@ -1,7 +1,8 @@
 package com.nexo.manada_solidaria_backend.auth.controllers.requests;
 
-import com.nexo.manada_solidaria_backend.auth.validations.annotations.PasswordMatches;
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
+import com.nexo.manada_solidaria_backend.common.controllers.validations.PasswordConfirmation;
+import com.nexo.manada_solidaria_backend.common.controllers.validations.PasswordMatches;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -15,7 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 @PasswordMatches
-public class CreateUserRequest {
+public class CreateUserRequest implements PasswordConfirmation {
     @NotBlank(message = "Debe ingresar un nombre de usuario")
     @Size(min = 4, message = "El nombre de usuario debe tener minimo 4 caracteres")
     private String username;

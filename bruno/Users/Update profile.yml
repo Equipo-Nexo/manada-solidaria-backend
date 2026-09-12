@@ -1,0 +1,27 @@
+info:
+  name: Update profile
+  type: http
+  seq: 2
+
+http:
+  method: PUT
+  url: "{{MANADA_SOLIDARIA_HOST}}/users/profile"
+  body:
+    type: json
+    data: |-
+      {
+          "name": "Federico",
+          "lastname": "san",
+          "email": "pepe@gmail.com",
+          "phoneNumber": {
+            "areaCode": "0353",
+            "number": "4014524"
+          }
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,36 @@
+info:
+  name: Create adoption form
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{MANADA_SOLIDARIA_HOST}}/adoption-forms"
+  body:
+    type: json
+    data: |-
+      {
+        "adoptionPostId": "eda9874f-72b5-46b0-8138-bddce72d3360",
+        "phoneNumber": {
+          "areaCode": "353",
+          "number": "4014524"
+        },
+        "questions": [
+          {
+            "question": "¿Tenés mascotas?",
+            "answer": "Sí"
+          },
+          {
+            "question": "¿Vivis en departamento o casa?",
+            "answer": "Departamento"
+          }
+        ]
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

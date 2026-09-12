@@ -45,6 +45,18 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
         return AdoptionFormResponse.from(saved);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<AdoptionFormResponse> getFormsByPostId(UUID postId, User authenticatedUser) {
+        AdoptionPost post = getAdoptionPostOrThrow(postId);
+
+        validateOwnerAccess(post, authenticatedUser);
+
+        List<AdoptionForm> forms = adoptionFormRepository.findAllByAdoptionPostId(postId);
+
+        return mapToAdoptionFormResponses(forms);
+    }
+
     private void validateNotOwner(AdoptionPost post, User applicant) {
         if (post.getOwner().getId().equals(applicant.getId())) {
             throw new ResponseStatusException(
@@ -94,5 +106,20 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
                     "No se pueden enviar formularios a publicaciones cerradas o adoptadas"
             );
         }
+    }
+
+    private void validateOwnerAccess(AdoptionPost post, User user) {
+        if (!post.getOwner().getId().equals(user.getId())) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "No tienes permisos para ver los formularios de esta publicación"
+            );
+        }
+    }
+
+    private List<AdoptionFormResponse> mapToAdoptionFormResponses(List<AdoptionForm> forms) {
+        return forms.stream()
+                .map(AdoptionFormResponse::from)
+                .toList();
     }
 }

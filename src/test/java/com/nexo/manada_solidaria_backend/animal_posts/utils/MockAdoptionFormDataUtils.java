@@ -14,6 +14,10 @@ import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.I
 
 public class MockAdoptionFormDataUtils {
 
+    public static final UUID POST_WITH_FORMS_ID = UUID.fromString("99999999-9999-9999-9999-999999999999");
+    public static final UUID POST_WITHOUT_FORMS_ID = UUID.fromString("55555555-5555-5555-5555-555555555555");
+    public static final UUID NON_EXISTENT_POST_ID = UUID.fromString("00000000-0000-0000-0000-000000000000");
+
     public static CreateAdoptionFormRequest createValidRequest(UUID postId) {
         return new CreateAdoptionFormRequest(
                 postId,
@@ -77,6 +81,26 @@ public class MockAdoptionFormDataUtils {
     }
 
     public static Stream<Arguments> provideCreateFormUnauthorizedCases() {
+        return Stream.of(
+                Arguments.of("Sin token de autorización", null),
+                Arguments.of("Con token inválido o expirado", INVALID_ACCESS_TOKEN)
+        );
+    }
+
+    public static Stream<Arguments> provideGetFormsByPostIdCases() {
+        return Stream.of(
+                Arguments.of("Publicación con 1 formulario", POST_WITH_FORMS_ID, 1),
+                Arguments.of("Publicación sin formularios asociados", POST_WITHOUT_FORMS_ID, 0)
+        );
+    }
+
+    public static Stream<Arguments> provideGetFormsByPostIdErrorCases() {
+        return Stream.of(
+                Arguments.of("Publicación inexistente devuelve NOT_FOUND", NON_EXISTENT_POST_ID, HttpStatus.NOT_FOUND)
+        );
+    }
+
+    public static Stream<Arguments> provideGetFormsUnauthorizedCases() {
         return Stream.of(
                 Arguments.of("Sin token de autorización", null),
                 Arguments.of("Con token inválido o expirado", INVALID_ACCESS_TOKEN)
