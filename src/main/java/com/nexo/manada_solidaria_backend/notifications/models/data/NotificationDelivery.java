@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -27,6 +28,7 @@ public class NotificationDelivery {
             orphanRemoval = true
     )
     private List<NotificationStatusHistory> statusHistory = new ArrayList<>();
+    private final LocalDateTime createdAt = LocalDateTime.now();
     @Id
     private final UUID id = UUID.randomUUID();
 
@@ -35,5 +37,9 @@ public class NotificationDelivery {
         this.notification = notification;
         this.channel = channel;
         this.statusHistory.add(new NotificationStatusHistory(status, this));
+    }
+
+    public void changeStatus(NotificationStatus notificationStatus) {
+        this.statusHistory.add(new NotificationStatusHistory(notificationStatus, this));
     }
 }

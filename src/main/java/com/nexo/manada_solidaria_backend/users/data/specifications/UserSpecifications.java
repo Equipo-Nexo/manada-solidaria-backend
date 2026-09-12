@@ -24,4 +24,13 @@ public final class UserSpecifications {
             return cb.equal(roles, role);
         };
     }
+
+    /**
+     * Builds a specification that returns all registered users.
+     *
+     * @return a specification that get all users.
+     */
+    public static Specification<User> all() {
+        return (root, query, cb) -> cb.conjunction();
+    }
 }

@@ -21,7 +21,7 @@ public class PingServiceImpl implements PingService {
 //                null,
 //                NotificationType.NEW_DONATION_CAMPAIGN
 //        ));
-        notificationService.notify(NotificationType.NEW_DONATION_CAMPAIGN);
+        notificationService.notify(NotificationType.PING);
         return "pong";
     }
 }

@@ -6,6 +6,10 @@ import java.util.Set;
 
 public enum NotificationType {
 
+    PING(
+            NotificationChannel.PUSH
+    ),
+
     LOST_PET(
             NotificationChannel.PUSH,
             NotificationChannel.IN_APP

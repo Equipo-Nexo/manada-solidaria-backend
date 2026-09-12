@@ -11,14 +11,12 @@ import lombok.extern.slf4j.Slf4j;
 import nl.martijndwars.webpush.PushService;
 import org.apache.http.HttpResponse;
 import org.jose4j.lang.JoseException;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-@Component
 @Slf4j
 public class PushNotifier implements NotificationResolver {
 
