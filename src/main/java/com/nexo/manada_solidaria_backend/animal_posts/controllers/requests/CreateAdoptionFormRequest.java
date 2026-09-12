@@ -25,8 +25,7 @@ public record CreateAdoptionFormRequest(
     public record QuestionFormRequest(
             @NotBlank(message = "La pregunta no puede estar vacía")
             String question,
-
-            @NotBlank(message = "La respuesta no puede estar vacía")
+            
             String answer
     ) {}
 }
