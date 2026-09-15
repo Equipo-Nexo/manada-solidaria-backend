@@ -2,19 +2,36 @@ package com.nexo.manada_solidaria_backend.notifications.models.data;
 
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
+@Getter
+@NoArgsConstructor
+@ToString
 public class Notification {
     private String title;
     private String message;
-    @Enumerated
+    private String icon;
+    private String redirectTo;
+    @Enumerated(EnumType.STRING)
     private NotificationType type;
     private LocalDateTime createdAt = LocalDateTime.now();
     @Id
     private final UUID id = UUID.randomUUID();
+
+    public Notification(String title, String message, String icon, String redirectTo, NotificationType type) {
+        this.title = title;
+        this.message = message;
+        this.icon = icon;
+        this.redirectTo = redirectTo;
+        this.type = type;
+    }
 }

@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.common.integrations.base;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nexo.manada_solidaria_backend.common.configs.PushTestConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -9,6 +10,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
@@ -31,6 +33,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
 )
 @Transactional
+@Import(PushTestConfiguration.class)
 public abstract class BaseIntegrationTest {
     private static final int MOCK_WEB_SERVER_PORT = 18080;
     protected static final MapDispatcher MOCK_SERVER_DISPATCHER = new MapDispatcher();

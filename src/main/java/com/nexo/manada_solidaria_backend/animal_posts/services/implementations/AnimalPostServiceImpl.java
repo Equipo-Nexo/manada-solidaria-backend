@@ -1,8 +1,8 @@
 package com.nexo.manada_solidaria_backend.animal_posts.services.implementations;
 
 import com.nexo.manada_solidaria_backend.animal_posts.components.AnimalPostFactory;
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.GetAnimalPostsRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAnimalPostRequest;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.GetAnimalPostsRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AnimalPostResponse;
@@ -13,6 +13,8 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
 import com.nexo.manada_solidaria_backend.common.utils.EnumUtils;
+import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
+import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,12 +38,24 @@ public class AnimalPostServiceImpl implements AnimalPostService {
 
     private final AnimalPostRepository animalPostRepository;
     private final AnimalPostFactory animalPostFactory;
+    private final NotificationService notificationService;
 
     @Override
     public AnimalPostResponse create(CreateAnimalPostRequest request, User owner) {
         AnimalPost saved = animalPostRepository.save(
                 animalPostFactory.buildAnimalPost(request, owner)
         );
+
+        if (Boolean.TRUE.equals(request.needTransport())) {
+//            notificationService.notify(new Notification(
+//                    "\uD83D\uDE97 Se necesita ayuda con un traslado.",
+//                    "Se busca transporte para trasladar un nuevo animal publicado. ¿Podés ayudar?",
+//                    null,
+//                    "/animal/detalle/".concat(saved.getId().toString()),
+//                    NotificationType.NEW_CARRIAGE_REQUEST
+//            ));
+            notificationService.notify(NotificationType.NEW_CARRIAGE_REQUEST);
+        }
         log.info("Animal post created: id={} type={} owner={}", saved.getId(), saved.getType(), owner.getId());
         return AnimalPostResponse.from(saved);
     }

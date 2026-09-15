@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils.NEWS_UPDATE_END_DATE;
@@ -565,7 +566,7 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                 new Profile(
                         "otro-status-" + UUID.randomUUID() + "@mail.com",
                         new PhoneNumber("353", "4014524"),
-                        List.of(Rol.COMMUNITY)
+                        Set.of(Rol.COMMUNITY)
                 )
         );
 
@@ -772,7 +773,7 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     private Campaign saveCampaignOwnedByOtherUser() {
-        User other = new User("otro-campaign-user", "x", new Profile("otro@mail.com", new PhoneNumber("3533", "436249"), List.of(Rol.COMMUNITY)));
+        User other = new User("otro-campaign-user", "x", new Profile("otro@mail.com", new PhoneNumber("3533", "436249"), Set.of(Rol.COMMUNITY)));
         userRepository.save(other);
         return campaignRepository.save(MockCampaignDataUtils.buildDonationModel(other));
     }

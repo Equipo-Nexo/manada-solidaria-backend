@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.List;
+import java.util.Set;
 
 @org.springframework.context.annotation.Profile("local | development")
 @Configuration
@@ -25,7 +25,7 @@ public class DatabasePopulate {
                 user.setUsername("admin");
                 user.setPassword(passwordEncoder.encode("admin"));
                 Profile profile = new Profile();
-                profile.setRoles(List.of(Rol.COMMUNITY));
+                profile.setRoles(Set.of(Rol.COMMUNITY));
                 user.setProfile(profile);
                 userRepository.save(user);
             }

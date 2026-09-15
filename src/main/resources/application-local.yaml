@@ -1,6 +1,6 @@
 spring:
   jpa:
-    show-sql: true
+    show-sql: false
   datasource:
     url: jdbc:mysql://localhost:3306/manada_solidaria?createDatabaseIfNotExist=true
 security:
@@ -12,3 +12,9 @@ security:
     allowed-origins: "http://localhost:5173"
     allowed-origin-patterns: http://192.168.*.*:5173, https://*.devtunnels.ms*
     allowed-credentials: true
+logging:
+  level:
+    com:
+      nexo:
+        manada_solidaria_backend:
+          notifications: DEBUG
