@@ -51,6 +51,7 @@ public class NotificationServiceImpl implements NotificationService {
         senders.forEach(sender -> {
             recipients.forEach(user -> {
                 log.debug("Create pending delivery for user {} with channel {}", user.getId(), sender.getNotificationChannel());
+                // TODO: migrar logica a los notifiers ya que se esta registrando notificaciones cuando puede no estar suscripto (PUSH)
                 NotificationDelivery delivery = createPendingNotificationDelivery(sender, user, notification);
                 try {
                     log.debug("Sending notification {}", notification.getTitle());
@@ -64,7 +65,7 @@ public class NotificationServiceImpl implements NotificationService {
         });
     }
 
-    private NotificationDelivery createPendingNotificationDelivery(NotificationResolver sender, User user, Notification notification) {
+    protected NotificationDelivery createPendingNotificationDelivery(NotificationResolver sender, User user, Notification notification) {
         return notificationDeliveryService.createNotificationDelivery(user, notification, sender.getNotificationChannel());
     }
 }
