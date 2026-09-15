@@ -63,7 +63,7 @@ class PushNotificationUnitTest {
         try (MockedConstruction<Notification> mocked = Mockito.mockConstruction(Notification.class)) {
             var notification = new com.nexo.manada_solidaria_backend.notifications.models.data.Notification();
 
-            service.sendNotification(user, notification);
+            service.notify(user, notification);
 
             verify(pushService).send(any(Notification.class));
             verify(notificationDeliveryRepository).save(
@@ -95,7 +95,7 @@ class PushNotificationUnitTest {
 
         try (MockedConstruction<Notification> mocked = Mockito.mockConstruction(Notification.class)) {
             var notification = new com.nexo.manada_solidaria_backend.notifications.models.data.Notification();
-            service.sendNotification(user, notification);
+            service.notify(user, notification);
 
             verify(notificationDeliveryRepository).save(
                     argThat(delivery ->

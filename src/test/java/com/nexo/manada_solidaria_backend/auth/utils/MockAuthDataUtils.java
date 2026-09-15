@@ -4,7 +4,7 @@ import com.nexo.manada_solidaria_backend.auth.controllers.requests.CreateUserReq
 import org.junit.jupiter.params.provider.Arguments;
 import org.springframework.http.HttpStatus;
 
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static com.nexo.manada_solidaria_backend.users.data.enums.Rol.RESCUER;
@@ -36,7 +36,7 @@ public class MockAuthDataUtils {
                 ),
                 Arguments.of(
                         "user is rescuer, is saved with role rescuer and not community",
-                        CreateUserRequest.builder().username(NON_REPEATED_USER).password(VERY_STRONG_PASSWORD).repeatedPassword(VERY_STRONG_PASSWORD).email(EMAIL).roles(List.of(RESCUER)).build(),
+                        CreateUserRequest.builder().username(NON_REPEATED_USER).password(VERY_STRONG_PASSWORD).repeatedPassword(VERY_STRONG_PASSWORD).email(EMAIL).roles(Set.of(RESCUER)).build(),
                         HttpStatus.CREATED
                 ),
                 Arguments.of(
