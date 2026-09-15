@@ -27,6 +27,8 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
@@ -382,7 +384,7 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
     private User saveUser(String username) {
         return userRepository.save(
                 new User(username, "irrelevante",
-                        new Profile("otro@mail.com", new PhoneNumber("3533", "436249"), List.of(Rol.COMMUNITY)))
+                        new Profile("otro@mail.com", new PhoneNumber("3533", "436249"), Set.of(Rol.COMMUNITY)))
         );
     }
 
@@ -400,12 +402,12 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
     }
 
     private void saveUser(String username, PhoneNumber phoneNumber, String profileImageURL, Rol... roles) {
-        Profile profile = new Profile(null, phoneNumber, new ArrayList<>(List.of(roles)));
+        Profile profile = new Profile(null, phoneNumber, new LinkedHashSet<>(List.of(roles)));
         profile.setProfileImageURL(profileImageURL);
         userRepository.save(new User(username, "x", profile));
     }
 
-    private List<Rol> rolesOfAdmin() {
+    private Set<Rol> rolesOfAdmin() {
         return userRepository.findByUsername("admin").orElseThrow().getProfile().getRoles();
     }
 }

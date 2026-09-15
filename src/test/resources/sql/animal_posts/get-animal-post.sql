@@ -66,8 +66,7 @@ INSERT INTO profile (
     area_code,
     phone_number,
     profile_imageurl,
-    user_notificationurl,
-    roles
+    user_notificationurl
 )
 VALUES
 (
@@ -78,9 +77,11 @@ VALUES
     '1122',
     '334455',
     'cf-test-user',
-    NULL,
-    ARRAY['COMMUNITY']
+    NULL
 );
+
+INSERT INTO profile_roles (profile_id, role)
+VALUES ('44444444-4444-4444-4444-444444444444', 'COMMUNITY');
 
 
 INSERT INTO users (
