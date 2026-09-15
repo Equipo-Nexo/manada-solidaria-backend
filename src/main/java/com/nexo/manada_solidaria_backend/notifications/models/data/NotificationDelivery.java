@@ -42,4 +42,9 @@ public class NotificationDelivery {
     public void changeStatus(NotificationStatus notificationStatus) {
         this.statusHistory.add(new NotificationStatusHistory(notificationStatus, this));
     }
+
+    public boolean isRead() {
+        return this.statusHistory.stream()
+                .anyMatch(history -> history.getStatus() == NotificationStatus.READ);
+    }
 }
