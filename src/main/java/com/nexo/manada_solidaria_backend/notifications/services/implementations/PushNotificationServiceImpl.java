@@ -6,6 +6,7 @@ import com.nexo.manada_solidaria_backend.notifications.controllers.requests.Push
 import com.nexo.manada_solidaria_backend.notifications.controllers.requests.PushNotificationUnsuscribeRequest;
 import com.nexo.manada_solidaria_backend.notifications.models.data.PushSubscription;
 import com.nexo.manada_solidaria_backend.notifications.models.repositories.PushSuscriptionRepository;
+import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationDeliveryService;
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.PushNotificationService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.extern.slf4j.Slf4j;
@@ -21,8 +22,8 @@ import java.security.NoSuchAlgorithmException;
 @Slf4j
 public class PushNotificationServiceImpl extends PushNotifier implements PushNotificationService {
 
-    public PushNotificationServiceImpl(ObjectMapper objectMapper, PushSuscriptionRepository pushSuscriptionRepository, PushService pushService) {
-        super(objectMapper, pushSuscriptionRepository, pushService);
+    public PushNotificationServiceImpl(NotificationDeliveryService notificationDeliveryService, ObjectMapper objectMapper, PushSuscriptionRepository pushSuscriptionRepository, PushService pushService) {
+        super(notificationDeliveryService, objectMapper, pushSuscriptionRepository, pushService);
     }
 
     @Override

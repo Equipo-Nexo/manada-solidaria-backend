@@ -47,15 +47,9 @@ public class AnimalPostServiceImpl implements AnimalPostService {
         );
 
         if (Boolean.TRUE.equals(request.needTransport())) {
-//            notificationService.notify(new Notification(
-//                    "\uD83D\uDE97 Se necesita ayuda con un traslado.",
-//                    "Se busca transporte para trasladar un nuevo animal publicado. ¿Podés ayudar?",
-//                    null,
-//                    "/animal/detalle/".concat(saved.getId().toString()),
-//                    NotificationType.NEW_CARRIAGE_REQUEST
-//            ));
             notificationService.notify(NotificationType.NEW_CARRIAGE_REQUEST);
         }
+
         log.info("Animal post created: id={} type={} owner={}", saved.getId(), saved.getType(), owner.getId());
         return AnimalPostResponse.from(saved);
     }

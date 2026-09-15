@@ -3,10 +3,8 @@ package com.nexo.manada_solidaria_backend.notifications.services.implementations
 import com.nexo.manada_solidaria_backend.notifications.components.notifiers.NotificationResolver;
 import com.nexo.manada_solidaria_backend.notifications.components.recipients.NotificationRecipientFactory;
 import com.nexo.manada_solidaria_backend.notifications.models.data.Notification;
-import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationDelivery;
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
 import com.nexo.manada_solidaria_backend.notifications.models.repositories.NotificationRepository;
-import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationDeliveryService;
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
@@ -25,7 +23,7 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 @AllArgsConstructor
 @Slf4j
 public class NotificationServiceImpl implements NotificationService {
-    private final NotificationDeliveryService notificationDeliveryService;
+
     private final NotificationRepository notificationRepository;
     private final NotificationRecipientFactory notificationRecipientFactory;
     private final List<NotificationResolver> notificationResolvers;
@@ -48,24 +46,12 @@ public class NotificationServiceImpl implements NotificationService {
                 .filter(sender -> type.getChannels().contains(sender.getNotificationChannel()))
                 .collect(Collectors.toSet());
 
-        senders.forEach(sender -> {
-            recipients.forEach(user -> {
-                log.debug("Create pending delivery for user {} with channel {}", user.getId(), sender.getNotificationChannel());
-                // TODO: migrar logica a los notifiers ya que se esta registrando notificaciones cuando puede no estar suscripto (PUSH)
-                NotificationDelivery delivery = createPendingNotificationDelivery(sender, user, notification);
-                try {
-                    log.debug("Sending notification {}", notification.getTitle());
-                    sender.sendNotification(user, notification);
-                    notificationDeliveryService.markAsSent(delivery);
-                } catch (Exception e) {
-                    log.error("Error sending notification to user {}: {}", user.getId(), e.getMessage());
-                    notificationDeliveryService.markAsFailed(delivery);
-                }
-            });
-        });
+        senders.forEach(sender ->
+                recipients.forEach(user ->
+                        sender.notify(user, notification)
+                )
+        );
     }
 
-    protected NotificationDelivery createPendingNotificationDelivery(NotificationResolver sender, User user, Notification notification) {
-        return notificationDeliveryService.createNotificationDelivery(user, notification, sender.getNotificationChannel());
-    }
+
 }

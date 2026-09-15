@@ -2,10 +2,9 @@ package com.nexo.manada_solidaria_backend.notifications.components.notifiers.imp
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nexo.manada_solidaria_backend.notifications.components.notifiers.NotificationResolver;
-import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationChannel;
-import com.nexo.manada_solidaria_backend.notifications.models.data.PushNotification;
-import com.nexo.manada_solidaria_backend.notifications.models.data.PushSubscription;
+import com.nexo.manada_solidaria_backend.notifications.models.data.*;
 import com.nexo.manada_solidaria_backend.notifications.models.repositories.PushSuscriptionRepository;
+import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationDeliveryService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.extern.slf4j.Slf4j;
 import nl.martijndwars.webpush.PushService;
@@ -18,23 +17,25 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 @Slf4j
-public class PushNotifier implements NotificationResolver {
+public class PushNotifier extends NotificationResolver {
 
     private final ObjectMapper objectMapper;
     protected final PushSuscriptionRepository pushSuscriptionRepository;
     private final PushService pushService;
 
-    public PushNotifier(ObjectMapper objectMapper, PushSuscriptionRepository pushSuscriptionRepository, PushService pushService) {
+    public PushNotifier(NotificationDeliveryService notificationDeliveryService, ObjectMapper objectMapper, PushSuscriptionRepository pushSuscriptionRepository, PushService pushService) {
+        super(notificationDeliveryService);
         this.objectMapper = objectMapper;
         this.pushSuscriptionRepository = pushSuscriptionRepository;
         this.pushService = pushService;
     }
 
     @Override
-    public void sendNotification(User user, com.nexo.manada_solidaria_backend.notifications.models.data.Notification notification) {
+    public void notify(User user, Notification notification) {
         List<PushSubscription> subscriptions = pushSuscriptionRepository.findAllByUser(user);
         log.debug("Sending notification to user {}", user.getId());
         subscriptions.forEach(subscription -> {
+            NotificationDelivery delivery = createPendingNotificationDelivery(user, notification);
             try {
                 send(subscription, new PushNotification(
                         notification.getTitle(),
@@ -42,6 +43,7 @@ public class PushNotifier implements NotificationResolver {
                         notification.getIcon(),
                         notification.getRedirectTo()
                 ));
+                markNotificationAsSent(delivery);
             } catch (Exception e) {
                 log.error(
                         "Failed to send push notification to user {}: subscription={}",
@@ -49,6 +51,7 @@ public class PushNotifier implements NotificationResolver {
                         subscription.getId(),
                         e
                 );
+                markNotificationAsFailed(delivery);
             }
         });
     }

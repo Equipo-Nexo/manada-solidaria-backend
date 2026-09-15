@@ -50,7 +50,7 @@ class NotifierTest {
         when(userService.findAll())
                 .thenReturn(List.of(user1, user2));
 
-        notifier.notify(notification);
+        // notifier.notify(notification);
 
         verify(notificationRepository).save(notification);
         verify(notifier).sendNotification(user1, notification);

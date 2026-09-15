@@ -14,13 +14,6 @@ public class PingServiceImpl implements PingService {
 
     @Override
     public String ping() {
-//        notificationService.notify(new Notification(
-//                "Ping",
-//                "Pong",
-//                null,
-//                null,
-//                NotificationType.NEW_DONATION_CAMPAIGN
-//        ));
         notificationService.notify(NotificationType.PING);
         return "pong";
     }
