@@ -8,10 +8,11 @@ import org.springframework.context.annotation.Profile;
 
 @TestConfiguration
 @Profile("test")
-public class PushTestConfiguration {
+public class NotificationConfiguration {
 
     @Bean
     public PushService pushService() {
         return Mockito.mock(PushService.class);
     }
+
 }

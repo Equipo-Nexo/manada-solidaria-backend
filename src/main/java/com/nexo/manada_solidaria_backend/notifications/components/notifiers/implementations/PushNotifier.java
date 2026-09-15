@@ -32,8 +32,8 @@ public class PushNotifier extends NotificationResolver {
 
     @Override
     public void notify(User user, Notification notification) {
+        log.info("Sending notification to user {}", user.getId());
         List<PushSubscription> subscriptions = pushSuscriptionRepository.findAllByUser(user);
-        log.debug("Sending notification to user {}", user.getId());
         subscriptions.forEach(subscription -> {
             NotificationDelivery delivery = createPendingNotificationDelivery(user, notification);
             try {
