@@ -16,12 +16,12 @@ public class PingRecipientResolver extends NotificationRecipientResolver {
     }
 
     @Override
-    protected NotificationType supports() {
+    public NotificationType supports() {
         return NotificationType.PING;
     }
 
     @Override
-    protected Specification<User> buildSpecification() {
+    public Specification<User> buildSpecification() {
         return UserSpecifications.all();
     }
 }

@@ -43,7 +43,7 @@ public abstract class NotificationRecipientResolver {
      *
      * @return the supported notification type
      */
-    protected abstract NotificationType supports();
+    public abstract NotificationType supports();
 
     /**
      * Builds the specification containing the criteria used to determine
@@ -51,5 +51,5 @@ public abstract class NotificationRecipientResolver {
      *
      * @return the specification used to select notification recipients
      */
-    protected abstract Specification<User> buildSpecification();
+    public abstract Specification<User> buildSpecification();
 }
