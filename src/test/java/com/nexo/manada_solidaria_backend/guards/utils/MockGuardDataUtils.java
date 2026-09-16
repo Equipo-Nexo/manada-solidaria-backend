@@ -6,10 +6,7 @@ import java.time.LocalDateTime;
 import java.util.stream.Stream;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
-import static com.nexo.manada_solidaria_backend.guards.utils.MockGuardDataUtils.HolidaysApi.DOWN;
-import static com.nexo.manada_solidaria_backend.guards.utils.MockGuardDataUtils.HolidaysApi.HOLIDAY;
-import static com.nexo.manada_solidaria_backend.guards.utils.MockGuardDataUtils.HolidaysApi.MALFORMED;
-import static com.nexo.manada_solidaria_backend.guards.utils.MockGuardDataUtils.HolidaysApi.WORKDAY;
+import static com.nexo.manada_solidaria_backend.guards.utils.MockGuardDataUtils.HolidaysApi.*;
 
 public class MockGuardDataUtils {
 
