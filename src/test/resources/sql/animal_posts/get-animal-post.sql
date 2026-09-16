@@ -68,8 +68,7 @@ INSERT INTO profile (
     profile_imageurl,
     user_notificationurl
 )
-VALUES
-(
+VALUES (
     '44444444-4444-4444-4444-444444444444',
     'test-user@email.com',
     'Perez',
@@ -80,9 +79,14 @@ VALUES
     NULL
 );
 
-INSERT INTO profile_roles (profile_id, role)
-VALUES ('44444444-4444-4444-4444-444444444444', 'COMMUNITY');
-
+INSERT INTO profile_roles (
+    profile_id,
+    role
+)
+VALUES (
+    '44444444-4444-4444-4444-444444444444',
+    'COMMUNITY'
+);
 
 INSERT INTO users (
     id,

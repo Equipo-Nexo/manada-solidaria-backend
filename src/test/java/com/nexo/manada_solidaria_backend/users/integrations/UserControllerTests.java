@@ -25,11 +25,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -402,7 +398,7 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
     }
 
     private void saveUser(String username, PhoneNumber phoneNumber, String profileImageURL, Rol... roles) {
-        Profile profile = new Profile(null, phoneNumber, new LinkedHashSet<>(List.of(roles)));
+        Profile profile = new Profile(null, phoneNumber, new HashSet<>(List.of(roles)));
         profile.setProfileImageURL(profileImageURL);
         userRepository.save(new User(username, "x", profile));
     }

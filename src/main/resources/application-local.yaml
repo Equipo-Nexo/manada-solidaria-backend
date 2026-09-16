@@ -18,3 +18,9 @@ logging:
       nexo:
         manada_solidaria_backend:
           notifications: DEBUG
+    org:
+      springframework:
+        transaction: OFF
+        orm:
+          jpa:
+            JpaTransactionManager: OFF

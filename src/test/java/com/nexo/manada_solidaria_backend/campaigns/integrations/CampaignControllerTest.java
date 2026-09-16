@@ -432,7 +432,7 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     @ParameterizedTest(name = "{0}")
     @MethodSource("com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils#provideGetCampaignCases")
     @Sql(
-            scripts="/sql/campaigns/get-campaigns.sql",
+            scripts = "/sql/campaigns/get-campaigns.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
     )
     void getCampaign(String testName, UUID id, String expectedType, String expectedTitle, Integer expectedItems) throws Exception {
@@ -447,7 +447,7 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.type").value(expectedType))
                 .andExpect(jsonPath("$.title").value(expectedTitle));
 
-        if(expectedItems != null){
+        if (expectedItems != null) {
             result.andExpect(jsonPath("$.items.length()").value(expectedItems));
         }
     }
@@ -679,10 +679,10 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                                 .header("Authorization", "Bearer " + accessToken)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
-                                    {
-                                        "status": ""
-                                    }
-                                    """)
+                                        {
+                                            "status": ""
+                                        }
+                                        """)
                 )
                 .andExpect(status().isBadRequest());
     }
@@ -702,10 +702,10 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                                 .header("Authorization", "Bearer " + accessToken)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
-                                    {
-                                        "status": "INVALID_STATUS"
-                                    }
-                                    """)
+                                        {
+                                            "status": "INVALID_STATUS"
+                                        }
+                                        """)
                 )
                 .andExpect(status().isBadRequest());
     }

@@ -1,40 +1,35 @@
 package com.nexo.manada_solidaria_backend.notifications.components.notifiers.implementations;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nexo.manada_solidaria_backend.notifications.clients.WebPushClient;
 import com.nexo.manada_solidaria_backend.notifications.components.notifiers.NotificationResolver;
-import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationChannel;
-import com.nexo.manada_solidaria_backend.notifications.models.data.PushNotification;
-import com.nexo.manada_solidaria_backend.notifications.models.data.PushSubscription;
+import com.nexo.manada_solidaria_backend.notifications.models.data.*;
 import com.nexo.manada_solidaria_backend.notifications.models.repositories.PushSuscriptionRepository;
+import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationDeliveryService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.extern.slf4j.Slf4j;
-import nl.martijndwars.webpush.PushService;
 import org.apache.http.HttpResponse;
-import org.jose4j.lang.JoseException;
 
 import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 @Slf4j
-public class PushNotifier implements NotificationResolver {
+public class PushNotifier extends NotificationResolver {
 
-    private final ObjectMapper objectMapper;
     protected final PushSuscriptionRepository pushSuscriptionRepository;
-    private final PushService pushService;
+    private final WebPushClient pushClient;
 
-    public PushNotifier(ObjectMapper objectMapper, PushSuscriptionRepository pushSuscriptionRepository, PushService pushService) {
-        this.objectMapper = objectMapper;
+    public PushNotifier(NotificationDeliveryService notificationDeliveryService, PushSuscriptionRepository pushSuscriptionRepository, WebPushClient pushClient) {
+        super(notificationDeliveryService);
         this.pushSuscriptionRepository = pushSuscriptionRepository;
-        this.pushService = pushService;
+        this.pushClient = pushClient;
     }
 
     @Override
-    public void sendNotification(User user, com.nexo.manada_solidaria_backend.notifications.models.data.Notification notification) {
+    public void notify(User user, Notification notification) {
+        log.info("Sending notification to user {}", user.getId());
         List<PushSubscription> subscriptions = pushSuscriptionRepository.findAllByUser(user);
-        log.debug("Sending notification to user {}", user.getId());
         subscriptions.forEach(subscription -> {
+            NotificationDelivery delivery = createPendingNotificationDelivery(user, notification);
             try {
                 send(subscription, new PushNotification(
                         notification.getTitle(),
@@ -42,6 +37,7 @@ public class PushNotifier implements NotificationResolver {
                         notification.getIcon(),
                         notification.getRedirectTo()
                 ));
+                markNotificationAsSent(delivery);
             } catch (Exception e) {
                 log.error(
                         "Failed to send push notification to user {}: subscription={}",
@@ -49,6 +45,7 @@ public class PushNotifier implements NotificationResolver {
                         subscription.getId(),
                         e
                 );
+                markNotificationAsFailed(delivery);
             }
         });
     }
@@ -61,14 +58,8 @@ public class PushNotifier implements NotificationResolver {
     private void send(
             PushSubscription subscription,
             PushNotification payload
-    ) throws IOException, JoseException, GeneralSecurityException, ExecutionException, InterruptedException {
-        String json = objectMapper.writeValueAsString(payload);
-        HttpResponse response = pushService.send(new nl.martijndwars.webpush.Notification(
-                subscription.getEndpoint(),
-                subscription.getP256dh(),
-                subscription.getAuth(),
-                json
-        ));
+    ) throws Exception {
+        HttpResponse response = pushClient.send(subscription, payload);
         int statusCode = response.getStatusLine().getStatusCode();
 
         if (!wasSent(statusCode)) {
