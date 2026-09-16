@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -31,11 +32,13 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Async("notificationExecutor")
-    public void notify(NotificationType type) {
+    public void notify(NotificationType type, Map<String, Object> params) {
         log.info("Sending notification {}", type);
         Notification notification = notificationRepository
                 .findByType(type)
                 .orElseThrow(() -> new ResponseStatusException(INTERNAL_SERVER_ERROR, "Notification not found for type: " + type));
+
+        this.replaceParams(notification, params);
 
         Set<User> recipients = notificationRecipientFactory
                 .resolve(type)
@@ -53,5 +56,21 @@ public class NotificationServiceImpl implements NotificationService {
         );
     }
 
+    private void replaceParams(Notification notification, Map<String, Object> params) {
+        params.forEach((key, value) -> {
+            String placeholder = "{" + key + "}";
 
+            notification.setTitle(
+                    notification.getTitle().replace(placeholder, value.toString())
+            );
+
+            notification.setMessage(
+                    notification.getMessage().replace(placeholder, value.toString())
+            );
+
+            notification.setRedirectTo(
+                    notification.getRedirectTo().replace(placeholder, value.toString())
+            );
+        });
+    }
 }

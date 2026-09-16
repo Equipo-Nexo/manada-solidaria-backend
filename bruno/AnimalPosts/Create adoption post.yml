@@ -18,7 +18,7 @@ http:
     data: |-
       {
         "type": "ADOPTION",
-        "name": "Chari",
+        "name": "Test para Nexo",
         "description": "Se escapó en el parque",
         "imageId": "cf-image-123",
         "animal": {

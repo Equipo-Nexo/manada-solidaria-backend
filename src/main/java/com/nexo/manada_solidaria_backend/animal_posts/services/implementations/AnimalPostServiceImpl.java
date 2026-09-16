@@ -27,6 +27,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -47,7 +48,7 @@ public class AnimalPostServiceImpl implements AnimalPostService {
         );
 
         if (Boolean.TRUE.equals(request.needTransport())) {
-            notificationService.notify(NotificationType.NEW_CARRIAGE_REQUEST);
+            notificationService.notify(NotificationType.NEW_CARRIAGE_REQUEST, Map.of("postId", saved.getId()));
         }
 
         log.info("Animal post created: id={} type={} owner={}", saved.getId(), saved.getType(), owner.getId());

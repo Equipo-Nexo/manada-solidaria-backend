@@ -6,6 +6,8 @@ import com.nexo.manada_solidaria_backend.notifications.services.interfaces.Notif
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+
 @Service
 @AllArgsConstructor
 public class PingServiceImpl implements PingService {
@@ -14,7 +16,7 @@ public class PingServiceImpl implements PingService {
 
     @Override
     public String ping() {
-        notificationService.notify(NotificationType.PING);
+        notificationService.notify(NotificationType.PING, Collections.emptyMap());
         return "pong";
     }
 }

@@ -16,6 +16,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import static org.mockito.Mockito.*;
@@ -43,7 +44,7 @@ class NotificationServiceTest {
 
         when(notificationRepository.findByType(type)).thenReturn(Optional.of(notification));
 
-        notificationService.notify(type);
+        notificationService.notify(type, Collections.emptyMap());
         verify(notificationResolver, atLeastOnce())
                 .notify(any(User.class), any(Notification.class));
     }
