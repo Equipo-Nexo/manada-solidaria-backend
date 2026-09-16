@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.notifications.services.implementations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nexo.manada_solidaria_backend.notifications.clients.WebPushClient;
 import com.nexo.manada_solidaria_backend.notifications.components.notifiers.implementations.PushNotifier;
 import com.nexo.manada_solidaria_backend.notifications.controllers.requests.PushNotificationSubscriptionRequest;
 import com.nexo.manada_solidaria_backend.notifications.controllers.requests.PushNotificationUnsuscribeRequest;
@@ -10,7 +11,6 @@ import com.nexo.manada_solidaria_backend.notifications.services.interfaces.Notif
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.PushNotificationService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.extern.slf4j.Slf4j;
-import nl.martijndwars.webpush.PushService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,8 +22,8 @@ import java.security.NoSuchAlgorithmException;
 @Slf4j
 public class PushNotificationServiceImpl extends PushNotifier implements PushNotificationService {
 
-    public PushNotificationServiceImpl(NotificationDeliveryService notificationDeliveryService, ObjectMapper objectMapper, PushSuscriptionRepository pushSuscriptionRepository, PushService pushService) {
-        super(notificationDeliveryService, objectMapper, pushSuscriptionRepository, pushService);
+    public PushNotificationServiceImpl(NotificationDeliveryService notificationDeliveryService, ObjectMapper objectMapper, PushSuscriptionRepository pushSuscriptionRepository, WebPushClient webPushClient) {
+        super(notificationDeliveryService, objectMapper, pushSuscriptionRepository, webPushClient);
     }
 
     @Override
