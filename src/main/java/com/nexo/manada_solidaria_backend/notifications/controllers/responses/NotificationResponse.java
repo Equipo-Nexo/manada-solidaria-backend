@@ -1,6 +1,5 @@
 package com.nexo.manada_solidaria_backend.notifications.controllers.responses;
 
-import com.nexo.manada_solidaria_backend.notifications.models.data.Notification;
 import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationDelivery;
 
 import java.time.LocalDateTime;
@@ -16,14 +15,13 @@ public record NotificationResponse(
 ) {
 
     public static NotificationResponse from(NotificationDelivery delivery) {
-        Notification notification = delivery.getNotification();
         return new NotificationResponse(
                 delivery.getId(),
-                notification.getTitle(),
-                notification.getMessage(),
+                delivery.getTitle(),
+                delivery.getMessage(),
                 delivery.getCreatedAt(),
                 delivery.isRead(),
-                notification.getRedirectTo()
+                delivery.getRedirectTo()
         );
     }
 }

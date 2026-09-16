@@ -7,6 +7,7 @@ import java.util.stream.Stream;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 
 public class MockNotificationDataUtils {
 
@@ -26,20 +27,24 @@ public class MockNotificationDataUtils {
                         "$.notifications", hasSize(3)
                 ),
                 Arguments.of(
-                        "la mas nueva viene primera",
-                        "$.notifications[0].title", is("Necesitan transporte")
+                        "el title sale del delivery, no de la plantilla",
+                        "$.notifications[0].title", is("Necesitan transporte para Firulais")
                 ),
                 Arguments.of(
                         "la mas vieja viene ultima",
                         "$.notifications[2].title", is("Mascota perdida")
                 ),
                 Arguments.of(
-                        "description sale del message de la notificacion",
-                        "$.notifications[0].description", is("Una publicacion necesita transporte")
+                        "description sale del message del delivery, ya resuelto",
+                        "$.notifications[0].description", is("Firulais necesita que lo lleven")
                 ),
                 Arguments.of(
-                        "redirectTo viaja tal cual",
-                        "$.notifications[0].redirectTo", is("/animal-posts/carriage")
+                        "redirectTo sale del delivery, con los parametros ya resueltos",
+                        "$.notifications[0].redirectTo", is("/animal-posts/a3f9c001")
+                ),
+                Arguments.of(
+                        "el placeholder de la plantilla nunca llega al front",
+                        "$.notifications[0].redirectTo", not(containsString("{postId}"))
                 ),
                 Arguments.of(
                         "createdAt es el del delivery, no el de la plantilla",

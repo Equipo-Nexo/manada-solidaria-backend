@@ -16,7 +16,7 @@ import java.util.UUID;
 @Repository
 public interface NotificationDeliveryRepository extends JpaRepository<NotificationDelivery, UUID> {
 
-    @EntityGraph(attributePaths = {"notification", "statusHistory"})
+    @EntityGraph(attributePaths = "statusHistory")
     List<NotificationDelivery> findAllByRecipientAndChannelOrderByCreatedAtDesc(User recipient, NotificationChannel channel);
 
     @EntityGraph(attributePaths = "statusHistory")

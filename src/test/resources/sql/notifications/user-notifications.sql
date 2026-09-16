@@ -37,7 +37,7 @@ VALUES (
     'Necesitan transporte',
     'Una publicacion necesita transporte',
     'carriage.png',
-    '/animal-posts/carriage',
+    '/animal-posts/{postId}',
     'NEW_CARRIAGE_REQUEST',
     '2025-03-01 10:00:00'
 );
@@ -47,34 +47,37 @@ VALUES (
 --    La mas vieja esta leida, las dos mas nuevas no.
 -- =========================================================
 
-MERGE INTO NOTIFICATION_DELIVERY (ID, RECIPIENT_ID, NOTIFICATION_ID, CHANNEL, CREATED_AT)
+MERGE INTO NOTIFICATION_DELIVERY (ID, RECIPIENT_ID, NOTIFICATION_ID, CHANNEL, CREATED_AT, TITLE, MESSAGE, REDIRECT_TO)
 KEY (ID)
 VALUES (
     '55555555-5555-5555-5555-555555555551',
     '22222222-2222-2222-2222-222222222222',
     '44444444-4444-4444-4444-444444444441',
     'IN_APP',
-    '2025-03-10 10:00:00'
+    '2025-03-10 10:00:00',
+    'Mascota perdida', 'Se perdio una mascota cerca tuyo', '/animal-posts/lost'
 );
 
-MERGE INTO NOTIFICATION_DELIVERY (ID, RECIPIENT_ID, NOTIFICATION_ID, CHANNEL, CREATED_AT)
+MERGE INTO NOTIFICATION_DELIVERY (ID, RECIPIENT_ID, NOTIFICATION_ID, CHANNEL, CREATED_AT, TITLE, MESSAGE, REDIRECT_TO)
 KEY (ID)
 VALUES (
     '55555555-5555-5555-5555-555555555553',
     '22222222-2222-2222-2222-222222222222',
     '44444444-4444-4444-4444-444444444441',
     'IN_APP',
-    '2025-03-11 10:00:00'
+    '2025-03-11 10:00:00',
+    'Mascota perdida', 'Se perdio una mascota cerca tuyo', '/animal-posts/lost'
 );
 
-MERGE INTO NOTIFICATION_DELIVERY (ID, RECIPIENT_ID, NOTIFICATION_ID, CHANNEL, CREATED_AT)
+MERGE INTO NOTIFICATION_DELIVERY (ID, RECIPIENT_ID, NOTIFICATION_ID, CHANNEL, CREATED_AT, TITLE, MESSAGE, REDIRECT_TO)
 KEY (ID)
 VALUES (
     '55555555-5555-5555-5555-555555555552',
     '22222222-2222-2222-2222-222222222222',
     '44444444-4444-4444-4444-444444444442',
     'IN_APP',
-    '2025-03-12 10:00:00'
+    '2025-03-12 10:00:00',
+    'Necesitan transporte para Firulais', 'Firulais necesita que lo lleven', '/animal-posts/a3f9c001'
 );
 
 -- =========================================================
@@ -85,25 +88,27 @@ VALUES (
 -- =========================================================
 
 -- PUSH de admin: mismo usuario, otro canal
-MERGE INTO NOTIFICATION_DELIVERY (ID, RECIPIENT_ID, NOTIFICATION_ID, CHANNEL, CREATED_AT)
+MERGE INTO NOTIFICATION_DELIVERY (ID, RECIPIENT_ID, NOTIFICATION_ID, CHANNEL, CREATED_AT, TITLE, MESSAGE, REDIRECT_TO)
 KEY (ID)
 VALUES (
     '55555555-5555-5555-5555-555555555554',
     '22222222-2222-2222-2222-222222222222',
     '44444444-4444-4444-4444-444444444441',
     'PUSH',
-    '2025-03-13 10:00:00'
+    '2025-03-13 10:00:00',
+    'Mascota perdida', 'Se perdio una mascota cerca tuyo', '/animal-posts/lost'
 );
 
 -- IN_APP de NOTADMIN: mismo canal, otro usuario
-MERGE INTO NOTIFICATION_DELIVERY (ID, RECIPIENT_ID, NOTIFICATION_ID, CHANNEL, CREATED_AT)
+MERGE INTO NOTIFICATION_DELIVERY (ID, RECIPIENT_ID, NOTIFICATION_ID, CHANNEL, CREATED_AT, TITLE, MESSAGE, REDIRECT_TO)
 KEY (ID)
 VALUES (
     '55555555-5555-5555-5555-555555555555',
     '22222222-2222-2222-2222-222222222223',
     '44444444-4444-4444-4444-444444444441',
     'IN_APP',
-    '2025-03-14 10:00:00'
+    '2025-03-14 10:00:00',
+    'Mascota perdida', 'Se perdio una mascota cerca tuyo', '/animal-posts/lost'
 );
 
 -- =========================================================

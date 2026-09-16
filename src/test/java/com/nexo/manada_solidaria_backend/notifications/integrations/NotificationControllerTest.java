@@ -1,8 +1,14 @@
 package com.nexo.manada_solidaria_backend.notifications.integrations;
 
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthenticatedIntegrationTest;
+import com.nexo.manada_solidaria_backend.notifications.models.data.Notification;
+import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationChannel;
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationStatus;
+import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
 import com.nexo.manada_solidaria_backend.notifications.models.repositories.NotificationDeliveryRepository;
+import com.nexo.manada_solidaria_backend.notifications.models.repositories.NotificationRepository;
+import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationDeliveryService;
+import com.nexo.manada_solidaria_backend.users.data.repositories.UserRepository;
 import org.hamcrest.Matcher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,6 +37,12 @@ class NotificationControllerTest extends BaseAuthenticatedIntegrationTest {
 
     @Autowired
     private NotificationDeliveryRepository notificationDeliveryRepository;
+    @Autowired
+    private NotificationRepository notificationRepository;
+    @Autowired
+    private NotificationDeliveryService notificationDeliveryService;
+    @Autowired
+    private UserRepository userRepository;
 
     @DisplayName("GET /users/{userId}/notifications")
     @ParameterizedTest(name = "{index} - {0}")
@@ -132,6 +144,27 @@ class NotificationControllerTest extends BaseAuthenticatedIntegrationTest {
 
         assertThat(readEntriesOf(UNREAD_DELIVERY_ID)).isEqualTo(1);
         assertThat(readEntriesOf(READ_DELIVERY_ID)).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("Al crear la entrega se guarda el texto ya resuelto, no la plantilla")
+    void creatingADeliverySnapshotsTheResolvedContent() throws Exception {
+        Notification template = notificationRepository.save(
+                new Notification("Traslado", "{pet} necesita transporte", null, "/animal-posts/{postId}", NotificationType.NEW_CARRIAGE_REQUEST)
+        );
+        template.setMessage("Firulais necesita transporte");
+        template.setRedirectTo("/animal-posts/99");
+
+        notificationDeliveryService.createNotificationDelivery(
+                userRepository.findByUsername("admin").orElseThrow(),
+                template,
+                NotificationChannel.IN_APP
+        );
+
+        getNotificationsOf(ADMIN_ID)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.notifications[0].description", is("Firulais necesita transporte")))
+                .andExpect(jsonPath("$.notifications[0].redirectTo", is("/animal-posts/99")));
     }
 
     private ResultActions markAllAsRead() throws Exception {

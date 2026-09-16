@@ -28,6 +28,9 @@ public class NotificationDelivery {
             orphanRemoval = true
     )
     private List<NotificationStatusHistory> statusHistory = new ArrayList<>();
+    private String title;
+    private String message;
+    private String redirectTo;
     private final LocalDateTime createdAt = LocalDateTime.now();
     @Id
     private final UUID id = UUID.randomUUID();
@@ -36,6 +39,9 @@ public class NotificationDelivery {
         this.recipient = recipient;
         this.notification = notification;
         this.channel = channel;
+        this.title = notification.getTitle();
+        this.message = notification.getMessage();
+        this.redirectTo = notification.getRedirectTo();
         this.statusHistory.add(new NotificationStatusHistory(status, this));
     }
 
