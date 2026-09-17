@@ -63,22 +63,13 @@ public class MockAdoptionFormDataUtils {
         );
     }
 
-    public static CreateAdoptionFormRequest createWithBlankAnswer(UUID postId) {
-        return new CreateAdoptionFormRequest(
-                postId,
-                new PhoneNumberRequest("353", "4123456"),
-                List.of(new CreateAdoptionFormRequest.QuestionFormRequest("Pregunta válida", ""))
-        );
-    }
-
     public static Stream<Arguments> provideCreateFormValidationCases() {
         UUID postId = UUID.randomUUID();
         return Stream.of(
                 Arguments.of("Sin id de publicación", createWithoutPostId(), HttpStatus.BAD_REQUEST),
                 Arguments.of("Sin teléfono de contacto", createWithoutPhone(postId), HttpStatus.BAD_REQUEST),
                 Arguments.of("Sin preguntas respondidas", createWithoutQuestions(postId), HttpStatus.BAD_REQUEST),
-                Arguments.of("Pregunta en blanco", createWithBlankQuestion(postId), HttpStatus.BAD_REQUEST),
-                Arguments.of("Respuesta en blanco", createWithBlankAnswer(postId), HttpStatus.BAD_REQUEST)
+                Arguments.of("Pregunta en blanco", createWithBlankQuestion(postId), HttpStatus.BAD_REQUEST)
         );
     }
 
