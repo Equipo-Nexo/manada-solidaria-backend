@@ -1,16 +1,26 @@
--- Profile para el solicitante
+-- Profile y Usuario creador de la publicación
+INSERT INTO profile (id, email, lastname, name, area_code, phone_number, profile_imageurl, user_notificationurl, roles)
+VALUES ('b0000000-0000-0000-0000-000000000000', 'owner@email.com', 'Perez', 'Juan', '353', '654321', NULL, NULL, ARRAY['COMMUNITY']);
+
+INSERT INTO users (id, username, password, profile_id)
+VALUES ('a0000000-0000-0000-0000-000000000000', 'owner-user', 'password', 'b0000000-0000-0000-0000-000000000000');
+
+-- Publicación de adopción requerida por la FK
+INSERT INTO animal_posts (id, type, name, description, cloud_flare_image_id, area_code, phone_number, owner_id, is_adopted)
+VALUES ('99999999-9999-9999-9999-999999999999', 'ADOPTION', 'Mascota de prueba', 'Descripción', 'img-id', '353', '123456', 'a0000000-0000-0000-0000-000000000000', false);
+
+-- Profile y Usuario solicitante
 INSERT INTO profile (id, email, lastname, name, area_code, phone_number, profile_imageurl, user_notificationurl, roles)
 VALUES ('b1111111-1111-1111-1111-111111111111', 'applicant@email.com', 'Gomez', 'Maria', '353', '123456', NULL, NULL, ARRAY['COMMUNITY']);
 
--- Usuario solicitante
 INSERT INTO users (id, username, password, profile_id)
 VALUES ('a1111111-1111-1111-1111-111111111111', 'applicant-user', 'password', 'b1111111-1111-1111-1111-111111111111');
 
--- Formulario asociado a la publicación 99999999-9999-9999-9999-999999999999
+-- Formulario asociado
 INSERT INTO adoption_forms (id, area_code, phone_number, is_read, created_at, applicant_id, adoption_post_id)
 VALUES ('c1111111-1111-1111-1111-111111111111', '353', '4123456', false, CURRENT_TIMESTAMP, 'a1111111-1111-1111-1111-111111111111', '99999999-9999-9999-9999-999999999999');
 
--- Preguntas respondidas en el formulario
+-- Preguntas respondidas
 INSERT INTO adoption_form_questions (adoption_form_id, question, answer)
 VALUES
 ('c1111111-1111-1111-1111-111111111111', '¿Alquilás? ¿Te permiten mascotas?', 'Alquilo y sí me permiten.'),

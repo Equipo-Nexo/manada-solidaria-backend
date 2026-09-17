@@ -22,6 +22,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -187,6 +188,48 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
     @MethodSource(MOCK_DATA + "provideGetFormsUnauthorizedCases")
     void getFormsByPostId_unauthorizedCases(String testName, String token) throws Exception {
         MockHttpServletRequestBuilder request = get("/adoption-forms/post/{postId}", MockAdoptionFormDataUtils.POST_WITH_FORMS_ID);
+
+        if (token != null) {
+            request = request.header("Authorization", "Bearer " + token);
+        }
+
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
+    }
+
+    @DisplayName("GET /users/{userId}/adoption-forms — Consulta exitosa parametrizada por filtro (OWNER y REVIEWER)")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideGetFormsByUserFilterCases")
+    @Sql(scripts = "/sql/animal_posts/get_adoption_form.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void getFormsByUser_successCases(String testName, String filter, int expectedSize) throws Exception {
+        mockMvc.perform(
+                        get("/users/{userId}/adoption-forms", MockAdoptionFormDataUtils.USER_APPLICANT_ID)
+                                .param("filter", filter)
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$", hasSize(expectedSize)));
+    }
+
+    @Test
+    @DisplayName("GET /users/{userId}/adoption-forms — Cuando el usuario autenticado consulta por otro userId devuelve FORBIDDEN 403")
+    void getFormsByUser_whenRequestingOtherUser_returnsForbidden() throws Exception {
+        UUID otherUserId = UUID.randomUUID();
+
+        mockMvc.perform(
+                        get("/users/{userId}/adoption-forms", otherUserId)
+                                .param("filter", "OWNER")
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isForbidden());
+    }
+
+    @DisplayName("GET /users/{userId}/adoption-forms — Sin autenticación o con token inválido devuelve UNAUTHORIZED 401")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideGetFormsByUserUnauthorizedCases")
+    void getFormsByUser_unauthorizedCases(String testName, String token) throws Exception {
+        MockHttpServletRequestBuilder request = get("/users/{userId}/adoption-forms", MockAdoptionFormDataUtils.USER_APPLICANT_ID)
+                .param("filter", "OWNER");
 
         if (token != null) {
             request = request.header("Authorization", "Bearer " + token);
