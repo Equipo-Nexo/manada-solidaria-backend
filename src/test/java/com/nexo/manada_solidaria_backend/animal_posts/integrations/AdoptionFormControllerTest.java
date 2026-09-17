@@ -6,6 +6,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusAdoptionP
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionForm;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPostStatusHistory;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.QuestionForm;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AdoptionFormRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.utils.MockAdoptionFormDataUtils;
@@ -148,6 +149,37 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     @Test
+    @DisplayName("POST /adoption-forms con respuesta en blanco/opcional: persiste el formulario correctamente y devuelve 201 CREATED")
+    void createForm_withBlankAnswer_persistsFormAndReturnsCreated() throws Exception {
+        User postOwner = createOtherUser("owner-user", "owner@mail.com");
+        AdoptionPost post = saveAdoptionPost("Gatito en adopción", postOwner);
+
+        CreateAdoptionFormRequest request = new CreateAdoptionFormRequest(
+                post.getId(),
+                new PhoneNumberRequest("353", "4123456"),
+                List.of(
+                        new CreateAdoptionFormRequest.QuestionFormRequest("¿Tenés patio?", ""),
+                        new CreateAdoptionFormRequest.QuestionFormRequest("¿Alquilás?", "No")
+                )
+        );
+
+        mockMvc.perform(
+                        post("/adoption-forms")
+                                .header("Authorization", "Bearer " + accessToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(toJson(request))
+                )
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.questions", hasSize(2)))
+                .andExpect(jsonPath("$.questions[0].answer").value(""));
+
+        List<AdoptionForm> savedForms = adoptionFormRepository.findAll();
+        assertThat(savedForms).hasSize(1);
+        assertThat(savedForms.get(0).getQuestions().get(0).getAnswer()).isEmpty();
+    }
+
+    @Test
     @DisplayName("GET /adoption-forms/post/{postId} — El dueño de la publicación obtiene sus formularios exitosamente")
     void getFormsByPostId_asOwner_returnsOk() throws Exception {
         User owner = admin();
@@ -201,10 +233,16 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
     @DisplayName("GET /users/{userId}/adoption-forms — Consulta exitosa parametrizada por filtro (OWNER y REVIEWER)")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource(MOCK_DATA + "provideGetFormsByUserFilterCases")
-    @Sql(scripts = "/sql/animal_posts/get_adoption_form.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getFormsByUser_successCases(String testName, String filter, int expectedSize) throws Exception {
+        adoptionFormRepository.deleteAll();
+
+        User currentAdmin = admin();
+        User otherUser = createOtherUser("other-user-filter-" + UUID.randomUUID(), "otherfilter@mail.com");
+
+        setupMockFormsForFilter(filter, expectedSize, currentAdmin, otherUser);
+
         mockMvc.perform(
-                        get("/users/{userId}/adoption-forms", MockAdoptionFormDataUtils.USER_APPLICANT_ID)
+                        get("/users/{userId}/adoption-forms", currentAdmin.getId())
                                 .param("filter", filter)
                                 .header("Authorization", "Bearer " + accessToken)
                 )
@@ -240,37 +278,6 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
         mockMvc.perform(request).andExpect(status().isUnauthorized());
     }
 
-    @Test
-    @DisplayName("POST /adoption-forms con respuesta en blanco/opcional: persiste el formulario correctamente y devuelve 201 CREATED")
-    void createForm_withBlankAnswer_persistsFormAndReturnsCreated() throws Exception {
-        User postOwner = createOtherUser("owner-user", "owner@mail.com");
-        AdoptionPost post = saveAdoptionPost("Gatito en adopción", postOwner);
-
-        CreateAdoptionFormRequest request = new CreateAdoptionFormRequest(
-                post.getId(),
-                new PhoneNumberRequest("353", "4123456"),
-                List.of(
-                        new CreateAdoptionFormRequest.QuestionFormRequest("¿Tenés patio?", ""),
-                        new CreateAdoptionFormRequest.QuestionFormRequest("¿Alquilás?", "No")
-                )
-        );
-
-        mockMvc.perform(
-                        post("/adoption-forms")
-                                .header("Authorization", "Bearer " + accessToken)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(toJson(request))
-                )
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.questions", hasSize(2)))
-                .andExpect(jsonPath("$.questions[0].answer").value(""));
-
-        List<AdoptionForm> savedForms = adoptionFormRepository.findAll();
-        assertThat(savedForms).hasSize(1);
-        assertThat(savedForms.get(0).getQuestions().get(0).getAnswer()).isEmpty();
-    }
-
     private AdoptionPost saveAdoptionPost(String name, User owner) {
         AdoptionPost post = new AdoptionPost(
                 name,
@@ -296,4 +303,33 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
         return userRepository.findByUsername("admin").orElseThrow();
     }
 
+    private void setupMockFormsForFilter(String filter, int expectedSize, User currentAdmin, User otherUser) {
+        if ("OWNER".equals(filter)) {
+            createFormAsOwner(currentAdmin, otherUser);
+        } else if ("REVIEWER".equals(filter) && expectedSize > 0) {
+            createFormAsReviewer(currentAdmin, otherUser);
+        }
+    }
+
+    private void createFormAsOwner(User applicant, User postOwner) {
+        AdoptionPost postOfOther = saveAdoptionPost("Mascota de otro", postOwner);
+        AdoptionForm form = new AdoptionForm(
+                new PhoneNumber("353", "4123456"),
+                applicant,
+                postOfOther,
+                List.of(new QuestionForm("¿Patio?", "Sí"))
+        );
+        adoptionFormRepository.save(form);
+    }
+
+    private void createFormAsReviewer(User postOwner, User applicant) {
+        AdoptionPost adminPost = saveAdoptionPost("Mascota de admin", postOwner);
+        AdoptionForm form = new AdoptionForm(
+                new PhoneNumber("353", "4123456"),
+                applicant,
+                adminPost,
+                List.of(new QuestionForm("¿Patio?", "Sí"))
+        );
+        adoptionFormRepository.save(form);
+    }
 }
