@@ -1,5 +1,7 @@
 package com.nexo.manada_solidaria_backend.users.controllers.interfaces;
 
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormResponse;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.ProfileResponse;
@@ -56,6 +58,13 @@ public interface UserController {
     @PatchMapping("/roles")
     List<Rol> updateRoles(
             @Valid @RequestBody UpdateRolesRequest request,
+            @AuthenticationPrincipal User authenticatedUser
+    );
+
+    @GetMapping("/{userId}/adoption-forms")
+    List<AdoptionFormResponse> getFormsByUser(
+            @PathVariable UUID userId,
+            @RequestParam FormFilter filter,
             @AuthenticationPrincipal User authenticatedUser
     );
 }

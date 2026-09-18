@@ -8,6 +8,9 @@ import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+import java.util.UUID;
+
 @RestController
 @AllArgsConstructor
 public class AdoptionFormControllerImpl implements AdoptionFormController {
@@ -17,5 +20,10 @@ public class AdoptionFormControllerImpl implements AdoptionFormController {
     @Override
     public AdoptionFormResponse createForm(CreateAdoptionFormRequest request, User authenticatedUser) {
         return adoptionFormService.createForm(request, authenticatedUser);
+    }
+
+    @Override
+    public List<AdoptionFormResponse> getFormsByPostId(UUID postId, User authenticatedUser) {
+        return adoptionFormService.getFormsByPostId(postId, authenticatedUser);
     }
 }
