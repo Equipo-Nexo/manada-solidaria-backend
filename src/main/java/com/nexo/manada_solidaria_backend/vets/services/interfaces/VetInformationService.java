@@ -12,7 +12,7 @@ public interface VetInformationService {
 
     VetInformationResponse create(CreateVetInformationRequest request);
 
-    List<VetInformationResponse> getAll();
+    List<VetInformationResponse> getAll(String search, Boolean openOnly, Double userLatitude, Double userLongitude);
 
     VetInformationResponse getById(UUID vetId);
 
