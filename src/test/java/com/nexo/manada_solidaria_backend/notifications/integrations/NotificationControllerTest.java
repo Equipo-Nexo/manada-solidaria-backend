@@ -26,7 +26,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -83,7 +83,7 @@ class NotificationControllerTest extends BaseAuthenticatedIntegrationTest {
         assertThat(isRead(UNREAD_DELIVERY_ID)).isFalse();
 
         mockMvc.perform(
-                        patch("/users/{userId}/notifications/{notificationId}/read", ADMIN_ID, UNREAD_DELIVERY_ID)
+                        post("/notifications/{notificationId}/read", UNREAD_DELIVERY_ID)
                                 .header("Authorization", "Bearer " + accessToken)
                 )
                 .andExpect(status().isNoContent());
@@ -100,7 +100,7 @@ class NotificationControllerTest extends BaseAuthenticatedIntegrationTest {
     )
     void markingAnotherUsersNotificationIsNotFound() throws Exception {
         mockMvc.perform(
-                        patch("/users/{userId}/notifications/{notificationId}/read", ADMIN_ID, OTHER_USER_DELIVERY_ID)
+                        post("/notifications/{notificationId}/read", OTHER_USER_DELIVERY_ID)
                                 .header("Authorization", "Bearer " + accessToken)
                 )
                 .andExpect(status().isNotFound());
@@ -116,7 +116,7 @@ class NotificationControllerTest extends BaseAuthenticatedIntegrationTest {
     )
     void markAllAsReadPersistsTheStatus() throws Exception {
         mockMvc.perform(
-                        patch("/users/{userId}/notifications/read", ADMIN_ID)
+                        post("/notifications/read")
                                 .header("Authorization", "Bearer " + accessToken)
                 )
                 .andExpect(status().isNoContent());
@@ -169,7 +169,7 @@ class NotificationControllerTest extends BaseAuthenticatedIntegrationTest {
 
     private ResultActions markAllAsRead() throws Exception {
         return mockMvc.perform(
-                patch("/users/{userId}/notifications/read", ADMIN_ID)
+                post("/notifications/read")
                         .header("Authorization", "Bearer " + accessToken)
         );
     }

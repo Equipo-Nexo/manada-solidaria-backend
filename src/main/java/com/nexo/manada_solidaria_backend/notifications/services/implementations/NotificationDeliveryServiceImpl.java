@@ -54,8 +54,7 @@ public class NotificationDeliveryServiceImpl implements NotificationDeliveryServ
 
     @Override
     @Transactional
-    public void markAsRead(UUID userId, UUID notificationId, User authenticatedUser) {
-        validateOwner(userId, authenticatedUser);
+    public void markAsRead(UUID notificationId, User authenticatedUser) {
         NotificationDelivery delivery = this.notificationDeliveryRepository
                 .findByIdAndRecipient(notificationId, authenticatedUser)
                 .orElseThrow(() -> new ResponseStatusException(
@@ -67,8 +66,7 @@ public class NotificationDeliveryServiceImpl implements NotificationDeliveryServ
 
     @Override
     @Transactional
-    public void markAllAsRead(UUID userId, User authenticatedUser) {
-        validateOwner(userId, authenticatedUser);
+    public void markAllAsRead(User authenticatedUser) {
         this.notificationDeliveryRepository
                 .findByRecipientAndChannelWithoutStatus(authenticatedUser, NotificationChannel.IN_APP, NotificationStatus.READ)
                 .forEach(delivery -> changeStatus(delivery, NotificationStatus.READ));

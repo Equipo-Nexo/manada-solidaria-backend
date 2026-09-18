@@ -17,7 +17,7 @@ public interface NotificationDeliveryService {
 
     UserNotificationsResponse getUserNotifications(UUID userId, User authenticatedUser);
 
-    void markAsRead(UUID userId, UUID notificationId, User authenticatedUser);
+    void markAsRead(UUID notificationId, User authenticatedUser);
 
-    void markAllAsRead(UUID userId, User authenticatedUser);
+    void markAllAsRead(User authenticatedUser);
 }
