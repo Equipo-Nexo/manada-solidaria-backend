@@ -147,6 +147,37 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     @Test
+    @DisplayName("POST /adoption-forms con respuesta en blanco/opcional: persiste el formulario correctamente y devuelve 201 CREATED")
+    void createForm_withBlankAnswer_persistsFormAndReturnsCreated() throws Exception {
+        User postOwner = createOtherUser("owner-user", "owner@mail.com");
+        AdoptionPost post = saveAdoptionPost("Gatito en adopción", postOwner);
+
+        CreateAdoptionFormRequest request = new CreateAdoptionFormRequest(
+                post.getId(),
+                new PhoneNumberRequest("353", "4123456"),
+                List.of(
+                        new CreateAdoptionFormRequest.QuestionFormRequest("¿Tenés patio?", ""),
+                        new CreateAdoptionFormRequest.QuestionFormRequest("¿Alquilás?", "No")
+                )
+        );
+
+        mockMvc.perform(
+                        post("/adoption-forms")
+                                .header("Authorization", "Bearer " + accessToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(toJson(request))
+                )
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.questions", hasSize(2)))
+                .andExpect(jsonPath("$.questions[0].answer").value(""));
+
+        List<AdoptionForm> savedForms = adoptionFormRepository.findAll();
+        assertThat(savedForms).hasSize(1);
+        assertThat(savedForms.get(0).getQuestions().get(0).getAnswer()).isEmpty();
+    }
+
+    @Test
     @DisplayName("GET /adoption-forms/post/{postId} — El dueño de la publicación obtiene sus formularios exitosamente")
     void getFormsByPostId_asOwner_returnsOk() throws Exception {
         User owner = admin();
@@ -195,37 +226,6 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
         }
 
         mockMvc.perform(request).andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    @DisplayName("POST /adoption-forms con respuesta en blanco/opcional: persiste el formulario correctamente y devuelve 201 CREATED")
-    void createForm_withBlankAnswer_persistsFormAndReturnsCreated() throws Exception {
-        User postOwner = createOtherUser("owner-user", "owner@mail.com");
-        AdoptionPost post = saveAdoptionPost("Gatito en adopción", postOwner);
-
-        CreateAdoptionFormRequest request = new CreateAdoptionFormRequest(
-                post.getId(),
-                new PhoneNumberRequest("353", "4123456"),
-                List.of(
-                        new CreateAdoptionFormRequest.QuestionFormRequest("¿Tenés patio?", ""),
-                        new CreateAdoptionFormRequest.QuestionFormRequest("¿Alquilás?", "No")
-                )
-        );
-
-        mockMvc.perform(
-                        post("/adoption-forms")
-                                .header("Authorization", "Bearer " + accessToken)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(toJson(request))
-                )
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.questions", hasSize(2)))
-                .andExpect(jsonPath("$.questions[0].answer").value(""));
-
-        List<AdoptionForm> savedForms = adoptionFormRepository.findAll();
-        assertThat(savedForms).hasSize(1);
-        assertThat(savedForms.get(0).getQuestions().get(0).getAnswer()).isEmpty();
     }
 
     private AdoptionPost saveAdoptionPost(String name, User owner) {
