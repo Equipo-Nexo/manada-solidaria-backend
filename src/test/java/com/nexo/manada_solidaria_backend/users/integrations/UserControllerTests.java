@@ -25,9 +25,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -382,7 +380,7 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
     private User saveUser(String username) {
         return userRepository.save(
                 new User(username, "irrelevante",
-                        new Profile("otro@mail.com", new PhoneNumber("3533", "436249"), List.of(Rol.COMMUNITY)))
+                        new Profile("otro@mail.com", new PhoneNumber("3533", "436249"), Set.of(Rol.COMMUNITY)))
         );
     }
 
@@ -400,12 +398,12 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
     }
 
     private void saveUser(String username, PhoneNumber phoneNumber, String profileImageURL, Rol... roles) {
-        Profile profile = new Profile(null, phoneNumber, new ArrayList<>(List.of(roles)));
+        Profile profile = new Profile(null, phoneNumber, new HashSet<>(List.of(roles)));
         profile.setProfileImageURL(profileImageURL);
         userRepository.save(new User(username, "x", profile));
     }
 
-    private List<Rol> rolesOfAdmin() {
+    private Set<Rol> rolesOfAdmin() {
         return userRepository.findByUsername("admin").orElseThrow().getProfile().getRoles();
     }
 }

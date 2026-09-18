@@ -28,6 +28,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -193,7 +194,7 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     private User createOtherUser(String username, String email) {
-        User user = new User(username, "password", new Profile(email, new PhoneNumber("353", "999999"), List.of(Rol.COMMUNITY)));
+        User user = new User(username, "password", new Profile(email, new PhoneNumber("353", "999999"), Set.of(Rol.COMMUNITY)));
         return userRepository.save(user);
     }
 
