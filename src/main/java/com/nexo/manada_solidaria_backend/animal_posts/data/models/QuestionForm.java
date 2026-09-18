@@ -17,6 +17,6 @@ public class QuestionForm {
     @Column(nullable = false, length = 500)
     private String question;
 
-    @Column(nullable = false, length = 1000)
+    @Column(length = 1000)
     private String answer;
 }

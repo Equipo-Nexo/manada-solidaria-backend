@@ -1,6 +1,6 @@
 ALTER TABLE adoption_form_questions
-    ALTER COLUMN answer DROP NOT NULL;
+    MODIFY COLUMN answer VARCHAR(1000) NULL;
 
--- ROLLBACK
+-- Rollback:
 -- ALTER TABLE adoption_form_questions
---     MODIFY answer VARCHAR(1000) NOT NULL;
+--     MODIFY COLUMN answer VARCHAR(1000) NOT NULL;
