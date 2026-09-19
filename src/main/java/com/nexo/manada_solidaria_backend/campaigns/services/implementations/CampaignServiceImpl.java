@@ -12,6 +12,7 @@ import com.nexo.manada_solidaria_backend.campaigns.data.models.Campaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.FundraisingCampaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.repositories.CampaignRepository;
 import com.nexo.manada_solidaria_backend.campaigns.services.interfaces.CampaignService;
+import com.nexo.manada_solidaria_backend.notifications.components.recipients.data.NotificationContext;
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -232,7 +233,8 @@ public class CampaignServiceImpl implements CampaignService {
                     Map.of(
                             "user", owner.getUsername(),
                             "fundraisingId", saved.getId()
-                    )
+                    ),
+                    new NotificationContext(owner.getId())
             );
         }
     }

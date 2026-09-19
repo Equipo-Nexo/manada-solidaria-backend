@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.notifications.components.recipients.implementations;
 
 import com.nexo.manada_solidaria_backend.notifications.components.recipients.NotificationRecipientResolver;
+import com.nexo.manada_solidaria_backend.notifications.components.recipients.data.NotificationContext;
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import com.nexo.manada_solidaria_backend.users.data.specifications.UserSpecifications;
@@ -21,7 +22,7 @@ public class NewFundraisingCampaignRecipientResolver extends NotificationRecipie
     }
 
     @Override
-    public Specification<User> buildSpecification() {
-        return UserSpecifications.all();
+    public Specification<User> buildSpecification(NotificationContext context) {
+        return UserSpecifications.allExcept(context.postOwnerId());
     }
 }
