@@ -3,14 +3,18 @@ package com.nexo.manada_solidaria_backend.auth.controllers.requests;
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import com.nexo.manada_solidaria_backend.common.controllers.validations.PasswordConfirmation;
 import com.nexo.manada_solidaria_backend.common.controllers.validations.PasswordMatches;
+import com.nexo.manada_solidaria_backend.common.controllers.validations.SecurePassword;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.util.List;
+import java.util.Set;
 
 @Builder
 @AllArgsConstructor
@@ -20,12 +24,11 @@ public class CreateUserRequest implements PasswordConfirmation {
     @NotBlank(message = "Debe ingresar un nombre de usuario")
     @Size(min = 4, message = "El nombre de usuario debe tener minimo 4 caracteres")
     private String username;
-    @NotBlank(message = "Debe ingresar una contraseña")
-    @Size(min = 6, message = "la contraseña debe tener al menos 6 caracteres")
+    @SecurePassword
     private String password;
     @NotBlank(message = "Debe repetir la contraseña")
     private String repeatedPassword;
-    private List<Rol> roles;
+    private Set<Rol> roles;
     @Email
     @NotNull(message = "Debe ingresar un correo electrónico")
     private String email;

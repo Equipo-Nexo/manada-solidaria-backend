@@ -18,6 +18,7 @@ import com.nexo.manada_solidaria_backend.users.services.interfaces.UserService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,10 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -129,12 +127,22 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<Rol> updateRoles(UpdateRolesRequest request, User authenticatedUser) {
+    public Set<Rol> updateRoles(UpdateRolesRequest request, User authenticatedUser) {
         authenticatedUser.getProfile().updateRoles(request);
         userRepository.save(authenticatedUser);
-        List<Rol> updated = authenticatedUser.getProfile().getRoles();
+        Set<Rol> updated = authenticatedUser.getProfile().getRoles();
         log.info("Roles updated: user={} roles={}", authenticatedUser.getId(), updated);
         return updated;
+    }
+
+    @Override
+    public List<User> findAll() {
+        return userRepository.findAll();
+    }
+
+    @Override
+    public List<User> getUserBySpecifications(Specification<User> userSpecification) {
+        return userRepository.findAll(userSpecification);
     }
 
     @Override
@@ -188,7 +196,7 @@ public class UserServiceImpl implements UserService {
                         createUserRequest.getEmail(),
                         PhoneNumberRequest.toDomain(createUserRequest.getPhoneNumber()),
                         Optional.ofNullable(createUserRequest.getRoles())
-                                .orElse(List.of(Rol.COMMUNITY))
+                                .orElse(Set.of(Rol.COMMUNITY))
 
                 )
         );

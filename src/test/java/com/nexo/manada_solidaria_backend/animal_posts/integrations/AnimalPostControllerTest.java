@@ -26,10 +26,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -608,7 +605,10 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.owner.username").value("publicador"))
-                .andExpect(jsonPath("$.owner.roles", contains(roles.stream().map(Rol::name).toArray())));
+                .andExpect(jsonPath(
+                        "$.owner.roles",
+                        containsInAnyOrder(roles.stream().map(Rol::name).toArray())
+                ));
     }
 
     @ParameterizedTest(name = "{0}")
@@ -803,7 +803,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     private LostPost saveLostPostOwnedByOtherUser() {
-        User other = new User("otro-usuario", "x", new Profile("otro@mail.com", new PhoneNumber("3533", "436249"), List.of(Rol.COMMUNITY)));
+        User other = new User("otro-usuario", "x", new Profile("otro@mail.com", new PhoneNumber("3533", "436249"), Set.of(Rol.COMMUNITY)));
         userRepository.save(other);
 
         LostPost post = new LostPost("De otro", "Descripcion", "cf-img", null, new PhoneNumber("3533", "436249"), true, other, location(), animal(), null);
@@ -812,7 +812,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
 
     private LostPost saveLostPostOwnedBy(String username, List<Rol> roles) {
         User owner = userRepository.save(
-                new User(username, "x", new Profile("publicador@mail.com", new PhoneNumber("353", "4014524"), new ArrayList<>(roles)))
+                new User(username, "x", new Profile("publicador@mail.com", new PhoneNumber("353", "4014524"), new HashSet<>(roles)))
         );
         return animalPostRepository.save(
                 new LostPost("De " + username, "Descripcion", "cf-img", null, new PhoneNumber("353", "4014524"), true, owner, location(), animal(), null)
