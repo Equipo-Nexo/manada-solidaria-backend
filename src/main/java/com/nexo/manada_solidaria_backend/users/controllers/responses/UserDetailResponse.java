@@ -4,13 +4,14 @@ import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public record UserDetailResponse(
         UUID id,
         String username,
         ProfileResponse profile,
-        List<Rol> roles,
+        Set<Rol> roles,
         List<UserPostResponse> posts
 ) {
 

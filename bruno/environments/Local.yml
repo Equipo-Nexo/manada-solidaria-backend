@@ -1,0 +1,8 @@
+name: Local
+variables:
+  - name: MANADA_SOLIDARIA_HOST
+    value: localhost:8080
+  - name: access_token
+    value: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhYzVmZDAzZC02YmY1LTQzMjEtYmYxNC1iNDY2NDRiYzM2NjUiLCJleHAiOjE3ODk1MzIyNTYsImlhdCI6MTc4OTUyODY1Niwicm9sZXMiOlsiQ09NTVVOSVRZIl19.ZS13zkvYX8zZ0l45ToFS2y_NbkDAx_sQU8l86L_RGhg
+  - name: refresh_token
+    value: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhYzVmZDAzZC02YmY1LTQzMjEtYmYxNC1iNDY2NDRiYzM2NjUiLCJleHAiOjE3ODk1MzU4NTYsImlhdCI6MTc4OTUyODY1Nn0.X-1nt0aLJJAt-LUN47LI8cp57kKKPZ9CG_aaFWoQPeA

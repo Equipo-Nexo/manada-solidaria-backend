@@ -1,0 +1,36 @@
+info:
+  name: Get animal posts
+  type: http
+  seq: 4
+
+http:
+  method: GET
+  url: "{{MANADA_SOLIDARIA_HOST}}/animal-posts?type=ADOPTION"
+  params:
+    - name: type
+      value: LOST
+      type: query
+      disabled: true
+    - name: type
+      value: ADOPTION
+      type: query
+    - name: type
+      value: IN_STREET
+      type: query
+      disabled: true
+    - name: status
+      value: SEARCHING_ADOPT_AND_TRANSIT
+      type: query
+      disabled: true
+    - name: status
+      value: SEARCHING_ADOPT
+      type: query
+      disabled: true
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

@@ -19,6 +19,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.time.DayOfWeek;
+import java.util.List;
 import java.util.UUID;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
@@ -103,22 +104,36 @@ public class VetInformationControllerTests extends BaseAuthenticatedIntegrationT
                 .andExpect(status().isUnauthorized());
     }
 
-    @Test
-    @DisplayName("GET /vets devuelve todas las veterinarias ordenadas alfabéticamente")
+    @DisplayName("GET /vets con filtros y ordenamiento opcionales")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource("com.nexo.manada_solidaria_backend.vets.utils.MockVetInformationDataUtils#provideGetAllVetInformationCases")
     @Sql(
             scripts = "/sql/vets/create-vets.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
     )
-    void getVetInformation_returnsAllVetsOrderedByName() throws Exception {
-        mockMvc.perform(
-                        get("/vets")
-                                .header("Authorization", "Bearer " + accessToken)
-                )
+    void getVetInformation_withFiltersAndSorting_returnsFilteredList(
+            String testName,
+            org.springframework.util.MultiValueMap<String, String> params,
+            int expectedSize,
+            List<String> expectedNamesInOrder
+    ) throws Exception {
+
+        var requestBuilder = get("/vets")
+                .header("Authorization", "Bearer " + accessToken);
+
+        params.forEach((key, values) -> {
+            for (String value : values) {
+                requestBuilder.param(key, value);
+            }
+        });
+
+        var resultActions = mockMvc.perform(requestBuilder)
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(3)))
-                .andExpect(jsonPath("$[0].name").value("Veterinaria Animalia"))
-                .andExpect(jsonPath("$[1].name").value("Veterinaria El Sol"))
-                .andExpect(jsonPath("$[2].name").value("Veterinaria San Roque"));
+                .andExpect(jsonPath("$", hasSize(expectedSize)));
+
+        for (int i = 0; i < expectedNamesInOrder.size(); i++) {
+            resultActions.andExpect(jsonPath("$[" + i + "].name").value(expectedNamesInOrder.get(i)));
+        }
     }
 
     @Test

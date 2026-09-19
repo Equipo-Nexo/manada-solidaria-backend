@@ -1,0 +1,46 @@
+info:
+  name: Invalid donation campaign
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{MANADA_SOLIDARIA_HOST}}/campaigns"
+  body:
+    type: json
+    data: "{\r
+
+      \  \"type\": \"VACCINATION\",\r
+
+      \  \"title\": \"Campaña de vacunación\",\r
+
+      \  \"description\": \"Jornada gratuita de vacunación para perros y gatos.\",\r
+
+      \  \"imageId\": null,\r
+
+      \  \"location\": {\r
+
+      \    \"name\": \"Plaza Central\",\r
+
+      \    \"address\": \"Belgrano\",\r
+
+      \    \"number\": 100,\r
+
+      \    \"latitude\": -32.4075,\r
+
+      \    \"longitude\": -63.2401\r
+
+      \  },\r
+
+      \  \"amountToBeCollected\": null,\r
+
+      \  \"campaignEndDate\": null\r
+
+      }"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

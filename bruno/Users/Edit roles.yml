@@ -1,0 +1,22 @@
+info:
+  name: Edit roles
+  type: http
+  seq: 3
+
+http:
+  method: PATCH
+  url: "{{MANADA_SOLIDARIA_HOST}}/users/roles"
+  body:
+    type: json
+    data: "{\r
+
+      \    \"roles\": [\"TRANSITIONAL_HOME\"]\r
+
+      }"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

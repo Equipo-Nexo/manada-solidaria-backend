@@ -10,31 +10,40 @@ import com.nexo.manada_solidaria_backend.vets.data.models.VetInformation;
 import com.nexo.manada_solidaria_backend.vets.data.repositories.VetInformationRepository;
 import com.nexo.manada_solidaria_backend.vets.services.interfaces.VetInformationService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class VetInformationServiceImpl implements VetInformationService {
+
+    private static final String ZONE_ID = "America/Argentina/Buenos_Aires";
 
     private final VetInformationRepository repository;
 
     @Override
     public VetInformationResponse create(CreateVetInformationRequest request) {
         VetInformation vet = buildVetInformation(request);
+        VetInformation saved = repository.save(vet);
 
-        repository.save(vet);
-        return new VetInformationResponse(vet);
+        log.info("Vet information created: id={} name={}", saved.getId(), saved.getName());
+
+        return new VetInformationResponse(saved);
     }
 
     @Override
-    public List<VetInformationResponse> getAll() {
-        return repository.findAllByOrderByNameAsc()
+    public List<VetInformationResponse> getAll(String query, Boolean openOnly, Double userLat, Double userLng) {
+        log.debug("Listing vets: query={} openOnly={} lat={} lng={}", query, openOnly, userLat, userLng);
+        return getVets(userLat, userLng, query, openOnly)
                 .stream()
                 .map(VetInformationResponse::new)
                 .toList();
@@ -49,6 +58,8 @@ public class VetInformationServiceImpl implements VetInformationService {
     public void delete(UUID vetId) {
         VetInformation vet = getVetInformationOrThrow(vetId);
         repository.delete(vet);
+
+        log.info("Vet information deleted: id={}", vetId);
     }
 
     @Override
@@ -56,8 +67,11 @@ public class VetInformationServiceImpl implements VetInformationService {
         VetInformation vet = getVetInformationOrThrow(vetId);
 
         vet.update(request);
-        repository.save(vet);
-        return new VetInformationResponse(vet);
+        VetInformation updated = repository.save(vet);
+
+        log.info("Vet information updated: id={}", updated.getId());
+
+        return new VetInformationResponse(updated);
     }
 
 
@@ -102,6 +116,27 @@ public class VetInformationServiceImpl implements VetInformationService {
                         HttpStatus.NOT_FOUND,
                         "La veterinaria no existe"
                 ));
+    }
+
+    private List<VetInformation> getVets(
+            Double userLat,
+            Double userLng,
+            String query,
+            Boolean openOnly
+    ) {
+        LocalDateTime now = LocalDateTime.now(ZoneId.of(ZONE_ID));
+        return repository.searchVets(
+                normalizeQuery(query),
+                Boolean.TRUE.equals(openOnly),
+                now.getDayOfWeek(),
+                now.toLocalTime(),
+                userLat,
+                userLng
+        );
+    }
+
+    private static String normalizeQuery(String query) {
+        return (query != null && !query.trim().isEmpty()) ? query.trim() : null;
     }
 
 }

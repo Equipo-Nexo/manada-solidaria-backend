@@ -5,10 +5,10 @@ import com.nexo.manada_solidaria_backend.guards.clients.responses.HolidayRespons
 import com.nexo.manada_solidaria_backend.guards.utils.MockGuardDataUtils.HolidaysApi;
 import okhttp3.mockwebserver.MockResponse;
 import org.junit.jupiter.api.DisplayName;
-import org.springframework.http.MediaType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -91,7 +91,8 @@ class GuardControllerTest extends BaseAuthenticatedIntegrationTest {
                     .setResponseCode(200)
                     .setHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                     .setBody(MALFORMED_HOLIDAYS_BODY));
-            case DOWN -> { }
+            case DOWN -> {
+            }
         }
     }
 }

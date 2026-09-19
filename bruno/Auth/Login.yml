@@ -1,0 +1,28 @@
+info:
+  name: Login
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{MANADA_SOLIDARIA_HOST}}/auth/login"
+  auth:
+    type: basic
+    username: admin
+    password: admin
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        const response = res.body;
+
+        bru.setEnvVar("access_token", response.accessToken);
+        bru.setEnvVar("refresh_token", response.refreshToken);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

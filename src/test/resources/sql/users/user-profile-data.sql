@@ -5,8 +5,7 @@ MERGE INTO PROFILE (
     EMAIL,
     AREA_CODE,
     PHONE_NUMBER,
-    PROFILE_IMAGEURL,
-    ROLES
+    PROFILE_IMAGEURL
 )
 KEY (ID)
 VALUES (
@@ -16,6 +15,15 @@ VALUES (
     'admin@mail.com',
     '3533',
     '436249',
-    'cf-profile-1',
+    'cf-profile-1'
+);
+
+MERGE INTO PROFILE_ROLES (
+    PROFILE_ID,
+    ROLE
+)
+KEY (PROFILE_ID, ROLE)
+VALUES (
+    '11111111-1111-1111-1111-111111111111',
     'COMMUNITY'
 );

@@ -1,0 +1,15 @@
+info:
+  name: Get campaign by id
+  type: http
+  seq: 6
+
+http:
+  method: GET
+  url: "{{MANADA_SOLIDARIA_HOST}}/campaigns/0e9e8ef7-fbd1-420f-9776-5f183f1e1114"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

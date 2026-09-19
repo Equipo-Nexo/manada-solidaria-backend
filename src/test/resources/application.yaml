@@ -50,3 +50,8 @@ clients:
         host: http://localhost:18080
         paths:
           by-year: ${clients.rest.apis.argentina-datos.host}/v1/feriados/{year}
+push:
+  vapid:
+    public-key: VAPID_PUBLIC_KEY
+    private-key: VAPID_PRIVATE_KEY
+    subject: mailto:06nexo@gmail.com
