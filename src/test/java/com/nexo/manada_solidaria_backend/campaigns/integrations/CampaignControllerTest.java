@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils.NEWS_UPDATE_END_DATE;
@@ -431,7 +432,7 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     @ParameterizedTest(name = "{0}")
     @MethodSource("com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils#provideGetCampaignCases")
     @Sql(
-            scripts="/sql/campaigns/get-campaigns.sql",
+            scripts = "/sql/campaigns/get-campaigns.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
     )
     void getCampaign(String testName, UUID id, String expectedType, String expectedTitle, Integer expectedItems) throws Exception {
@@ -446,7 +447,7 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.type").value(expectedType))
                 .andExpect(jsonPath("$.title").value(expectedTitle));
 
-        if(expectedItems != null){
+        if (expectedItems != null) {
             result.andExpect(jsonPath("$.items.length()").value(expectedItems));
         }
     }
@@ -565,7 +566,7 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                 new Profile(
                         "otro-status-" + UUID.randomUUID() + "@mail.com",
                         new PhoneNumber("353", "4014524"),
-                        List.of(Rol.COMMUNITY)
+                        Set.of(Rol.COMMUNITY)
                 )
         );
 
@@ -678,10 +679,10 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                                 .header("Authorization", "Bearer " + accessToken)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
-                                    {
-                                        "status": ""
-                                    }
-                                    """)
+                                        {
+                                            "status": ""
+                                        }
+                                        """)
                 )
                 .andExpect(status().isBadRequest());
     }
@@ -701,10 +702,10 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                                 .header("Authorization", "Bearer " + accessToken)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
-                                    {
-                                        "status": "INVALID_STATUS"
-                                    }
-                                    """)
+                                        {
+                                            "status": "INVALID_STATUS"
+                                        }
+                                        """)
                 )
                 .andExpect(status().isBadRequest());
     }
@@ -772,7 +773,7 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     private Campaign saveCampaignOwnedByOtherUser() {
-        User other = new User("otro-campaign-user", "x", new Profile("otro@mail.com", new PhoneNumber("3533", "436249"), List.of(Rol.COMMUNITY)));
+        User other = new User("otro-campaign-user", "x", new Profile("otro@mail.com", new PhoneNumber("3533", "436249"), Set.of(Rol.COMMUNITY)));
         userRepository.save(other);
         return campaignRepository.save(MockCampaignDataUtils.buildDonationModel(other));
     }

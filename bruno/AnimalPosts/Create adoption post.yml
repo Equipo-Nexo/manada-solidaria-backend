@@ -17,28 +17,29 @@ http:
     type: json
     data: |-
       {
-          "type": "ADOPTION",
-          "name": "Chari",
-          "description": "Se escapó en el parque",
-          "imageId": "cf-image-123",
-          "animal": {
-              "type": "CAT",
-              "size": "MEDIUM",
-              "gender": "FEMALE",
-              "age": "PUPPY"
-          },
-          "location": {
-              "name": "Parque Centenario",
-              "address": "Av. Patricias",
-              "number": 100,
-              "latitude": -34.6,
-              "longitude": -58.4
-          },
-          "phoneNumber": {
-            "areaCode": "0353",
-            "number": "4014524"
-          },
-          "inTransit": true
+        "type": "ADOPTION",
+        "name": "Test para Nexo",
+        "description": "Se escapó en el parque",
+        "imageId": "cf-image-123",
+        "animal": {
+            "type": "CAT",
+            "size": "MEDIUM",
+            "gender": "FEMALE",
+            "age": "PUPPY"
+        },
+        "location": {
+            "name": "Parque Centenario",
+            "address": "Av. Patricias",
+            "number": 100,
+            "latitude": -34.6,
+            "longitude": -58.4
+        },
+        "phoneNumber": {
+          "areaCode": "0353",
+          "number": "4014524"
+        },
+        "inTransit": true,
+        "needTransport": true
       }
   auth:
     type: bearer
@@ -49,6 +50,7 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+  forwardAuthorizationHeader: true
 
 docs: |-
   Generated from cURL: curl --location 'http://localhost:8080/animal-post' \

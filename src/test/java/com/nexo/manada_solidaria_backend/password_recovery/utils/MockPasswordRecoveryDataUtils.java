@@ -13,11 +13,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasItem;
+
 public class MockPasswordRecoveryDataUtils {
 
     public static final String REGISTERED_EMAIL = "admin@mail.com";
     public static final String UNREGISTERED_EMAIL = "nadie@mail.com";
-    public static final String NEW_PASSWORD = "nuevaPassword123";
+    public static final String NEW_PASSWORD = "NuevaPassword123!";
+
+    private static final String OVER_SEVENTY_TWO_BYTES = "Aa1!" + "ñ".repeat(39);
 
     private static final Pattern CODE_PATTERN = Pattern.compile("\\d{6}");
     private static final JavaMailSenderImpl MESSAGE_FACTORY = new JavaMailSenderImpl();
@@ -62,42 +67,62 @@ public class MockPasswordRecoveryDataUtils {
                 Arguments.of(
                         "Solicitar con un email mal formado",
                         "/password-recovery/request",
-                        new RequestRecoveryRequest("no-es-un-email")
+                        new RequestRecoveryRequest("no-es-un-email"),
+                        hasItem(containsString("Debe ingresar un correo"))
                 ),
                 Arguments.of(
                         "Solicitar sin email",
                         "/password-recovery/request",
-                        new RequestRecoveryRequest(null)
+                        new RequestRecoveryRequest(null),
+                        hasItem(containsString("Debe ingresar un correo"))
                 ),
                 Arguments.of(
                         "Validar con un codigo de menos de 6 digitos",
                         "/password-recovery/verify",
-                        new VerifyRecoveryCodeRequest(REGISTERED_EMAIL, "12345")
+                        new VerifyRecoveryCodeRequest(REGISTERED_EMAIL, "12345"),
+                        hasItem(containsString("debe tener 6"))
                 ),
                 Arguments.of(
                         "Validar con un codigo que no es numerico",
                         "/password-recovery/verify",
-                        new VerifyRecoveryCodeRequest(REGISTERED_EMAIL, "abcdef")
+                        new VerifyRecoveryCodeRequest(REGISTERED_EMAIL, "abcdef"),
+                        hasItem(containsString("debe tener 6"))
                 ),
                 Arguments.of(
                         "Validar sin codigo",
                         "/password-recovery/verify",
-                        new VerifyRecoveryCodeRequest(REGISTERED_EMAIL, null)
+                        new VerifyRecoveryCodeRequest(REGISTERED_EMAIL, null),
+                        hasItem(containsString("Debe ingresar el c"))
                 ),
                 Arguments.of(
-                        "Restablecer con una contrasena de menos de 6 caracteres",
+                        "Restablecer con una contraseña de menos de 8 caracteres",
                         "/password-recovery/reset",
-                        new ResetPasswordRequest("un-token", "12345", "12345")
+                        new ResetPasswordRequest("un-token", "Aa1!sss", "Aa1!sss"),
+                        hasItem(containsString("8 caracteres"))
                 ),
                 Arguments.of(
-                        "Restablecer con contrasenas que no coinciden",
+                        "Restablecer con una contraseña sin caracter especial",
                         "/password-recovery/reset",
-                        new ResetPasswordRequest("un-token", NEW_PASSWORD, "otraPassword123")
+                        new ResetPasswordRequest("un-token", "Aa11ssss", "Aa11ssss"),
+                        hasItem(containsString("cter especial"))
+                ),
+                Arguments.of(
+                        "Restablecer con una contraseña que supera los 72 bytes",
+                        "/password-recovery/reset",
+                        new ResetPasswordRequest("un-token", OVER_SEVENTY_TWO_BYTES, OVER_SEVENTY_TWO_BYTES),
+                        hasItem(containsString("no puede superar los 64 caracteres"))
+                ),
+                Arguments.of(
+                        "Restablecer con contraseñas que no coinciden",
+                        "/password-recovery/reset",
+                        new ResetPasswordRequest("un-token", NEW_PASSWORD, "otraPassword123"),
+                        hasItem(containsString("no coinciden"))
                 ),
                 Arguments.of(
                         "Restablecer sin token",
                         "/password-recovery/reset",
-                        new ResetPasswordRequest(null, NEW_PASSWORD, NEW_PASSWORD)
+                        new ResetPasswordRequest(null, NEW_PASSWORD, NEW_PASSWORD),
+                        hasItem(containsString("Debe ingresar el token"))
                 )
         );
     }

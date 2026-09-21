@@ -6,15 +6,18 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import lombok.NoArgsConstructor;
 
 @Entity
+@NoArgsConstructor
 public class NotificationStatusHistory extends StatusHistory<NotificationStatus> {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "notification_delivery_id", nullable = false)
     private NotificationDelivery notification;
 
-    public NotificationStatusHistory(NotificationStatus status) {
+    public NotificationStatusHistory(NotificationStatus status, NotificationDelivery notification) {
         super(status);
+        this.notification = notification;
     }
 }

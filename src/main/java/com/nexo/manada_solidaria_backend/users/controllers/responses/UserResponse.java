@@ -4,13 +4,13 @@ import com.nexo.manada_solidaria_backend.common.controllers.responses.PhoneNumbe
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public record UserResponse(
         UUID id,
         String username,
-        List<Rol> roles,
+        Set<Rol> roles,
         PhoneNumberResponse phoneNumber,
         String profileImageURL
 ) {
