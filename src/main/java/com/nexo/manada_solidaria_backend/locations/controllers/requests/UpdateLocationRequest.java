@@ -6,25 +6,29 @@ import jakarta.validation.constraints.NotNull;
 
 public record UpdateLocationRequest(
 
-        @NotBlank(message = "El nombre de la ubicación es obligatorio")
-        String name,
+        @NotBlank(message = "El país es obligatorio")
+        String country,
 
-        String address,
+        @NotBlank(message = "La ciudad es obligatoria")
+        String city,
 
-        Integer number,
+        @NotBlank(message = "El formato de dirección es obligatorio")
+        String formatted,
 
-        @NotNull(message = "La latitud es obligatoria")
+        String district,
+        String street,
+        Integer houseNumber,
         Double latitude,
-
-        @NotNull(message = "La longitud es obligatoria")
         Double longitude
 ) {
-
         public Location toDomain() {
                 return new Location(
-                        this.name,
-                        this.address,
-                        this.number,
+                        this.country,
+                        this.city,
+                        this.formatted,
+                        this.district,
+                        this.street,
+                        this.houseNumber,
                         this.latitude,
                         this.longitude
                 );

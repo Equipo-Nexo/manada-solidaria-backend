@@ -7,9 +7,12 @@ import java.util.UUID;
 
 public record LocationResponse(
         UUID id,
-        String name,
-        String address,
-        Integer number,
+        String country,
+        String city,
+        String formatted,
+        String district,
+        String street,
+        Integer houseNumber,
         Double latitude,
         Double longitude
 ) {
@@ -18,13 +21,15 @@ public record LocationResponse(
         return Optional.ofNullable(location)
                 .map(loc -> new LocationResponse(
                         loc.getId(),
-                        loc.getName(),
-                        loc.getAddress(),
-                        loc.getNumber(),
+                        loc.getCountry(),
+                        loc.getCity(),
+                        loc.getFormatted(),
+                        loc.getDistrict(),
+                        loc.getStreet(),
+                        loc.getHouseNumber(),
                         loc.getLatitude(),
                         loc.getLongitude()
                 ))
                 .orElse(null);
     }
-
 }
