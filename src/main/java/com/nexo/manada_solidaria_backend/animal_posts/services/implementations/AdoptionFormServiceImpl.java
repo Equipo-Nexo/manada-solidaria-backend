@@ -2,6 +2,7 @@ package com.nexo.manada_solidaria_backend.animal_posts.services.implementations;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAdoptionFormRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormResponse;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionForm;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.QuestionForm;
@@ -43,6 +44,25 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
         log.info("Adoption form created: id={} for post={} by user={}", saved.getId(), post.getId(), applicant.getId());
 
         return AdoptionFormResponse.from(saved);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AdoptionFormResponse> getFormsByPostId(UUID postId, User authenticatedUser) {
+        AdoptionPost post = getAdoptionPostOrThrow(postId);
+
+        validateOwnerAccess(post, authenticatedUser);
+
+        List<AdoptionForm> forms = adoptionFormRepository.findAllByAdoptionPostId(postId);
+
+        return mapToAdoptionFormResponses(forms);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AdoptionFormResponse> getFormsByUser(UUID userId, FormFilter filter) {
+        List<AdoptionForm> forms = fetchFormsByFilter(userId, filter);
+        return mapToAdoptionFormResponses(forms);
     }
 
     private void validateNotOwner(AdoptionPost post, User applicant) {
@@ -94,5 +114,27 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
                     "No se pueden enviar formularios a publicaciones cerradas o adoptadas"
             );
         }
+    }
+
+    private void validateOwnerAccess(AdoptionPost post, User user) {
+        if (!post.getOwner().getId().equals(user.getId())) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "No tienes permisos para ver los formularios de esta publicación"
+            );
+        }
+    }
+
+    private List<AdoptionFormResponse> mapToAdoptionFormResponses(List<AdoptionForm> forms) {
+        return forms.stream()
+                .map(AdoptionFormResponse::from)
+                .toList();
+    }
+
+    private List<AdoptionForm> fetchFormsByFilter(UUID userId, FormFilter filter) {
+        return switch (filter) {
+            case OWNER -> adoptionFormRepository.findAllByApplicantId(userId);
+            case REVIEWER -> adoptionFormRepository.findAllByPostOwnerId(userId);
+        };
     }
 }
