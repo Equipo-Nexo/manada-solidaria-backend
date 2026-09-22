@@ -2,6 +2,7 @@ package com.nexo.manada_solidaria_backend.users.controllers.interfaces;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
+import com.nexo.manada_solidaria_backend.notifications.controllers.responses.UserNotificationsResponse;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.*;
@@ -38,6 +39,12 @@ public interface UserController {
     List<UserPostResponse> getUserPosts(
             @AuthenticationPrincipal User user,
             @RequestParam(required = false) String type
+    );
+
+    @GetMapping("/{userId}/notifications")
+    UserNotificationsResponse getUserNotifications(
+            @PathVariable UUID userId,
+            @AuthenticationPrincipal User authenticatedUser
     );
 
     @PutMapping("/profile")

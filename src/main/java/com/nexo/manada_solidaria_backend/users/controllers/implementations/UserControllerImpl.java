@@ -2,6 +2,8 @@ package com.nexo.manada_solidaria_backend.users.controllers.implementations;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
+import com.nexo.manada_solidaria_backend.notifications.controllers.responses.UserNotificationsResponse;
+import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationDeliveryService;
 import com.nexo.manada_solidaria_backend.users.controllers.interfaces.UserController;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
@@ -21,6 +23,7 @@ import java.util.UUID;
 public class UserControllerImpl implements UserController {
 
     private final UserService userService;
+    private final NotificationDeliveryService notificationDeliveryService;
 
     @Override
     public UserDetailResponse getUser(UUID userId) {
@@ -40,6 +43,11 @@ public class UserControllerImpl implements UserController {
     @Override
     public List<UserPostResponse> getUserPosts(User user, String type) {
         return userService.getUserPosts(user, type);
+    }
+
+    @Override
+    public UserNotificationsResponse getUserNotifications(UUID userId, User authenticatedUser) {
+        return notificationDeliveryService.getUserNotifications(userId, authenticatedUser);
     }
 
     @Override
