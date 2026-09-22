@@ -1,10 +1,7 @@
 package com.nexo.manada_solidaria_backend.notifications.models.data;
 
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -23,6 +20,7 @@ public class Notification {
     private String message;
     private String icon;
     private String redirectTo;
+    @Column(unique = true)
     @Enumerated(EnumType.STRING)
     private NotificationType type;
     private LocalDateTime createdAt = LocalDateTime.now();
