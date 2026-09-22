@@ -6,6 +6,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusAdoptionP
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionForm;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPostStatusHistory;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.QuestionForm;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AdoptionFormRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.utils.MockAdoptionFormDataUtils;
@@ -229,6 +230,41 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
         mockMvc.perform(request).andExpect(status().isUnauthorized());
     }
 
+    @DisplayName("GET /users/adoption-forms — Consulta exitosa parametrizada por filtro (OWNER y REVIEWER)")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideGetFormsByUserFilterCases")
+    void getFormsByUser_successCases(String testName, String filter, int expectedSize) throws Exception {
+        adoptionFormRepository.deleteAll();
+
+        User currentAdmin = admin();
+        User otherUser = createOtherUser("other-user-filter-" + UUID.randomUUID(), "otherfilter@mail.com");
+
+        setupMockFormsForFilter(filter, expectedSize, currentAdmin, otherUser);
+
+        mockMvc.perform(
+                        get("/users/adoption-forms")
+                                .param("filter", filter)
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$", hasSize(expectedSize)));
+    }
+
+    @DisplayName("GET /users/adoption-forms — Sin autenticación o con token inválido devuelve UNAUTHORIZED 401")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideGetFormsByUserUnauthorizedCases")
+    void getFormsByUser_unauthorizedCases(String testName, String token) throws Exception {
+        MockHttpServletRequestBuilder request = get("/users/adoption-forms")
+                .param("filter", "OWNER");
+
+        if (token != null) {
+            request = request.header("Authorization", "Bearer " + token);
+        }
+
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
+    }
+
     private AdoptionPost saveAdoptionPost(String name, User owner) {
         AdoptionPost post = new AdoptionPost(
                 name,
@@ -252,5 +288,35 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
 
     private User admin() {
         return userRepository.findByUsername("admin").orElseThrow();
+    }
+
+    private void setupMockFormsForFilter(String filter, int expectedSize, User currentAdmin, User otherUser) {
+        if ("OWNER".equals(filter)) {
+            createFormAsOwner(currentAdmin, otherUser);
+        } else if ("REVIEWER".equals(filter) && expectedSize > 0) {
+            createFormAsReviewer(currentAdmin, otherUser);
+        }
+    }
+
+    private void createFormAsOwner(User applicant, User postOwner) {
+        AdoptionPost postOfOther = saveAdoptionPost("Mascota de otro", postOwner);
+        AdoptionForm form = new AdoptionForm(
+                new PhoneNumber("353", "4123456"),
+                applicant,
+                postOfOther,
+                List.of(new QuestionForm("¿Patio?", "Sí"))
+        );
+        adoptionFormRepository.save(form);
+    }
+
+    private void createFormAsReviewer(User postOwner, User applicant) {
+        AdoptionPost adminPost = saveAdoptionPost("Mascota de admin", postOwner);
+        AdoptionForm form = new AdoptionForm(
+                new PhoneNumber("353", "4123456"),
+                applicant,
+                adminPost,
+                List.of(new QuestionForm("¿Patio?", "Sí"))
+        );
+        adoptionFormRepository.save(form);
     }
 }

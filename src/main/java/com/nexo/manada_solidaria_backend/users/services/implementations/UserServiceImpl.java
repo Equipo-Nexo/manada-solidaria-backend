@@ -1,5 +1,8 @@
 package com.nexo.manada_solidaria_backend.users.services.implementations;
 
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormResponse;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
+import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AdoptionFormService;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
 import com.nexo.manada_solidaria_backend.auth.controllers.requests.CreateUserRequest;
 import com.nexo.manada_solidaria_backend.campaigns.services.interfaces.CampaignService;
@@ -16,6 +19,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -37,6 +41,7 @@ public class UserServiceImpl implements UserService {
     private final CampaignService campaignService;
     private final AnimalPostService animalPostService;
     private final PasswordEncoder passwordEncoder;
+    private final AdoptionFormService adoptionFormService;
 
     @Override
     public User loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -138,6 +143,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> getUserBySpecifications(Specification<User> userSpecification) {
         return userRepository.findAll(userSpecification);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AdoptionFormResponse> getFormsByUser(FormFilter filter, User authenticatedUser) {
+        return adoptionFormService.getFormsByUser(authenticatedUser.getId(), filter);
     }
 
     private static boolean requireAllPosts(String type) {

@@ -2,6 +2,7 @@ package com.nexo.manada_solidaria_backend.animal_posts.services.implementations;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAdoptionFormRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormResponse;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionForm;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.QuestionForm;
@@ -54,6 +55,13 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
 
         List<AdoptionForm> forms = adoptionFormRepository.findAllByAdoptionPostId(postId);
 
+        return mapToAdoptionFormResponses(forms);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AdoptionFormResponse> getFormsByUser(UUID userId, FormFilter filter) {
+        List<AdoptionForm> forms = fetchFormsByFilter(userId, filter);
         return mapToAdoptionFormResponses(forms);
     }
 
@@ -121,5 +129,12 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
         return forms.stream()
                 .map(AdoptionFormResponse::from)
                 .toList();
+    }
+
+    private List<AdoptionForm> fetchFormsByFilter(UUID userId, FormFilter filter) {
+        return switch (filter) {
+            case OWNER -> adoptionFormRepository.findAllByApplicantId(userId);
+            case REVIEWER -> adoptionFormRepository.findAllByPostOwnerId(userId);
+        };
     }
 }
