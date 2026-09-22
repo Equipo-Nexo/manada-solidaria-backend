@@ -15,8 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -26,9 +26,8 @@ import java.util.UUID;
 @AllArgsConstructor
 public class VetInformationServiceImpl implements VetInformationService {
 
-    private static final String ZONE_ID = "America/Argentina/Buenos_Aires";
-
     private final VetInformationRepository repository;
+    private final Clock clock;
 
     @Override
     public VetInformationResponse create(CreateVetInformationRequest request) {
@@ -124,7 +123,7 @@ public class VetInformationServiceImpl implements VetInformationService {
             String query,
             Boolean openOnly
     ) {
-        LocalDateTime now = LocalDateTime.now(ZoneId.of(ZONE_ID));
+        LocalDateTime now = LocalDateTime.now(clock);
         return repository.searchVets(
                 normalizeQuery(query),
                 Boolean.TRUE.equals(openOnly),
