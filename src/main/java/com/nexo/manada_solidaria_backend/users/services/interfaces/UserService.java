@@ -45,5 +45,5 @@ public interface UserService extends UserDetailsService {
 
     List<User> getUserBySpecifications(Specification<User> userSpecification);
 
-    List<AdoptionFormResponse> getFormsByUser(UUID userId, FormFilter filter, User authenticatedUser);
+    List<AdoptionFormResponse> getFormsByUser(FormFilter filter, User authenticatedUser);
 }

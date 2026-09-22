@@ -52,9 +52,8 @@ public interface UserController {
             @AuthenticationPrincipal User authenticatedUser
     );
 
-    @GetMapping("/{userId}/adoption-forms")
+    @GetMapping("/adoption-forms")
     List<AdoptionFormResponse> getFormsByUser(
-            @PathVariable UUID userId,
             @RequestParam FormFilter filter,
             @AuthenticationPrincipal User authenticatedUser
     );

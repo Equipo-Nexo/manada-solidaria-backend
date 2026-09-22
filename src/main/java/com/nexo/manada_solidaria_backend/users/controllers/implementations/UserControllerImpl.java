@@ -53,7 +53,7 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
-    public List<AdoptionFormResponse> getFormsByUser(UUID userId, FormFilter filter, User authenticatedUser) {
-        return userService.getFormsByUser(userId, filter, authenticatedUser);
+    public List<AdoptionFormResponse> getFormsByUser(FormFilter filter, User authenticatedUser) {
+        return userService.getFormsByUser(filter, authenticatedUser);
     }
 }

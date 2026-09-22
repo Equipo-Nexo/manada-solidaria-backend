@@ -147,9 +147,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AdoptionFormResponse> getFormsByUser(UUID userId, FormFilter filter, User authenticatedUser) {
-        validateUserAccess(userId, authenticatedUser);
-        return adoptionFormService.getFormsByUser(userId, filter);
+    public List<AdoptionFormResponse> getFormsByUser(FormFilter filter, User authenticatedUser) {
+        return adoptionFormService.getFormsByUser(authenticatedUser.getId(), filter);
     }
 
     private static boolean requireAllPosts(String type) {
@@ -200,14 +199,5 @@ public class UserServiceImpl implements UserService {
 
                 )
         );
-    }
-
-    private void validateUserAccess(UUID targetUserId, User authenticatedUser) {
-        if (!authenticatedUser.getId().equals(targetUserId)) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "No tienes permisos para ver los formularios de este usuario"
-            );
-        }
     }
 }
