@@ -11,18 +11,18 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 @Component
-public class PingRecipientResolver extends NotificationRecipientResolver {
-    protected PingRecipientResolver(@Lazy UserService userService) {
+public class NewFundraisingCampaignRecipientResolver extends NotificationRecipientResolver {
+    protected NewFundraisingCampaignRecipientResolver(@Lazy UserService userService) {
         super(userService);
     }
 
     @Override
     public NotificationType supports() {
-        return NotificationType.PING;
+        return NotificationType.NEW_FUNDRAISING_CAMPAIGN;
     }
 
     @Override
     public Specification<User> buildSpecification(NotificationContext context) {
-        return UserSpecifications.all();
+        return UserSpecifications.allExcept(context.postOwnerId());
     }
 }

@@ -9,8 +9,12 @@ import com.nexo.manada_solidaria_backend.campaigns.controllers.responses.Campaig
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.CampaignCategoryFilter;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCategory;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.Campaign;
+import com.nexo.manada_solidaria_backend.campaigns.data.models.FundraisingCampaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.repositories.CampaignRepository;
 import com.nexo.manada_solidaria_backend.campaigns.services.interfaces.CampaignService;
+import com.nexo.manada_solidaria_backend.notifications.components.recipients.data.NotificationContext;
+import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
+import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +28,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -33,14 +38,15 @@ public class CampaignServiceImpl implements CampaignService {
 
     private final CampaignRepository campaignRepository;
     private final CampaignFactory campaignFactory;
+    private final NotificationService notificationService;
 
     @Override
     public CampaignResponse create(CreateCampaignRequest request, User owner) {
         Campaign<?, ?> saved = campaignRepository.save(campaignFactory.buildCampaign(request, owner));
+        sendNewFundraisingNotification(saved, owner);
 
         log.info("Campaign created: id={} type={} title='{}' owner={}",
                 saved.getId(), saved.getCampaignType(), saved.getTitle(), owner.getId());
-
         return CampaignResponse.from(saved);
     }
 
@@ -218,5 +224,18 @@ public class CampaignServiceImpl implements CampaignService {
                     campaign.transitionTo("FINISHED");
                     log.info("Campaign automatically finalized by expiration: id={}", campaign.getId());
                 });
+    }
+
+    private void sendNewFundraisingNotification(Campaign<?, ?> saved, User owner) {
+        if (saved instanceof FundraisingCampaign) {
+            notificationService.notify(
+                    NotificationType.NEW_FUNDRAISING_CAMPAIGN,
+                    Map.of(
+                            "user", owner.getUsername(),
+                            "fundraisingId", saved.getId()
+                    ),
+                    new NotificationContext(owner.getId())
+            );
+        }
     }
 }

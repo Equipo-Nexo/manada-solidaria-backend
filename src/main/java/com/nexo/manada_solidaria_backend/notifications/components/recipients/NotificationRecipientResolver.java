@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.notifications.components.recipients;
 
+import com.nexo.manada_solidaria_backend.notifications.components.recipients.data.NotificationContext;
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import com.nexo.manada_solidaria_backend.users.services.interfaces.UserService;
@@ -30,12 +31,12 @@ public abstract class NotificationRecipientResolver {
      *
      * @return the set of users that should be notified
      */
-    public Set<User> getRecipients() {
-        return new HashSet<>(getUsersBySpecifications());
+    public Set<User> getRecipients(NotificationContext context) {
+        return new HashSet<>(getUsersBySpecifications(context));
     }
 
-    private List<User> getUsersBySpecifications() {
-        return userService.getUserBySpecifications(buildSpecification());
+    private List<User> getUsersBySpecifications(NotificationContext context) {
+        return userService.getUserBySpecifications(buildSpecification(context));
     }
 
     /**
@@ -51,5 +52,5 @@ public abstract class NotificationRecipientResolver {
      *
      * @return the specification used to select notification recipients
      */
-    public abstract Specification<User> buildSpecification();
+    public abstract Specification<User> buildSpecification(NotificationContext context);
 }

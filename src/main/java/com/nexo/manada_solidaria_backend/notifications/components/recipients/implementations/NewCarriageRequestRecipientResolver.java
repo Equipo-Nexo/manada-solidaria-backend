@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.notifications.components.recipients.implementations;
 
 import com.nexo.manada_solidaria_backend.notifications.components.recipients.NotificationRecipientResolver;
+import com.nexo.manada_solidaria_backend.notifications.components.recipients.data.NotificationContext;
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -21,7 +22,7 @@ public class NewCarriageRequestRecipientResolver extends NotificationRecipientRe
         return NotificationType.NEW_CARRIAGE_REQUEST;
     }
 
-    public Specification<User> buildSpecification() {
+    public Specification<User> buildSpecification(NotificationContext context) {
         return UserSpecifications
                 .hasRole(Rol.CARRIAGE);
     }
