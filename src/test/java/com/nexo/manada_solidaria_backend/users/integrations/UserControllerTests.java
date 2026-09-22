@@ -389,9 +389,10 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
     }
 
     private void saveLostPost(User owner, StatusLostPost status) {
+        Location location = new Location("Argentina", "Buenos Aires", "Av. Patricias 100, Buenos Aires", "Caballito", "Av. Patricias", 100, -34.6, -58.4);
         LostPost post = new LostPost(
                 "Publicacion de prueba", "Descripcion", "cf-img", null, null, true,
-                owner, new Location("Parque", "Av. Patricias", 100, -34.6, -58.4), new Animal(), null
+                owner, location, new Animal(), null
         );
         post.setStatusHistory(new ArrayList<>(List.of(new LostPostStatusHistory(status, post))));
         animalPostRepository.save(post);

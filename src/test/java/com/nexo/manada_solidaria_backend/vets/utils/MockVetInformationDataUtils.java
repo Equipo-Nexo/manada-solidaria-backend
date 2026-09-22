@@ -1,8 +1,8 @@
 package com.nexo.manada_solidaria_backend.vets.utils;
 
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
+import com.nexo.manada_solidaria_backend.locations.controllers.requests.LocationRequest;
 import com.nexo.manada_solidaria_backend.locations.controllers.requests.UpdateLocationRequest;
-import com.nexo.manada_solidaria_backend.vets.controllers.requests.CreateVetInformationRequest.LocationRequest;
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.CreateVetInformationRequest.ScheduleRequest;
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.CreateVetInformationRequest;
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.UpdateVetInformationRequest;
@@ -29,8 +29,11 @@ public class MockVetInformationDataUtils {
             "https://veterinariasanroque.com",
             "Atención clínica, vacunación y cirugías.",
             new LocationRequest(
-                    "Sede Central",
-                    "Av. Libertador",
+                    "Argentina",
+                    "Córdoba",
+                    "Av. Colón 1234, Córdoba",
+                    "Centro",
+                    "Av. Colón",
                     1234,
                     -32.4075,
                     -63.2402
@@ -48,7 +51,7 @@ public class MockVetInformationDataUtils {
             null,
             null,
             null,
-            new LocationRequest("Sede Central", null, null, -32.4075, -63.2402),
+            new LocationRequest("Argentina", "Córdoba", "Sede Central, Córdoba", null, "Sede Central", null, -32.4075, -63.2402),
             null
     );
 
@@ -59,7 +62,7 @@ public class MockVetInformationDataUtils {
             null,
             null,
             null,
-            new LocationRequest("Sede Central", null, null, -32.4075, -63.2402),
+            new LocationRequest("Argentina", "Córdoba", "Sede Central, Córdoba", null, "Sede Central", null, -32.4075, -63.2402),
             List.of(new ScheduleRequest(DayOfWeek.MONDAY, LocalTime.of(8, 0), LocalTime.of(12, 30)))
     );
 
@@ -70,7 +73,7 @@ public class MockVetInformationDataUtils {
             null,
             null,
             null,
-            new LocationRequest("Sede Central", null, null, -32.4075, -63.2402),
+            new LocationRequest("Argentina", "Córdoba", "Sede Central, Córdoba", null, "Sede Central", null, -32.4075, -63.2402),
             List.of(new ScheduleRequest(DayOfWeek.MONDAY, LocalTime.of(8, 0), LocalTime.of(12, 30)))
     );
 
@@ -81,7 +84,7 @@ public class MockVetInformationDataUtils {
             null,
             null,
             null,
-            new LocationRequest("Sede Central", null, null, -32.4075, -63.2402),
+            new LocationRequest("Argentina", "Córdoba", "Sede Central, Córdoba", null, "Sede Central", null, -32.4075, -63.2402),
             null
     );
 
@@ -92,7 +95,7 @@ public class MockVetInformationDataUtils {
             null,
             null,
             null,
-            new LocationRequest("Sede Central", null, null, -32.4075, -63.2402),
+            new LocationRequest("Argentina", "Córdoba", "Sede Central, Córdoba", null, "Sede Central", null, -32.4075, -63.2402),
             null
     );
 
@@ -107,14 +110,14 @@ public class MockVetInformationDataUtils {
             null
     );
 
-    private static final CreateVetInformationRequest CREATE_VET_LOCATION_MISSING_NAME = new CreateVetInformationRequest(
+    private static final CreateVetInformationRequest CREATE_VET_LOCATION_MISSING_COUNTRY = new CreateVetInformationRequest(
             "Veterinaria San Roque",
             new PhoneNumberRequest("3514", "567890"),
             "contacto@sanroque.com",
             null,
             null,
             null,
-            new LocationRequest(null, null, null, -32.4075, -63.2402),
+            new LocationRequest(null, "Córdoba", "Sede Central, Córdoba", null, "Sede Central", null, -32.4075, -63.2402),
             null
     );
 
@@ -127,7 +130,10 @@ public class MockVetInformationDataUtils {
                     "https://veterinariasanroque.com/nueva",
                     "Nueva descripción de la veterinaria.",
                     new UpdateLocationRequest(
-                            "Nueva Sede San Roque",
+                            "Argentina",
+                            "Córdoba",
+                            "Av. Nueva 500, Córdoba",
+                            "Centro",
                             "Av. Nueva",
                             500,
                             -32.4000,
@@ -157,31 +163,31 @@ public class MockVetInformationDataUtils {
                 ),
                 Arguments.of(
                         "Filtro por búsqueda por nombre (coincidencia parcial insensible a mayúsculas)",
-                        createParams("query", "Sol"), // Cambiado de 'search' a 'query'
+                        createParams("query", "Sol"),
                         1,
                         List.of("Veterinaria El Sol")
                 ),
                 Arguments.of(
                         "Filtro por búsqueda por dirección",
-                        createParams("query", "España"), // Cambiado de 'search' a 'query'
+                        createParams("query", "Colón"),
                         1,
                         List.of("Veterinaria San Roque")
                 ),
                 Arguments.of(
                         "Filtro solo abiertas devuelve únicamente las que están operativas",
-                        createParams("open_only", "true"), // Cambiado a snake_case 'open_only'
+                        createParams("open_only", "true"),
                         1,
                         List.of("Veterinaria Animalia")
                 ),
                 Arguments.of(
                         "Ordena por la más cercana a las coordenadas del usuario",
-                        createParams("user_latitude", "-32.4050", "user_longitude", "-63.2380"), // Cambiado a snake_case
+                        createParams("user_latitude", "-32.4050", "user_longitude", "-63.2380"),
                         3,
                         List.of("Veterinaria San Roque", "Veterinaria El Sol", "Veterinaria Animalia")
                 ),
                 Arguments.of(
                         "Búsqueda por nombre combinada con ordenamiento por cercanía",
-                        createParams("query", "Veterinaria", "user_latitude", "-32.4070", "user_longitude", "-63.2400"), // Cambiado a 'query' y snake_case
+                        createParams("query", "Veterinaria", "user_latitude", "-32.4070", "user_longitude", "-63.2400"),
                         3,
                         List.of("Veterinaria Animalia", "Veterinaria El Sol", "Veterinaria San Roque")
                 )
@@ -197,8 +203,11 @@ public class MockVetInformationDataUtils {
                     null,
                     null,
                     new UpdateLocationRequest(
-                            "Nueva Sede",
+                            "Argentina",
+                            "Córdoba",
+                            "Nueva Sede, Córdoba",
                             null,
+                            "Nueva Sede",
                             null,
                             -32.4000,
                             -63.2300
@@ -221,8 +230,11 @@ public class MockVetInformationDataUtils {
                     null,
                     null,
                     new UpdateLocationRequest(
-                            "Nueva Sede",
+                            "Argentina",
+                            "Córdoba",
+                            "Nueva Sede, Córdoba",
                             null,
+                            "Nueva Sede",
                             null,
                             -32.4000,
                             -63.2300
@@ -245,8 +257,11 @@ public class MockVetInformationDataUtils {
                     null,
                     null,
                     new UpdateLocationRequest(
-                            "Nueva Sede",
+                            "Argentina",
+                            "Córdoba",
+                            "Nueva Sede, Córdoba",
                             null,
+                            "Nueva Sede",
                             null,
                             -32.4000,
                             -63.2300
@@ -287,8 +302,11 @@ public class MockVetInformationDataUtils {
                     null,
                     null,
                     new UpdateLocationRequest(
-                            "Nueva Sede",
+                            "Argentina",
+                            "Córdoba",
+                            "Nueva Sede, Córdoba",
                             null,
+                            "Nueva Sede",
                             null,
                             -32.4000,
                             -63.2300
@@ -305,8 +323,11 @@ public class MockVetInformationDataUtils {
                     null,
                     null,
                     new UpdateLocationRequest(
-                            "Nueva Sede",
+                            "Argentina",
+                            "Córdoba",
+                            "Nueva Sede, Córdoba",
                             null,
+                            "Nueva Sede",
                             null,
                             -32.4000,
                             -63.2300
@@ -321,7 +342,7 @@ public class MockVetInformationDataUtils {
                 Arguments.of("Devuelve el areaCode enviado", CREATE_VET_VALID, "$.phoneNumber.areaCode", is("3514")),
                 Arguments.of("Devuelve el phone enviado", CREATE_VET_VALID, "$.phoneNumber.number", is("567890")),
                 Arguments.of("Devuelve el email enviado", CREATE_VET_VALID, "$.email", is("contacto@sanroque.com")),
-                Arguments.of("Devuelve el nombre de la ubicación", CREATE_VET_VALID, "$.location.name", is("Sede Central")),
+                Arguments.of("Devuelve la ciudad de la ubicación", CREATE_VET_VALID, "$.location.city", is("Córdoba")),
                 Arguments.of("Devuelve la cantidad correcta de días de atención", CREATE_VET_VALID, "$.calendar.length()", is(2))
         );
     }
@@ -334,7 +355,7 @@ public class MockVetInformationDataUtils {
                 Arguments.of("Sin código de área devuelve BAD_REQUEST", CREATE_VET_WITHOUT_AREA_CODE),
                 Arguments.of("Email inválido devuelve BAD_REQUEST", CREATE_VET_INVALID_EMAIL),
                 Arguments.of("Sin ubicación devuelve BAD_REQUEST", CREATE_VET_WITHOUT_LOCATION),
-                Arguments.of("Ubicación sin nombre devuelve BAD_REQUEST", CREATE_VET_LOCATION_MISSING_NAME)
+                Arguments.of("Ubicación sin país devuelve BAD_REQUEST", CREATE_VET_LOCATION_MISSING_COUNTRY)
         );
     }
 
@@ -376,14 +397,14 @@ public class MockVetInformationDataUtils {
                         is("Atención clínica, vacunación y cirugías.")
                 ),
                 Arguments.of(
-                        "Devuelve el nombre de la ubicación",
-                        "$.location.name",
-                        is("Sede San Roque")
+                        "Devuelve la ciudad de la ubicación",
+                        "$.location.city",
+                        is("Córdoba")
                 ),
                 Arguments.of(
-                        "Devuelve la dirección de la ubicación",
-                        "$.location.address",
-                        is("Av. España")
+                        "Devuelve la calle de la ubicación",
+                        "$.location.street",
+                        is("Av. Colón")
                 ),
                 Arguments.of(
                         "Devuelve dos días de atención",
@@ -493,21 +514,21 @@ public class MockVetInformationDataUtils {
                         is("Nueva descripción de la veterinaria.")
                 ),
                 Arguments.of(
-                        "Actualiza el nombre de la ubicación",
+                        "Actualiza la ciudad de la ubicación",
                         UPDATE_VET_VALID,
-                        "$.location.name",
-                        is("Nueva Sede San Roque")
+                        "$.location.city",
+                        is("Córdoba")
                 ),
                 Arguments.of(
-                        "Actualiza la dirección de la ubicación",
+                        "Actualiza la calle de la ubicación",
                         UPDATE_VET_VALID,
-                        "$.location.address",
+                        "$.location.street",
                         is("Av. Nueva")
                 ),
                 Arguments.of(
                         "Actualiza el número de la ubicación",
                         UPDATE_VET_VALID,
-                        "$.location.number",
+                        "$.location.houseNumber",
                         is(500)
                 ),
                 Arguments.of(

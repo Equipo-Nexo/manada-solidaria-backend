@@ -66,7 +66,9 @@ public class VetInformationControllerTests extends BaseAuthenticatedIntegrationT
         assertThat(savedVet.getEmail()).isEqualTo("contacto@sanroque.com");
 
         assertThat(savedVet.getLocation()).isNotNull();
-        assertThat(savedVet.getLocation().getName()).isEqualTo("Sede Central");
+        assertThat(savedVet.getLocation().getCity()).isEqualTo("Córdoba");
+        assertThat(savedVet.getLocation().getStreet()).isEqualTo("Av. Colón");
+        assertThat(savedVet.getLocation().getHouseNumber()).isEqualTo(1234);
 
         assertThat(savedVet.getCalendar()).hasSize(2);
     }
@@ -326,9 +328,9 @@ public class VetInformationControllerTests extends BaseAuthenticatedIntegrationT
         assertThat(updatedVet.getDescription()).isEqualTo("Nueva descripción de la veterinaria.");
 
         assertThat(updatedVet.getLocation()).isNotNull();
-        assertThat(updatedVet.getLocation().getName()).isEqualTo("Nueva Sede San Roque");
-        assertThat(updatedVet.getLocation().getAddress()).isEqualTo("Av. Nueva");
-        assertThat(updatedVet.getLocation().getNumber()).isEqualTo(500);
+        assertThat(updatedVet.getLocation().getCity()).isEqualTo("Córdoba");
+        assertThat(updatedVet.getLocation().getStreet()).isEqualTo("Av. Nueva");
+        assertThat(updatedVet.getLocation().getHouseNumber()).isEqualTo(500);
 
         assertThat(updatedVet.getCalendar()).hasSize(2);
 

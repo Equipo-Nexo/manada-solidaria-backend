@@ -4,16 +4,22 @@
 
 INSERT INTO location (
     id,
-    name,
-    address,
-    number,
+    country,
+    city,
+    formatted,
+    district,
+    street,
+    house_number,
     latitude,
     longitude
 )
 VALUES
 (
     '11111111-1111-1111-1111-111111111111',
-    'Sede Animalia',
+    'Argentina',
+    'Villa María',
+    'Av. Argentina 100, Villa María',
+    'Centro',
     'Av. Argentina',
     100,
     -32.4075,
@@ -21,7 +27,10 @@ VALUES
 ),
 (
     '22222222-2222-2222-2222-222222222222',
-    'Sede El Sol',
+    'Argentina',
+    'Villa María',
+    'Av. Libertador 200, Villa María',
+    'Centro',
     'Av. Libertador',
     200,
     -32.4065,
@@ -29,8 +38,11 @@ VALUES
 ),
 (
     '33333333-3333-3333-3333-333333333333',
-    'Sede San Roque',
-    'Av. España',
+    'Argentina',
+    'Córdoba',
+    'Av. Colón 300, Córdoba',
+    'Centro',
+    'Av. Colón',
     300,
     -32.4055,
     -63.2385
