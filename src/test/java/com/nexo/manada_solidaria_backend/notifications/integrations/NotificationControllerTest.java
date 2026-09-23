@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.UUID;
 
+import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.FORBIDDEN_MESSAGE;
 import static com.nexo.manada_solidaria_backend.notifications.utils.MockNotificationDataUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -70,7 +71,7 @@ class NotificationControllerTest extends BaseAuthenticatedIntegrationTest {
     void getAnotherUsersNotificationsIsForbidden() throws Exception {
         getNotificationsOf(NOT_ADMIN_ID)
                 .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.errors", hasItem(containsString("tus propias notificaciones"))));
+                .andExpect(jsonPath("$.errors", hasItem(containsString(FORBIDDEN_MESSAGE))));
     }
 
     @Test
