@@ -48,12 +48,10 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AdoptionFormResponse> getFormsByPostId(UUID postId, User authenticatedUser) {
-        AdoptionPost post = getAdoptionPostOrThrow(postId);
+    public List<AdoptionFormResponse> getFormsByPostId(UUID animalPostId) {
+        AdoptionPost post = getAdoptionPostOrThrow(animalPostId);
 
-        validateOwnerAccess(post, authenticatedUser);
-
-        List<AdoptionForm> forms = adoptionFormRepository.findAllByAdoptionPostId(postId);
+        List<AdoptionForm> forms = adoptionFormRepository.findAllByAdoptionPostId(post.getId());
 
         return mapToAdoptionFormResponses(forms);
     }
@@ -112,15 +110,6 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "No se pueden enviar formularios a publicaciones cerradas o adoptadas"
-            );
-        }
-    }
-
-    private void validateOwnerAccess(AdoptionPost post, User user) {
-        if (!post.getOwner().getId().equals(user.getId())) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "No tienes permisos para ver los formularios de esta publicación"
             );
         }
     }

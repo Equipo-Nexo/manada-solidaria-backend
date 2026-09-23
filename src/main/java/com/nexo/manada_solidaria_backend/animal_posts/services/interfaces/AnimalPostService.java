@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.animal_posts.services.interfaces;
 
+import com.nexo.manada_solidaria_backend.animal_posts.components.AnimalPostOwner;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.GetAnimalPostsRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
@@ -20,10 +21,13 @@ public interface AnimalPostService {
 
     AnimalPostResponse getAnimalPost(UUID animalPostId);
 
+    @AnimalPostOwner
     void update(UUID animalPostId, UpdateAnimalPostRequest request, User authenticatedUser);
 
+    @AnimalPostOwner
     AnimalPostResponse transitionStatus(UUID animalPostId, TransitionStatusRequest request, User authenticatedUser);
 
+    @AnimalPostOwner
     void delete(UUID animalPostId, User authenticatedUser);
 
     Page<HappyCaseResponse> getHappyCases(Pageable pageable);

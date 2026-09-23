@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.campaigns.services.interfaces;
 
+import com.nexo.manada_solidaria_backend.campaigns.components.CampaignOwner;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.TransitionCampaignStatusRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
@@ -22,14 +23,17 @@ public interface CampaignService {
 
     Page<CampaignResponse> getFundraisingCampaigns(Pageable pageable);
 
+    @CampaignOwner
     void update(UUID campaignId, UpdateCampaignRequest request, User authenticatedUser);
 
+    @CampaignOwner
     void delete(UUID campaignId, User authenticatedUser);
 
     List<CampaignResponse> getUserCampaigns(User user);
 
     List<CampaignResponse> getUserFundraisingCampaigns(User user);
 
+    @CampaignOwner
     CampaignResponse transitionStatus(UUID campaignId, TransitionCampaignStatusRequest request, User authenticatedUser);
 
     void finalizeExpiredDonationAndFundraisingCampaigns();

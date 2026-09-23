@@ -24,6 +24,6 @@ public class AdoptionFormControllerImpl implements AdoptionFormController {
 
     @Override
     public List<AdoptionFormResponse> getFormsByPostId(UUID postId, User authenticatedUser) {
-        return adoptionFormService.getFormsByPostId(postId, authenticatedUser);
+        return adoptionFormService.getFormsByPostId(postId);
     }
 }

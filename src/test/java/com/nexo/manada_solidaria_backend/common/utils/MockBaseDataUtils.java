@@ -9,6 +9,8 @@ public class MockBaseDataUtils {
 
     public static final String INVALID_ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30";
 
+    public static final String FORBIDDEN_MESSAGE = "No tenes permisos para realizar esta accion";
+
     private static Stream<Arguments> providePingTestCases() {
         return Stream.of(
                 Arguments.of("ping requests with valid access token", HttpStatus.OK, "pong"),

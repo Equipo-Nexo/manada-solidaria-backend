@@ -48,7 +48,6 @@ public class NotificationDeliveryServiceImpl implements NotificationDeliveryServ
 
     @Override
     public UserNotificationsResponse getUserNotifications(UUID userId, User authenticatedUser) {
-        validateOwner(userId, authenticatedUser);
         return UserNotificationsResponse.from(findBellNotifications(authenticatedUser));
     }
 
@@ -80,14 +79,5 @@ public class NotificationDeliveryServiceImpl implements NotificationDeliveryServ
     private NotificationDelivery changeStatus(NotificationDelivery notificationDelivery, NotificationStatus status) {
         notificationDelivery.changeStatus(status);
         return this.notificationDeliveryRepository.save(notificationDelivery);
-    }
-
-    private void validateOwner(UUID userId, User authenticatedUser) {
-        if (!userId.equals(authenticatedUser.getId())) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "Solo podés acceder a tus propias notificaciones"
-            );
-        }
     }
 }
