@@ -274,7 +274,7 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
                 new PhoneNumber("353", "123456"),
                 owner,
                 null,
-                new Location("Córdoba", "Av. Siempre Viva", 123, -31.4, -64.1),
+                new Location("Argentina", "Córdoba", "Av. Siempre Viva 123, Córdoba", "Centro", "Av. Siempre Viva", 123, -31.4, -64.1),
                 false
         );
         post.getStatusHistory().add(new AdoptionPostStatusHistory(StatusAdoptionPost.SEARCHING_ADOPT, post));

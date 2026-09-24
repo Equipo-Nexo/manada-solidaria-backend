@@ -6,6 +6,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.models.Animal;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
+import com.nexo.manada_solidaria_backend.locations.controllers.requests.LocationRequest;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.springframework.stereotype.Component;
@@ -32,11 +33,14 @@ public class AnimalPostFactory {
         );
     }
 
-    private Location buildLocation(CreateAnimalPostRequest.LocationRequest req) {
+    private Location buildLocation(LocationRequest req) {
         return new Location(
-                req.name(),
-                req.address(),
-                req.number(),
+                req.country(),
+                req.city(),
+                req.formatted(),
+                req.district(),
+                req.street(),
+                req.houseNumber(),
                 req.latitude(),
                 req.longitude()
         );

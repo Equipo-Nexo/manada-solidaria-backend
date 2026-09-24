@@ -3,6 +3,7 @@ package com.nexo.manada_solidaria_backend.campaigns.components;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.*;
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
+import com.nexo.manada_solidaria_backend.locations.controllers.requests.LocationRequest;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.springframework.stereotype.Component;
@@ -40,16 +41,19 @@ public class CampaignFactory {
         };
     }
 
-    private Location buildLocation(CreateCampaignRequest.LocationRequest req) {
+    private Location buildLocation(LocationRequest req) {
 
         if (req == null) {
             return null;
         }
 
         return new Location(
-                req.name(),
-                req.address(),
-                req.number(),
+                req.country(),
+                req.city(),
+                req.formatted(),
+                req.district(),
+                req.street(),
+                req.houseNumber(),
                 req.latitude(),
                 req.longitude()
         );
