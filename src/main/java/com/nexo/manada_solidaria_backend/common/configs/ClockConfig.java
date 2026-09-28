@@ -9,7 +9,7 @@ import java.time.ZoneId;
 @Configuration
 public class ClockConfig {
 
-    private static final ZoneId ARGENTINA = ZoneId.of("America/Argentina/Buenos_Aires");
+    public static final ZoneId ARGENTINA = ZoneId.of("America/Argentina/Buenos_Aires");
 
     @Bean
     Clock clock() {

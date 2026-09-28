@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.vets.services.interfaces;
 
+import com.nexo.manada_solidaria_backend.common.controllers.responses.MapItemResponse;
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.CreateVetInformationRequest;
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.UpdateVetInformationRequest;
 import com.nexo.manada_solidaria_backend.vets.controllers.responses.VetInformationResponse;
@@ -19,4 +20,6 @@ public interface VetInformationService {
     void delete(UUID vetId);
 
     VetInformationResponse update(UUID vetId, UpdateVetInformationRequest request);
+
+    List<MapItemResponse> getMapItems();
 }

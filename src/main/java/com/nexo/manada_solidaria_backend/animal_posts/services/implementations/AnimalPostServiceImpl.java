@@ -12,6 +12,8 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
+import com.nexo.manada_solidaria_backend.common.controllers.responses.MapItemResponse;
+import com.nexo.manada_solidaria_backend.common.controllers.responses.MapItemResponse.DescriptionLine;
 import com.nexo.manada_solidaria_backend.common.utils.EnumUtils;
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationService;
@@ -25,7 +27,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Clock;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -40,6 +46,7 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     private final AnimalPostRepository animalPostRepository;
     private final AnimalPostFactory animalPostFactory;
     private final NotificationService notificationService;
+    private final Clock clock;
 
     @Override
     public AnimalPostResponse create(CreateAnimalPostRequest request, User owner) {
@@ -144,6 +151,45 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                     "Solo el dueño puede modificar la publicación"
             );
         }
+    }
+
+    @Override
+    public List<MapItemResponse> getLostMapItems() {
+        return getMapItems(true);
+    }
+
+    @Override
+    public List<MapItemResponse> getInStreetMapItems() {
+        return getMapItems(false);
+    }
+
+    private List<MapItemResponse> getMapItems(boolean hasOwner) {
+        return animalPostRepository.findActiveLostPosts(hasOwner, LostPost.HAPPY_STATUSES)
+                .stream()
+                .map(this::toMapItem)
+                .toList();
+    }
+
+    private MapItemResponse toMapItem(LostPost post) {
+        return new MapItemResponse(
+                post.getId(),
+                post.getImageUrl(),
+                post.getName(),
+                post.getType().name(),
+                DescriptionLine.clock(publishedAgo(post.getCreatedAt())),
+                post.getLocation()
+        );
+    }
+
+    private String publishedAgo(LocalDateTime createdAt) {
+        LocalDate publishedOn = createdAt.atZone(ZoneId.systemDefault())
+                .withZoneSameInstant(clock.getZone())
+                .toLocalDate();
+        long days = ChronoUnit.DAYS.between(publishedOn, LocalDate.now(clock));
+        if (days == 0) {
+            return "Publicado hoy";
+        }
+        return "Publicado hace " + days + (days == 1 ? " día" : " días");
     }
 
     private AnimalPost getAnimalPostOrThrow(UUID animalPostId) {
