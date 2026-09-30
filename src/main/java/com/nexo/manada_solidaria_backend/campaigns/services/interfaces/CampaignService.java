@@ -1,6 +1,6 @@
 package com.nexo.manada_solidaria_backend.campaigns.services.interfaces;
 
-import com.nexo.manada_solidaria_backend.campaigns.components.CampaignOwner;
+import com.nexo.manada_solidaria_backend.auth.components.pre_filters.CampaignOwner;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.TransitionCampaignStatusRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;

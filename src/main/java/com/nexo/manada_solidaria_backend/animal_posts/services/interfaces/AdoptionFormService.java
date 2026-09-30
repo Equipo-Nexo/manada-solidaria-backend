@@ -1,9 +1,9 @@
 package com.nexo.manada_solidaria_backend.animal_posts.services.interfaces;
 
-import com.nexo.manada_solidaria_backend.animal_posts.components.AnimalPostOwner;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAdoptionFormRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
+import com.nexo.manada_solidaria_backend.auth.components.pre_filters.AnimalPostOwner;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 
 import java.util.List;

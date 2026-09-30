@@ -1,4 +1,4 @@
-package com.nexo.manada_solidaria_backend.animal_posts.components;
+package com.nexo.manada_solidaria_backend.auth.components.pre_filters;
 
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
 import com.nexo.manada_solidaria_backend.users.data.models.User;

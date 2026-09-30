@@ -1,12 +1,12 @@
 package com.nexo.manada_solidaria_backend.animal_posts.services.interfaces;
 
-import com.nexo.manada_solidaria_backend.animal_posts.components.AnimalPostOwner;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.GetAnimalPostsRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AnimalPostResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.HappyCaseResponse;
+import com.nexo.manada_solidaria_backend.auth.components.pre_filters.AnimalPostOwner;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

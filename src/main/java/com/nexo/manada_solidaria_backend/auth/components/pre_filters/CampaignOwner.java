@@ -1,4 +1,4 @@
-package com.nexo.manada_solidaria_backend.animal_posts.components;
+package com.nexo.manada_solidaria_backend.auth.components.pre_filters;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@PreAuthorize("@animalPostAuthorization.isOwner(#animalPostId, principal)")
-public @interface AnimalPostOwner {
+@PreAuthorize("@campaignAuthorization.isOwner(#campaignId, principal)")
+public @interface CampaignOwner {
 }

@@ -1,4 +1,4 @@
-package com.nexo.manada_solidaria_backend.campaigns.components;
+package com.nexo.manada_solidaria_backend.auth.components.pre_filters;
 
 import com.nexo.manada_solidaria_backend.campaigns.data.repositories.CampaignRepository;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
