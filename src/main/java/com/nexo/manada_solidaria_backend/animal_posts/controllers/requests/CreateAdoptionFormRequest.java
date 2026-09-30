@@ -24,9 +24,8 @@ public record CreateAdoptionFormRequest(
 ) {
 
     public record QuestionFormRequest(
-            @NotBlank(message = "La pregunta no puede estar vacía")
-            @Size(max = 500, message = "La pregunta no puede superar los 500 caracteres")
-            String question,
+            @NotNull(message = "El id de la pregunta es obligatorio")
+            UUID questionFormId,
 
             @Size(max = 1000, message = "La respuesta no puede superar los 1000 caracteres")
             String answer
