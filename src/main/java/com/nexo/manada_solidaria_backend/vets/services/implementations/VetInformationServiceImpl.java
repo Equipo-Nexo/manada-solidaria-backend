@@ -1,8 +1,6 @@
 package com.nexo.manada_solidaria_backend.vets.services.implementations;
 
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
-import com.nexo.manada_solidaria_backend.common.controllers.responses.MapItemResponse;
-import com.nexo.manada_solidaria_backend.common.controllers.responses.MapItemResponse.DescriptionLine;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.CreateVetInformationRequest;
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.UpdateVetInformationRequest;
@@ -15,15 +13,14 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -44,6 +41,7 @@ public class VetInformationServiceImpl implements VetInformationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<VetInformationResponse> getAll(String query, Boolean openOnly, Double userLat, Double userLng) {
         log.debug("Listing vets: query={} openOnly={} lat={} lng={}", query, openOnly, userLat, userLng);
         return getVets(userLat, userLng, query, openOnly)
@@ -77,33 +75,6 @@ public class VetInformationServiceImpl implements VetInformationService {
         return new VetInformationResponse(updated);
     }
 
-
-    @Override
-    public List<MapItemResponse> getMapItems() {
-        LocalDateTime now = LocalDateTime.now(clock);
-        Set<UUID> openVetIds = searchAt(now, true).stream()
-                .map(VetInformation::getId)
-                .collect(Collectors.toSet());
-
-        return searchAt(now, false).stream()
-                .map(vet -> toMapItem(vet, openVetIds.contains(vet.getId())))
-                .toList();
-    }
-
-    private List<VetInformation> searchAt(LocalDateTime moment, boolean openOnly) {
-        return repository.searchVets(null, openOnly, moment.getDayOfWeek(), moment.toLocalTime(), null, null);
-    }
-
-    private MapItemResponse toMapItem(VetInformation vet, boolean isOpen) {
-        return new MapItemResponse(
-                vet.getId(),
-                vet.getProfilePictureUrl(),
-                vet.getName(),
-                isOpen ? "OPEN" : "CLOSED",
-                DescriptionLine.phone(vet.getPhoneNumber().areaCode() + "-" + vet.getPhoneNumber().number()),
-                vet.getLocation()
-        );
-    }
 
     private VetInformation buildVetInformation(CreateVetInformationRequest request) {
 

@@ -73,7 +73,7 @@ class MapControllerTest extends BaseAuthenticatedIntegrationTest {
 
             mockMvc.perform(get("/map").header("Authorization", "Bearer " + accessToken))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.lostAnimals[0].firstLineDescription.text", is("Publicado hoy")));
+                    .andExpect(jsonPath("$.lostAnimals[0].firstLineDescription.text", is("0")));
         } finally {
             TimeZone.setDefault(serverZone);
         }

@@ -1,0 +1,69 @@
+info:
+  name: Get map
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{MANADA_SOLIDARIA_HOST}}/map"
+  auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.body.lostAnimals
+      operator: isArray
+    - expression: res.body.inStreetAnimals
+      operator: isArray
+    - expression: res.body.vets
+      operator: isArray
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Todos los marcadores del mapa en una sola llamada. No lleva parametros.
+
+  Respuesta:
+  {
+    "lostAnimals": [
+      {
+        "id": "b0d6c1f4-7f1e-4a52-9a43-2f6f8f0a1c11",
+        "imageUrl": "https://.../milo.jpg",
+        "name": "Milo",
+        "status": "LOST",
+        "firstLineDescription": { "iconName": "Clock", "text": "2" },
+        "longitude": -63.2411,
+        "latitude": -32.4102,
+        "location": "Constancio Vigil 1821, San Justo"
+      }
+    ],
+    "inStreetAnimals": [ ...mismo formato, "status": "IN_STREET"... ],
+    "vets": [
+      {
+        "id": "5c1f0a52-2f0b-4d8e-8a57-0d6d7f0b9a22",
+        "imageUrl": "https://.../vet.jpg",
+        "name": "Dr. Seba Veterinaria",
+        "status": "OPEN",
+        "firstLineDescription": { "iconName": "Phone", "text": "353-4010369" },
+        "longitude": -63.2451,
+        "latitude": -32.4152,
+        "location": "San Martin 540, Villa Maria"
+      }
+    ]
+  }
+
+  Campos de cada item:
+  - `status`: animales `LOST` | `IN_STREET` (solo publicaciones activas, las mas nuevas primero).
+    Veterinarias `OPEN` | `CLOSED` segun el horario de hoy (hora de Argentina); vienen todas, ordenadas por nombre.
+  - `firstLineDescription.iconName`: `Clock` (animales) o `Phone` (veterinarias).
+  - `firstLineDescription.text`: en animales es la **cantidad de dias desde que se publico**, como texto
+    (`"0"` es hoy, `"1"` ayer, `"2"`...). El front arma la frase. En veterinarias es `codigoArea-numero`.
+  - `location`: direccion + numero + nombre del lugar, o `null` si no tiene ninguno de los datos.
+
+  Esperado: 200 (si no hay nada, las tres listas vienen `[]`). Sin token o token invalido: 401.

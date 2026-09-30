@@ -6,7 +6,6 @@ import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.Trans
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AnimalPostResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.HappyCaseResponse;
-import com.nexo.manada_solidaria_backend.common.controllers.responses.MapItemResponse;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,7 +30,5 @@ public interface AnimalPostService {
 
     List<AnimalPostResponse> getUserAnimalPosts(User user);
 
-    List<MapItemResponse> getLostMapItems();
-
-    List<MapItemResponse> getInStreetMapItems();
+    List<AnimalPostResponse> getActiveLostPosts();
 }

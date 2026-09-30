@@ -80,16 +80,12 @@ public interface AnimalPostRepository extends JpaRepository<AnimalPost, UUID> {
 
     List<AnimalPost<?, ?>> findAllByOwner(User user);
 
-    @EntityGraph(attributePaths = {"location"})
+    @EntityGraph(attributePaths = {"animal", "location", "owner", "owner.profile", "statusHistory"})
     @Query("""
             SELECT p FROM LostPost p
-            WHERE p.hasOwner = :hasOwner
-            AND EXISTS (SELECT 1 FROM LostPostStatusHistory h
-                        WHERE h.post = p AND h.finishedAt IS NULL AND h.status NOT IN :excludedStatuses)
+            WHERE EXISTS (SELECT 1 FROM LostPostStatusHistory h
+                          WHERE h.post = p AND h.finishedAt IS NULL AND h.status NOT IN :excludedStatuses)
             ORDER BY p.createdAt DESC
             """)
-    List<LostPost> findActiveLostPosts(
-            @Param("hasOwner") boolean hasOwner,
-            @Param("excludedStatuses") Set<StatusLostPost> excludedStatuses
-    );
+    List<LostPost> findActiveLostPosts(@Param("excludedStatuses") Set<StatusLostPost> excludedStatuses);
 }

@@ -23,9 +23,9 @@ public class MockMapDataUtils {
                 Arguments.of("El perdido tiene estado LOST", "$.lostAnimals[0].status", is("LOST")),
                 Arguments.of("El en la calle tiene estado IN_STREET", "$.inStreetAnimals[*].status", contains("IN_STREET", "IN_STREET")),
                 Arguments.of("La primera linea del animal es un reloj", "$.lostAnimals[0].firstLineDescription.iconName", is("Clock")),
-                Arguments.of("Publicado hace 2 dias", "$.lostAnimals[0].firstLineDescription.text", is("Publicado hace 2 d\u00edas")),
-                Arguments.of("Publicado hace 1 dia, en singular", "$.inStreetAnimals[1].firstLineDescription.text", is("Publicado hace 1 d\u00eda")),
-                Arguments.of("Publicado hoy", "$.inStreetAnimals[0].firstLineDescription.text", is("Publicado hoy")),
+                Arguments.of("Publicado hace 2 dias", "$.lostAnimals[0].firstLineDescription.text", is("2")),
+                Arguments.of("Publicado hace 1 dia", "$.inStreetAnimals[1].firstLineDescription.text", is("1")),
+                Arguments.of("Publicado hoy son 0 dias", "$.inStreetAnimals[0].firstLineDescription.text", is("0")),
 
                 Arguments.of("Location con direccion, numero y nombre", "$.lostAnimals[0].location", is("Constancio Vigil 1821, San Justo")),
                 Arguments.of("Location solo con nombre", "$.inStreetAnimals[1].location", is("Centro")),
