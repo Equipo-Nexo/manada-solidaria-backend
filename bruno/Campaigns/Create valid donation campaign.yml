@@ -28,12 +28,13 @@ http:
         },
         "items": [
           {
-            "category": "pepe"
+            "name": "Frazadas",
+            "category": "FOOD"
           }
         ],
         "accountAlias": null,
         "amountToBeCollected": null,
-        "campaignEndDate": "2026-07-25"
+        "campaignEndDate": "2030-12-31"
       }
   auth: inherit
 

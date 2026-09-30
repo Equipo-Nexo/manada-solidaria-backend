@@ -21,8 +21,79 @@ http:
       disabled: true
   auth: inherit
 
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.body
+      operator: isArray
+
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+
+docs: |-
+  Mis publicaciones: las del usuario logueado (el del token), como un array.
+
+  Cada elemento es la MISMA card que devuelve la home, mas `postType`:
+  - `animal`      -> igual a `GET /animal-posts`
+  - `campaign`    -> igual a `GET /campaigns` (donacion y noticia)
+  - `fundraising` -> igual a `GET /campaigns/fundraising_campaigns` (colecta)
+
+  Vienen de la mas nueva a la mas vieja. Para filtrar, activa el parametro `type`
+  (una sola opcion a la vez): animal, campaign o fundraising.
+
+  Como distinguir cada card:
+  - Pestañas Animales / Campañas / Colectas: `postType`
+  - Animal: `type` = LOST (perdido) | IN_STREET (en la calle) | ADOPTION (adopcion)
+  - Campaña: `type` = donation | vaccination | castration | deworming | other
+    (las colectas traen `type` = fundraising)
+  - Los animales usan `name` e `imageUrl`; las campañas y colectas usan `title` e `imageId`.
+
+  Para tener datos, corre antes las requests `Create ...` de AnimalPosts y Campaigns
+  (con el mismo usuario que hizo el login).
+
+  Ejemplo de animal:
+  {
+    "postType": "animal",
+    "id": "916cd4e5-27ff-4ee1-997c-6094b2f981fa",
+    "type": "ADOPTION",
+    "name": "Toby",
+    "description": "Busca casa",
+    "imageUrl": "/fotoToby",
+    "animal": { "id": "...", "type": "DOG", "size": "SMALL", "gender": "MALE", "color": null, "age": "PUPPY" },
+    "location": { "id": "...", "name": "Villa Maria", "address": "San Martin", "number": 100, "latitude": -32.41, "longitude": -63.24 },
+    "status": "SEARCHING_ADOPT_AND_TRANSIT",
+    "createdAt": "2026-09-30T09:07:30.256947",
+    "ownerId": "...",
+    "phoneNumber": { "areaCode": "353", "number": "4010369" },
+    "owner": { "username": "admin", "roles": ["COMMUNITY"], "profileImageURL": null },
+    "reward": null
+  }
+
+  Ejemplo de colecta:
+  {
+    "postType": "fundraising",
+    "id": "857cbdca-892b-4443-b361-f726e0d0ac41",
+    "type": "fundraising",
+    "title": "Ayuda para Michi",
+    "description": "Operacion",
+    "imageId": "/fotoMichi",
+    "phoneNumber": { "areaCode": "353", "number": "4010369" },
+    "location": { "id": "...", "name": "Villa Maria", "address": "San Martin", "number": 100, "latitude": -32.41, "longitude": -63.24 },
+    "status": "CREATED",
+    "createdAt": "2026-09-30T09:07:30.640278",
+    "ownerId": "...",
+    "accountAlias": "michi.ayuda",
+    "amountToBeCollected": null,
+    "amountCollected": 0,
+    "campaignEndDate": "2030-12-31",
+    "items": null,
+    "newsStartDateTime": null,
+    "newsEndDateTime": null
+  }
+
+  Esperado: 200. Con `type` distinto de animal, campaign o fundraising: 400. Sin token: 401.

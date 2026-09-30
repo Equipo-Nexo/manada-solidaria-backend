@@ -1,5 +1,9 @@
 package com.nexo.manada_solidaria_backend.users.integrations;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusLostPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.Animal;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
@@ -26,6 +30,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import java.util.*;
+import java.util.stream.StreamSupport;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,6 +43,9 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
 
     private static final String MOCK_DATA =
             "com.nexo.manada_solidaria_backend.users.utils.MockUserDataUtils#";
+
+    private static final ObjectMapper STRICT_MAPPER = new ObjectMapper()
+            .enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
 
     @Autowired
     private UserRepository userRepository;
@@ -225,6 +233,58 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$", hasSize(expectedResponseSize)));
     }
 
+    @DisplayName("GET /users/posts devuelve la misma card que la home")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideGetUserPostsCardCases")
+    @Sql(
+            scripts = {
+                    "/sql/users/create-campaigns.sql",
+                    "/sql/users/create-animal-posts.sql",
+                    "/sql/users/create-fundraising.sql"
+            },
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    void getUserPosts_returnsHomeCard(
+            String testName,
+            String typeQueryParam,
+            String jsonPathExpression,
+            Matcher<?> expected
+    ) throws Exception {
+        mockMvc.perform(
+                        get("/users/posts")
+                                .queryParam("type", typeQueryParam)
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(jsonPathExpression, expected));
+    }
+
+    @DisplayName("GET /users/{userId} devuelve cada post con el mismo contenido que la home")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideHomeCardCases")
+    @Sql(
+            scripts = {
+                    "/sql/users/user-profile-data.sql",
+                    "/sql/users/create-campaigns.sql",
+                    "/sql/users/create-animal-posts.sql",
+                    "/sql/users/create-fundraising.sql"
+            },
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    void getUser_postIsTheSameCardAsTheHome(
+            String testName,
+            String homePath,
+            String postId,
+            String postType
+    ) throws Exception {
+        JsonNode homeCard = findById(readBody(homePath).get("content"), postId);
+        JsonNode userCard = findById(readBody("/users/" + adminId()).get("posts"), postId);
+
+        assertThat(userCard.get("postType").asText()).isEqualTo(postType);
+        ((ObjectNode) userCard).remove("postType");
+        assertThat(userCard).isEqualTo(homeCard);
+    }
+
     @Test
     @DisplayName("Authenticated user is not the owner of the unique post, list should be empty")
     @Sql(
@@ -369,6 +429,20 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
         return mockMvc.perform(
                 get("/users/" + userId).header("Authorization", "Bearer " + accessToken)
         );
+    }
+
+    private JsonNode readBody(String path) throws Exception {
+        String body = mockMvc.perform(get(path).header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        return STRICT_MAPPER.readTree(body);
+    }
+
+    private JsonNode findById(JsonNode cards, String id) {
+        return StreamSupport.stream(cards.spliterator(), false)
+                .filter(card -> id.equals(card.get("id").asText()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("No hay una card con id " + id));
     }
 
     private ResultActions getUserProfile(UUID userId) throws Exception {

@@ -1,0 +1,53 @@
+info:
+  name: Get user detail
+  type: http
+  seq: 4
+
+http:
+  method: GET
+  url: "{{MANADA_SOLIDARIA_HOST}}/users/{{user_id}}"
+  auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.body.createdAt
+      operator: isString
+    - expression: res.body.posts
+      operator: isArray
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Detalle de un usuario: perfil + fecha de alta + publicaciones.
+
+  Por defecto usa `{{user_id}}`, el usuario que hizo el login (corre `Auth/Login` primero).
+  Para ver a OTRO usuario, cambia el id de la URL por el suyo (sale de `Users/Get users`).
+
+  Respuesta:
+  {
+    "id": "...",
+    "username": "Abril",
+    "profile": {
+      "name": "Juan",
+      "lastname": "Gomez",
+      "email": "abrilconrero@gmail.com",
+      "phoneNumber": { "areaCode": "353", "number": "4182076" },
+      "profileImageURL": "cf-abril"
+    },
+    "roles": ["RESCUER", "TRANSITIONAL_HOME"],
+    "createdAt": "2026-09-07T10:15:32.412961",
+    "posts": [ ...las cards de la home + postType, de la mas nueva a la mas vieja... ]
+  }
+
+  El detalle de cada card de `posts` (animal, campana, colecta) esta en `Users/Get user posts`.
+  `createdAt` es la fecha de alta, sin zona horaria; los dias transcurridos los calcula el front.
+  El perfil SIN publicaciones esta en `Users/Get user profile`.
+
+  Esperado: 200. Usuario inexistente: 404. Sin token: 401.

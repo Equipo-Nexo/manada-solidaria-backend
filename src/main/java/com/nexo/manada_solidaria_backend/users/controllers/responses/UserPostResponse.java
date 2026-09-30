@@ -1,40 +1,34 @@
 package com.nexo.manada_solidaria_backend.users.controllers.responses;
 
-import lombok.Getter;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AnimalPostResponse;
+import com.nexo.manada_solidaria_backend.campaigns.controllers.responses.CampaignResponse;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.UUID;
 
-@Getter
-@Setter
-public abstract class UserPostResponse {
+@Schema(description = "La misma card que devuelve la home, más postType.")
+public record UserPostResponse(
+        @Schema(description = "animal, campaign o fundraising", example = "animal")
+        String postType,
+        @Schema(hidden = true) @JsonUnwrapped Object post,
+        @Schema(hidden = true) @JsonIgnore LocalDateTime createdAt
+) {
 
-    private final UUID id;
-    private final String title;
-    private final String description;
-    private final long createdSince;
-    private final String imageId;
-    private final String postType;
-    private final String status;
+    public static final String ANIMAL = "animal";
+    public static final String CAMPAIGN = "campaign";
+    public static final String FUNDRAISING = "fundraising";
 
-    protected UserPostResponse(
-            UUID id,
-            String title,
-            String description,
-            LocalDateTime createdAt,
-            String imageId,
-            String postType,
-            String status
-    ) {
-        this.id = id;
-        this.title = title;
-        this.description = description;
-        this.createdSince = ChronoUnit.DAYS.between(createdAt, LocalDateTime.now());
-        this.imageId = imageId;
-        this.postType = postType;
-        this.status = status;
+    public static UserPostResponse animal(AnimalPostResponse post) {
+        return new UserPostResponse(ANIMAL, post, post.createdAt());
+    }
+
+    public static UserPostResponse campaign(CampaignResponse post) {
+        return new UserPostResponse(CAMPAIGN, post, post.createdAt());
+    }
+
+    public static UserPostResponse fundraising(CampaignResponse post) {
+        return new UserPostResponse(FUNDRAISING, post, post.createdAt());
     }
 }
-

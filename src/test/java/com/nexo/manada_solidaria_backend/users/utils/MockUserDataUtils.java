@@ -10,10 +10,14 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
@@ -95,12 +99,51 @@ public class MockUserDataUtils {
                 Arguments.of("Devuelve el numero de telefono del perfil", "$.profile.phoneNumber.number", is("436249")),
                 Arguments.of("Devuelve la foto del perfil", "$.profile.profileImageURL", is("cf-profile-1")),
                 Arguments.of("Devuelve los roles", "$.roles", hasItem("COMMUNITY")),
+                Arguments.of("Devuelve la fecha de registro", "$.createdAt", is("2025-03-14T10:00:00")),
                 Arguments.of("Devuelve las publicaciones del usuario", "$.posts.length()", is(4)),
                 Arguments.of("Las publicaciones traen titulo", "$.posts[*].title",
                         hasItem(containsString("de Vacunaci"))),
                 Arguments.of("Las publicaciones traen descripcion", "$.posts[*].description",
                         hasItem(containsString("gratuita para perros y gatos"))),
-                Arguments.of("Las publicaciones traen estado", "$.posts[*].status", hasItem("CREATED"))
+                Arguments.of("Las publicaciones traen estado", "$.posts[*].status", hasItem("CREATED")),
+                Arguments.of("Las publicaciones vienen de la mas nueva a la mas vieja", "$.posts[*].postType",
+                        contains("animal", "fundraising", "campaign", "campaign")),
+                Arguments.of("El animal trae su tipo", "$.posts[0].type", is("IN_STREET")),
+                Arguments.of("El animal trae su ubicacion", "$.posts[0].location.address", containsString("Libertador")),
+                Arguments.of("El animal trae su telefono", "$.posts[0].phoneNumber.number", is("000000")),
+                Arguments.of("El animal trae sus datos", "$.posts[0].animal.type", is("DOG")),
+                Arguments.of("El animal trae su imagen", "$.posts[0].imageUrl", nullValue()),
+                Arguments.of("La card conserva su fecha de alta", "$.posts[0].createdAt", notNullValue()),
+                Arguments.of("La campaña trae su ubicacion", "$.posts[3].location.address", containsString("Sabattini")),
+                Arguments.of("La colecta trae su alias", "$.posts[1].accountAlias", is("MANADA.SOLIDARIA")),
+                Arguments.of("La card lleva solo el tipo de post por encima de la home", "$.posts[0].keys()",
+                        allOf(hasItems("postType", "type", "name", "location", "phoneNumber", "animal", "owner"),
+                                not(hasItem("post")))),
+                Arguments.of("Ya no se devuelven los campos del resumen viejo", "$.posts[0].keys()", not(hasItem("createdSince")))
+        );
+    }
+
+    private static Stream<Arguments> provideHomeCardCases() {
+        return Stream.of(
+                Arguments.of("Animal: igual a GET /animal-posts", "/animal-posts", "77777777-7777-7777-7777-777777777777", "animal"),
+                Arguments.of("Campaña: igual a GET /campaigns", "/campaigns", "44444444-4444-4444-4444-444444444445", "campaign"),
+                Arguments.of("Colecta: igual a GET /campaigns/fundraising_campaigns", "/campaigns/fundraising_campaigns",
+                        "44444444-4444-4444-4444-444444444446", "fundraising")
+        );
+    }
+
+    private static Stream<Arguments> provideGetUserPostsCardCases() {
+        return Stream.of(
+                Arguments.of("Sin filtro: de la mas nueva a la mas vieja", null, "$[*].postType",
+                        contains("animal", "fundraising", "campaign", "campaign")),
+                Arguments.of("Animales: trae su tipo", "animal", "$[0].type", is("IN_STREET")),
+                Arguments.of("Animales: trae su ubicacion", "animal", "$[0].location.address", containsString("Libertador")),
+                Arguments.of("Animales: trae su telefono", "animal", "$[0].phoneNumber.number", is("000000")),
+                Arguments.of("Campañas: solo campañas", "campaign", "$[*].postType", everyItem(is("campaign"))),
+                Arguments.of("Campañas: traen su ubicacion", "campaign", "$[0].location.address", notNullValue()),
+                Arguments.of("Campañas: de la mas nueva a la mas vieja", "campaign", "$[*].id",
+                        contains("44444444-4444-4444-4444-444444444445", "44444444-4444-4444-4444-444444444444")),
+                Arguments.of("Colectas: traen su alias", "fundraising", "$[0].accountAlias", is("MANADA.SOLIDARIA"))
         );
     }
 

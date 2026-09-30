@@ -131,7 +131,7 @@ public class AnimalPostServiceImpl implements AnimalPostService {
 
     @Override
     public List<AnimalPostResponse> getUserAnimalPosts(User user) {
-        return animalPostRepository.findAllByOwner(user)
+        return animalPostRepository.findAllByOwnerOrderByCreatedAtDesc(user)
                 .stream()
                 .map(AnimalPostResponse::from)
                 .toList();

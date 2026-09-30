@@ -114,7 +114,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserPostResponse> getUserPosts(User user, String type) {
         return (requireAllPosts(type) ? getAllUserPosts(user) : getUserPostsByType(user, type))
-                .sorted(Comparator.comparingLong(UserPostResponse::getCreatedSince))
                 .toList();
     }
 
@@ -157,14 +156,15 @@ public class UserServiceImpl implements UserService {
 
     private Stream<UserPostResponse> getAllUserPosts(User user) {
         return Stream.of(getUserAnimalPosts(user), getUserCampaigns(user), getUserFundraisingCampaigns(user))
-                .flatMap(Function.identity());
+                .flatMap(Function.identity())
+                .sorted(Comparator.comparing(UserPostResponse::createdAt).reversed());
     }
 
     private Stream<UserPostResponse> getUserPostsByType(User user, String type) {
         return switch (type) {
-            case "campaign" -> getUserCampaigns(user);
-            case "animal" -> getUserAnimalPosts(user);
-            case "fundraising" -> getUserFundraisingCampaigns(user);
+            case UserPostResponse.CAMPAIGN -> getUserCampaigns(user);
+            case UserPostResponse.ANIMAL -> getUserAnimalPosts(user);
+            case UserPostResponse.FUNDRAISING -> getUserFundraisingCampaigns(user);
             default -> throw new ResponseStatusException(BAD_REQUEST, "requested type is not supported");
         };
     }
@@ -172,19 +172,19 @@ public class UserServiceImpl implements UserService {
     private Stream<UserPostResponse> getUserAnimalPosts(User user) {
         return animalPostService.getUserAnimalPosts(user)
                 .stream()
-                .map(AnimalUserPostResponse::new);
+                .map(UserPostResponse::animal);
     }
 
     private Stream<UserPostResponse> getUserFundraisingCampaigns(User user) {
         return campaignService.getUserFundraisingCampaigns(user)
                 .stream()
-                .map(FundraisingCampaignResponse::new);
+                .map(UserPostResponse::fundraising);
     }
 
     private Stream<UserPostResponse> getUserCampaigns(User user) {
         return campaignService.getUserCampaigns(user)
                 .stream()
-                .map(CampaignUserPostResponse::new);
+                .map(UserPostResponse::campaign);
     }
 
     private User buildUser(CreateUserRequest createUserRequest) {

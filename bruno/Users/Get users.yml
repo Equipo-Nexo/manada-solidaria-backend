@@ -1,0 +1,53 @@
+info:
+  name: Get users
+  type: http
+  seq: 6
+
+http:
+  method: GET
+  url: "{{MANADA_SOLIDARIA_HOST}}/users"
+  params:
+    - name: username
+      value: resca
+      type: query
+      disabled: true
+    - name: role
+      value: RESCUER
+      type: query
+      disabled: true
+  auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.body
+      operator: isArray
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Listado de todos los usuarios (liviano: sin publicaciones). Sirve para sacar el `id`
+  de otro usuario y abrir su detalle en `Users/Get user detail`.
+
+  Filtros (activalos en Params, se pueden combinar):
+  - `username`: coincidencia parcial, sin distinguir mayusculas (`resca` encuentra a `rescatista`)
+  - `role`: coincidencia exacta. VET | RESCUER | TRANSITIONAL_HOME | CARRIAGE | COMMUNITY
+
+  Respuesta:
+  [
+    {
+      "id": "a99591e6-37f1-4ca6-a9df-aed046c6e119",
+      "username": "refugiopatitas",
+      "roles": ["RESCUER", "TRANSITIONAL_HOME", "CARRIAGE"],
+      "phoneNumber": { "areaCode": "3533", "number": "436250" },
+      "profileImageURL": "cf-refugio"
+    }
+  ]
+
+  Esperado: 200 (si no hay coincidencias, `[]`). `role` invalido: 400. Sin token: 401.
