@@ -233,6 +233,41 @@ public class VetInformationControllerTests extends BaseAuthenticatedIntegrationT
                 .andExpect(status().isUnauthorized());
     }
 
+    @Test
+    @DisplayName("GET /vets calcula distanceInKm en kilómetros exactos cuando se envían coordenadas de usuario")
+    @Sql(
+            scripts = "/sql/vets/create-vets.sql",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    void getVetInformation_withUserCoordinates_calculatesDistanceInKm() throws Exception {
+        mockMvc.perform(
+                        get("/vets")
+                                .param("user_latitude", "-32.4075")
+                                .param("user_longitude", "-63.2402")
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("Veterinaria Animalia"))
+                .andExpect(jsonPath("$[0].distanceInKm").value(0.0)) // Mismas coords
+                .andExpect(jsonPath("$[0].isOpen").value(true));     // Animalia está 24/7 abierta
+    }
+
+    @Test
+    @DisplayName("GET /vets retorna distanceInKm en null si no se envían coordenadas de usuario")
+    @Sql(
+            scripts = "/sql/vets/create-vets.sql",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    void getVetInformation_withoutUserCoordinates_returnsNullDistance() throws Exception {
+        mockMvc.perform(
+                        get("/vets")
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].distanceInKm").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$[0].isOpen").value(true)); // Animalia 24/7 abierta
+    }
+
     @DisplayName("DELETE /vets/{vetId} sin autenticación válida devuelve 401")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource("com.nexo.manada_solidaria_backend.vets.utils.MockVetInformationDataUtils#provideDeleteVetInformationAuthenticationCases")

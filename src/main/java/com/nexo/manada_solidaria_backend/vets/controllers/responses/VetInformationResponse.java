@@ -28,11 +28,15 @@ public record VetInformationResponse(
 
         LocationResponse location,
 
-        List<ScheduleResponse> calendar
+        List<ScheduleResponse> calendar,
+
+        Boolean isOpen,
+
+        Double distanceInKm
 
 ) {
 
-    public VetInformationResponse(VetInformation vet) {
+    public VetInformationResponse(VetInformation vet, Boolean isOpen, Double distanceInKm) {
         this(
                 vet.getId(),
                 vet.getName(),
@@ -42,11 +46,16 @@ public record VetInformationResponse(
                 vet.getVetPageUrl(),
                 vet.getDescription(),
                 LocationResponse.from(vet.getLocation()),
-                vet.getCalendar()
-                        .stream()
-                        .map(ScheduleResponse::new)
-                        .toList()
+                vet.getCalendar() != null
+                        ? vet.getCalendar().stream().map(ScheduleResponse::new).toList()
+                        : List.of(),
+                isOpen,
+                distanceInKm
         );
+    }
+
+    public VetInformationResponse(VetInformation vet) {
+        this(vet, null, null);
     }
 
     public record ScheduleResponse(DayOfWeek dayOfWeek, LocalTime openingTime, LocalTime closingTime) {

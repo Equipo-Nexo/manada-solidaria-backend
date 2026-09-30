@@ -26,6 +26,8 @@ import java.util.UUID;
 @AllArgsConstructor
 public class VetInformationServiceImpl implements VetInformationService {
 
+    private static final double EARTH_RADIUS_KM = 6371.0;
+
     private final VetInformationRepository repository;
     private final Clock clock;
 
@@ -36,7 +38,7 @@ public class VetInformationServiceImpl implements VetInformationService {
 
         log.info("Vet information created: id={} name={}", saved.getId(), saved.getName());
 
-        return new VetInformationResponse(saved);
+        return buildResponse(saved, null, null);
     }
 
     @Override
@@ -44,13 +46,14 @@ public class VetInformationServiceImpl implements VetInformationService {
         log.debug("Listing vets: query={} openOnly={} lat={} lng={}", query, openOnly, userLat, userLng);
         return getVets(userLat, userLng, query, openOnly)
                 .stream()
-                .map(VetInformationResponse::new)
+                .map(vet -> buildResponse(vet, userLat, userLng))
                 .toList();
     }
 
     @Override
     public VetInformationResponse getById(UUID vetId) {
-        return new VetInformationResponse(getVetInformationOrThrow(vetId));
+        VetInformation vet = getVetInformationOrThrow(vetId);
+        return buildResponse(vet, null, null);
     }
 
     @Override
@@ -70,7 +73,7 @@ public class VetInformationServiceImpl implements VetInformationService {
 
         log.info("Vet information updated: id={}", updated.getId());
 
-        return new VetInformationResponse(updated);
+        return buildResponse(updated, null, null);
     }
 
 
@@ -138,4 +141,41 @@ public class VetInformationServiceImpl implements VetInformationService {
         return (query != null && !query.trim().isEmpty()) ? query.trim() : null;
     }
 
+    private VetInformationResponse buildResponse(VetInformation vet, Double userLat, Double userLng) {
+        LocalDateTime now = LocalDateTime.now(clock);
+
+        Boolean isOpen = vet.isOpen(now);
+        Double distanceInKm = calculateDistanceInKm(userLat, userLng, vet.getLocation());
+
+        return new VetInformationResponse(vet, isOpen, distanceInKm);
+    }
+
+    private Double calculateDistanceInKm(Double userLat, Double userLng, Location location) {
+        if (!hasValidCoordinates(userLat, userLng, location)) {
+            return null;
+        }
+
+        double vetLat = location.getLatitude();
+        double vetLng = location.getLongitude();
+
+        double dLat = Math.toRadians(vetLat - userLat);
+        double dLng = Math.toRadians(vetLng - userLng);
+
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                + Math.cos(Math.toRadians(userLat)) * Math.cos(Math.toRadians(vetLat))
+                * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        double distance = EARTH_RADIUS_KM * c;
+
+        return Math.round(distance * 100.0) / 100.0;
+    }
+
+    private boolean hasValidCoordinates(Double userLat, Double userLng, Location location) {
+        return userLat != null
+                && userLng != null
+                && location != null
+                && location.getLatitude() != null
+                && location.getLongitude() != null;
+    }
 }
