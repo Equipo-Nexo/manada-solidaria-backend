@@ -20,22 +20,26 @@ public class MockAdoptionFormDataUtils {
     public static final UUID USER_APPLICANT_ID = UUID.fromString("a1111111-1111-1111-1111-111111111111");
     public static final UUID USER_OTHER_ID = UUID.fromString("b2222222-2222-2222-2222-222222222222");
 
-    public static CreateAdoptionFormRequest createValidRequest(UUID postId) {
+    public static CreateAdoptionFormRequest createValidRequest(UUID postId, UUID questionId1, UUID questionId2) {
         return new CreateAdoptionFormRequest(
                 postId,
                 new PhoneNumberRequest("353", "4123456"),
                 List.of(
-                        new CreateAdoptionFormRequest.QuestionFormRequest("¿Alquilás? ¿Te permiten mascotas?", "Alquilo y sí me permiten."),
-                        new CreateAdoptionFormRequest.QuestionFormRequest("¿Contás con patio cerrado?", "Sí, totalmente cerrado.")
+                        new CreateAdoptionFormRequest.QuestionFormRequest(questionId1, "Alquilo y sí me permiten."),
+                        new CreateAdoptionFormRequest.QuestionFormRequest(questionId2, "Sí, totalmente cerrado.")
                 )
         );
+    }
+
+    public static CreateAdoptionFormRequest createValidRequest(UUID postId) {
+        return createValidRequest(postId, UUID.randomUUID(), UUID.randomUUID());
     }
 
     public static CreateAdoptionFormRequest createWithoutPostId() {
         return new CreateAdoptionFormRequest(
                 null,
                 new PhoneNumberRequest("353", "4123456"),
-                List.of(new CreateAdoptionFormRequest.QuestionFormRequest("¿Tenés patio?", "Sí."))
+                List.of(new CreateAdoptionFormRequest.QuestionFormRequest(UUID.randomUUID(), "Sí."))
         );
     }
 
@@ -43,7 +47,7 @@ public class MockAdoptionFormDataUtils {
         return new CreateAdoptionFormRequest(
                 postId,
                 null,
-                List.of(new CreateAdoptionFormRequest.QuestionFormRequest("¿Tenés patio?", "Sí."))
+                List.of(new CreateAdoptionFormRequest.QuestionFormRequest(UUID.randomUUID(), "Sí."))
         );
     }
 
@@ -55,11 +59,11 @@ public class MockAdoptionFormDataUtils {
         );
     }
 
-    public static CreateAdoptionFormRequest createWithBlankQuestion(UUID postId) {
+    public static CreateAdoptionFormRequest createWithoutQuestionFormId(UUID postId) {
         return new CreateAdoptionFormRequest(
                 postId,
                 new PhoneNumberRequest("353", "4123456"),
-                List.of(new CreateAdoptionFormRequest.QuestionFormRequest("", "Respuesta sin pregunta"))
+                List.of(new CreateAdoptionFormRequest.QuestionFormRequest(null, "Respuesta sin id de pregunta"))
         );
     }
 
@@ -69,7 +73,7 @@ public class MockAdoptionFormDataUtils {
                 Arguments.of("Sin id de publicación", createWithoutPostId(), HttpStatus.BAD_REQUEST),
                 Arguments.of("Sin teléfono de contacto", createWithoutPhone(postId), HttpStatus.BAD_REQUEST),
                 Arguments.of("Sin preguntas respondidas", createWithoutQuestions(postId), HttpStatus.BAD_REQUEST),
-                Arguments.of("Pregunta en blanco", createWithBlankQuestion(postId), HttpStatus.BAD_REQUEST)
+                Arguments.of("Sin id de pregunta asociada", createWithoutQuestionFormId(postId), HttpStatus.BAD_REQUEST)
         );
     }
 
