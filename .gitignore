@@ -34,3 +34,6 @@ build/
 *.md
 skills-lock.json
 /.claude
+
+### Metabase ###
+!metabase/README.md
