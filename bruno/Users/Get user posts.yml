@@ -28,6 +28,20 @@ runtime:
       value: "200"
     - expression: res.body
       operator: isArray
+  scripts:
+    - type: tests
+      code: |-
+        test("cada publicacion conserva los 7 campos que usa Mis publicaciones", function () {
+          const campos = ["id", "title", "description", "createdSince", "imageId", "postType", "status"];
+          res.body.forEach((post) => campos.forEach((campo) => expect(post).to.have.property(campo)));
+        });
+
+        test("no repite el titulo ni la imagen con el nombre de la home", function () {
+          res.body.forEach((post) => {
+            expect(post).to.not.have.property("name");
+            expect(post).to.not.have.property("imageUrl");
+          });
+        });
 
 settings:
   encodeUrl: true
@@ -38,10 +52,18 @@ settings:
 docs: |-
   Mis publicaciones: las del usuario logueado (el del token), como un array.
 
-  Cada elemento es la MISMA card que devuelve la home, mas `postType`:
-  - `animal`      -> igual a `GET /animal-posts`
-  - `campaign`    -> igual a `GET /campaigns` (donacion y noticia)
-  - `fundraising` -> igual a `GET /campaigns/fundraising_campaigns` (colecta)
+  Cada elemento trae SIEMPRE los 7 campos de siempre (los que usa la pantalla "Mis publicaciones"):
+  - `id`, `title`, `description`, `imageId`, `status`
+  - `createdSince`: dias desde que se publico (0 = hoy)
+  - `postType`: animal | campaign | fundraising
+
+  Y ademas los datos de la card de la home, con los mismos nombres que en la home:
+  - Todos: `type`, `location`, `phoneNumber`, `ownerId`, `createdAt`
+  - Animal: `animal`, `owner`, `reward`
+  - Campaña y colecta: `accountAlias`, `amountToBeCollected`, `amountCollected`,
+    `campaignEndDate`, `items`, `newsStartDateTime`, `newsEndDateTime`
+
+  El nombre y la imagen del animal vienen en `title` e `imageId` (en la home se llaman `name` e `imageUrl`).
 
   Vienen de la mas nueva a la mas vieja. Para filtrar, activa el parametro `type`
   (una sola opcion a la vez): animal, campaign o fundraising.
@@ -51,42 +73,43 @@ docs: |-
   - Animal: `type` = LOST (perdido) | IN_STREET (en la calle) | ADOPTION (adopcion)
   - Campaña: `type` = donation | vaccination | castration | deworming | other
     (las colectas traen `type` = fundraising)
-  - Los animales usan `name` e `imageUrl`; las campañas y colectas usan `title` e `imageId`.
 
   Para tener datos, corre antes las requests `Create ...` de AnimalPosts y Campaigns
   (con el mismo usuario que hizo el login).
 
   Ejemplo de animal:
   {
-    "postType": "animal",
-    "id": "916cd4e5-27ff-4ee1-997c-6094b2f981fa",
-    "type": "ADOPTION",
-    "name": "Toby",
+    "id": "d1679b8c-3042-44e2-8e4d-1cb7bec10c8e",
+    "title": "Toby",
     "description": "Busca casa",
-    "imageUrl": "/fotoToby",
-    "animal": { "id": "...", "type": "DOG", "size": "SMALL", "gender": "MALE", "color": null, "age": "PUPPY" },
+    "createdSince": 0,
+    "imageId": "/fotoToby",
+    "postType": "animal",
+    "status": "SEARCHING_ADOPT",
+    "type": "ADOPTION",
     "location": { "id": "...", "name": "Villa Maria", "address": "San Martin", "number": 100, "latitude": -32.41, "longitude": -63.24 },
-    "status": "SEARCHING_ADOPT_AND_TRANSIT",
-    "createdAt": "2026-09-30T09:07:30.256947",
-    "ownerId": "...",
     "phoneNumber": { "areaCode": "353", "number": "4010369" },
+    "ownerId": "...",
+    "createdAt": "2026-09-30T11:35:25.166562",
+    "animal": { "id": "...", "type": "DOG", "size": "SMALL", "gender": "MALE", "color": null, "age": "PUPPY" },
     "owner": { "username": "admin", "roles": ["COMMUNITY"], "profileImageURL": null },
     "reward": null
   }
 
   Ejemplo de colecta:
   {
-    "postType": "fundraising",
     "id": "857cbdca-892b-4443-b361-f726e0d0ac41",
-    "type": "fundraising",
     "title": "Ayuda para Michi",
     "description": "Operacion",
+    "createdSince": 0,
     "imageId": "/fotoMichi",
-    "phoneNumber": { "areaCode": "353", "number": "4010369" },
-    "location": { "id": "...", "name": "Villa Maria", "address": "San Martin", "number": 100, "latitude": -32.41, "longitude": -63.24 },
+    "postType": "fundraising",
     "status": "CREATED",
-    "createdAt": "2026-09-30T09:07:30.640278",
+    "type": "fundraising",
+    "location": { "id": "...", "name": "Villa Maria", "address": "San Martin", "number": 100, "latitude": -32.41, "longitude": -63.24 },
+    "phoneNumber": { "areaCode": "353", "number": "4010369" },
     "ownerId": "...",
+    "createdAt": "2026-09-30T09:07:30.640278",
     "accountAlias": "michi.ayuda",
     "amountToBeCollected": null,
     "amountCollected": 0,

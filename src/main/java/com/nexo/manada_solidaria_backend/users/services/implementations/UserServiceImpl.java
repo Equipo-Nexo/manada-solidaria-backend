@@ -157,7 +157,7 @@ public class UserServiceImpl implements UserService {
     private Stream<UserPostResponse> getAllUserPosts(User user) {
         return Stream.of(getUserAnimalPosts(user), getUserCampaigns(user), getUserFundraisingCampaigns(user))
                 .flatMap(Function.identity())
-                .sorted(Comparator.comparing(UserPostResponse::createdAt).reversed());
+                .sorted(Comparator.comparing(UserPostResponse::getCreatedAt).reversed());
     }
 
     private Stream<UserPostResponse> getUserPostsByType(User user, String type) {
@@ -172,19 +172,19 @@ public class UserServiceImpl implements UserService {
     private Stream<UserPostResponse> getUserAnimalPosts(User user) {
         return animalPostService.getUserAnimalPosts(user)
                 .stream()
-                .map(UserPostResponse::animal);
+                .map(AnimalUserPostResponse::new);
     }
 
     private Stream<UserPostResponse> getUserFundraisingCampaigns(User user) {
         return campaignService.getUserFundraisingCampaigns(user)
                 .stream()
-                .map(UserPostResponse::fundraising);
+                .map(FundraisingCampaignResponse::new);
     }
 
     private Stream<UserPostResponse> getUserCampaigns(User user) {
         return campaignService.getUserCampaigns(user)
                 .stream()
-                .map(UserPostResponse::campaign);
+                .map(CampaignUserPostResponse::new);
     }
 
     private User buildUser(CreateUserRequest createUserRequest) {

@@ -112,22 +112,26 @@ public class MockUserDataUtils {
                 Arguments.of("El animal trae su ubicacion", "$.posts[0].location.address", containsString("Libertador")),
                 Arguments.of("El animal trae su telefono", "$.posts[0].phoneNumber.number", is("000000")),
                 Arguments.of("El animal trae sus datos", "$.posts[0].animal.type", is("DOG")),
-                Arguments.of("El animal trae su imagen", "$.posts[0].imageUrl", nullValue()),
+                Arguments.of("El animal trae su nombre en title", "$.posts[0].title", containsString("Perro perdido")),
+                Arguments.of("El animal trae su imagen en imageId", "$.posts[0].imageId", nullValue()),
+                Arguments.of("El animal trae los dias desde que se publico", "$.posts[0].createdSince", is(0)),
                 Arguments.of("La card conserva su fecha de alta", "$.posts[0].createdAt", notNullValue()),
                 Arguments.of("La campaña trae su ubicacion", "$.posts[3].location.address", containsString("Sabattini")),
                 Arguments.of("La colecta trae su alias", "$.posts[1].accountAlias", is("MANADA.SOLIDARIA")),
-                Arguments.of("La card lleva solo el tipo de post por encima de la home", "$.posts[0].keys()",
-                        allOf(hasItems("postType", "type", "name", "location", "phoneNumber", "animal", "owner"),
-                                not(hasItem("post")))),
-                Arguments.of("Ya no se devuelven los campos del resumen viejo", "$.posts[0].keys()", not(hasItem("createdSince")))
+                Arguments.of("Conserva los campos que ya usa Mis publicaciones", "$.posts[0].keys()",
+                        hasItems("id", "title", "description", "createdSince", "imageId", "postType", "status")),
+                Arguments.of("Agrega los datos de la card de la home", "$.posts[0].keys()",
+                        hasItems("type", "location", "phoneNumber", "ownerId", "createdAt", "animal", "owner", "reward")),
+                Arguments.of("No repite el titulo ni la imagen con otro nombre", "$.posts[0].keys()",
+                        allOf(not(hasItem("name")), not(hasItem("imageUrl"))))
         );
     }
 
     private static Stream<Arguments> provideHomeCardCases() {
         return Stream.of(
-                Arguments.of("Animal: igual a GET /animal-posts", "/animal-posts", "77777777-7777-7777-7777-777777777777", "animal"),
-                Arguments.of("Campaña: igual a GET /campaigns", "/campaigns", "44444444-4444-4444-4444-444444444445", "campaign"),
-                Arguments.of("Colecta: igual a GET /campaigns/fundraising_campaigns", "/campaigns/fundraising_campaigns",
+                Arguments.of("Animal: trae todo lo de GET /animal-posts", "/animal-posts", "77777777-7777-7777-7777-777777777777", "animal"),
+                Arguments.of("Campaña: trae todo lo de GET /campaigns", "/campaigns", "44444444-4444-4444-4444-444444444445", "campaign"),
+                Arguments.of("Colecta: trae todo lo de GET /campaigns/fundraising_campaigns", "/campaigns/fundraising_campaigns",
                         "44444444-4444-4444-4444-444444444446", "fundraising")
         );
     }

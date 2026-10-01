@@ -43,7 +43,7 @@ docs: |-
     },
     "roles": ["RESCUER", "TRANSITIONAL_HOME"],
     "createdAt": "2026-09-07T10:15:32.412961",
-    "posts": [ ...las cards de la home + postType, de la mas nueva a la mas vieja... ]
+    "posts": [ ...los 7 campos de siempre + los datos de la card de la home, de la mas nueva a la mas vieja... ]
   }
 
   El detalle de cada card de `posts` (animal, campana, colecta) esta en `Users/Get user posts`.

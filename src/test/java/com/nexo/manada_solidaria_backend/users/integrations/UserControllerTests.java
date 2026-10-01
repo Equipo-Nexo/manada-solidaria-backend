@@ -3,7 +3,6 @@ package com.nexo.manada_solidaria_backend.users.integrations;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusLostPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.Animal;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
@@ -46,6 +45,8 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
 
     private static final ObjectMapper STRICT_MAPPER = new ObjectMapper()
             .enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
+
+    private static final Map<String, String> USER_POST_FIELD_NAMES = Map.of("name", "title", "imageUrl", "imageId");
 
     @Autowired
     private UserRepository userRepository;
@@ -233,7 +234,7 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$", hasSize(expectedResponseSize)));
     }
 
-    @DisplayName("GET /users/posts devuelve la misma card que la home")
+    @DisplayName("GET /users/posts suma los datos de la card de la home")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource(MOCK_DATA + "provideGetUserPostsCardCases")
     @Sql(
@@ -244,7 +245,7 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
             },
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
     )
-    void getUserPosts_returnsHomeCard(
+    void getUserPosts_addsHomeCardData(
             String testName,
             String typeQueryParam,
             String jsonPathExpression,
@@ -259,7 +260,7 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath(jsonPathExpression, expected));
     }
 
-    @DisplayName("GET /users/{userId} devuelve cada post con el mismo contenido que la home")
+    @DisplayName("GET /users/{userId} trae en cada post todos los datos de la home, con los nombres de siempre")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource(MOCK_DATA + "provideHomeCardCases")
     @Sql(
@@ -271,7 +272,7 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
             },
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
     )
-    void getUser_postIsTheSameCardAsTheHome(
+    void getUser_postHasEveryHomeCardField(
             String testName,
             String homePath,
             String postId,
@@ -281,8 +282,10 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
         JsonNode userCard = findById(readBody("/users/" + adminId()).get("posts"), postId);
 
         assertThat(userCard.get("postType").asText()).isEqualTo(postType);
-        ((ObjectNode) userCard).remove("postType");
-        assertThat(userCard).isEqualTo(homeCard);
+        homeCard.fieldNames().forEachRemaining(field ->
+                assertThat(userCard.get(USER_POST_FIELD_NAMES.getOrDefault(field, field)))
+                        .as(field)
+                        .isEqualTo(homeCard.get(field)));
     }
 
     @Test
