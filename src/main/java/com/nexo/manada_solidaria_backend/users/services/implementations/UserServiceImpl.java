@@ -82,9 +82,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserDetailResponse getUser(UUID userId) {
+    public UserDetailResponse getUser(UUID userId, String type) {
         User user = getUserById(userId);
-        return UserDetailResponse.from(user, getUserPosts(user, null));
+        return UserDetailResponse.from(user, getUserPosts(user, type));
     }
 
     @Override

@@ -6,6 +6,19 @@ info:
 http:
   method: GET
   url: "{{MANADA_SOLIDARIA_HOST}}/users/{{user_id}}"
+  params:
+    - name: type
+      value: animal
+      type: query
+      disabled: true
+    - name: type
+      value: campaign
+      type: query
+      disabled: true
+    - name: type
+      value: fundraising
+      type: query
+      disabled: true
   auth: inherit
 
 runtime:
@@ -30,6 +43,13 @@ docs: |-
   Por defecto usa `{{user_id}}`, el usuario que hizo el login (corre `Auth/Login` primero).
   Para ver a OTRO usuario, cambia el id de la URL por el suyo (sale de `Users/Get users`).
 
+  Filtro opcional `type` (activa UNO solo en Params, en minusculas) para las pestañas del perfil:
+  - `animal`      -> solo animales
+  - `campaign`    -> solo campañas (donacion y noticias)
+  - `fundraising` -> solo colectas
+  Sin `type` vienen todas. El filtro solo afecta a `posts`: el perfil viene siempre completo.
+  Cualquier otro valor (incluido `ANIMAL` en mayusculas) da 400 `requested type is not supported`.
+
   Respuesta:
   {
     "id": "...",
@@ -50,4 +70,4 @@ docs: |-
   `createdAt` es la fecha de alta, sin zona horaria; los dias transcurridos los calcula el front.
   El perfil SIN publicaciones esta en `Users/Get user profile`.
 
-  Esperado: 200. Usuario inexistente: 404. Sin token: 401.
+  Esperado: 200. Usuario inexistente: 404. `type` invalido: 400. Sin token: 401.
