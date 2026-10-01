@@ -77,5 +77,6 @@ public interface AnimalPostRepository extends JpaRepository<AnimalPost, UUID> {
             Pageable pageable
     );
 
-    List<AnimalPost<?, ?>> findAllByOwner(User user);
+    @EntityGraph(attributePaths = {"animal", "location"})
+    List<AnimalPost<?, ?>> findAllByOwnerOrderByCreatedAtDesc(User user);
 }

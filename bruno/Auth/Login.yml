@@ -9,7 +9,7 @@ http:
   auth:
     type: basic
     username: admin
-    password: admin
+    password: Admin123!
 
 runtime:
   scripts:
@@ -19,6 +19,7 @@ runtime:
 
         bru.setEnvVar("access_token", response.accessToken);
         bru.setEnvVar("refresh_token", response.refreshToken);
+        bru.setEnvVar("user_id", response.userId);
 
 settings:
   encodeUrl: true
