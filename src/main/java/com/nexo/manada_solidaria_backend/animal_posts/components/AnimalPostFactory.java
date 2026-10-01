@@ -7,6 +7,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import com.nexo.manada_solidaria_backend.locations.controllers.requests.LocationRequest;
+import com.nexo.manada_solidaria_backend.locations.mappers.LocationMapper;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.springframework.stereotype.Component;
@@ -14,9 +15,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class AnimalPostFactory {
 
+    private final LocationMapper locationMapper;
+
+    public AnimalPostFactory(LocationMapper locationMapper) {
+        this.locationMapper = locationMapper;
+    }
+
     public AnimalPost buildAnimalPost(CreateAnimalPostRequest request, User owner) {
         Animal animal = buildAnimal(request.animal());
-        Location location = buildLocation(request.location());
+        Location location = locationMapper.toEntity(request.location());
         return switch (request.type()) {
             case LOST -> buildLostPost(request, animal, location, owner);
             case ADOPTION -> buildAdoptionPost(request, animal, location, owner);
@@ -30,19 +37,6 @@ public class AnimalPostFactory {
                 req.size(),
                 req.gender(),
                 req.type()
-        );
-    }
-
-    private Location buildLocation(LocationRequest req) {
-        return new Location(
-                req.country(),
-                req.city(),
-                req.formatted(),
-                req.district(),
-                req.street(),
-                req.houseNumber(),
-                req.latitude(),
-                req.longitude()
         );
     }
 

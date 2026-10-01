@@ -5,6 +5,7 @@ import com.nexo.manada_solidaria_backend.campaigns.data.models.*;
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import com.nexo.manada_solidaria_backend.locations.controllers.requests.LocationRequest;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
+import com.nexo.manada_solidaria_backend.locations.mappers.LocationMapper;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.springframework.stereotype.Component;
 
@@ -13,50 +14,20 @@ import java.util.List;
 @Component
 public class CampaignFactory {
 
-    public Campaign buildCampaign(CreateCampaignRequest request, User owner) {
-        Location location = buildLocation(request.location());
+    private final LocationMapper locationMapper;
 
-        return switch (request.type()) {
-
-            case FUNDRAISING ->
-                    buildFundraisingCampaign(
-                            request,
-                            location,
-                            owner
-                    );
-
-            case NEWS ->
-                    buildNewsCampaign(
-                            request,
-                            location,
-                            owner
-                    );
-
-            case DONATION ->
-                    buildDonationCampaign(
-                            request,
-                            location,
-                            owner
-                    );
-        };
+    public CampaignFactory(LocationMapper locationMapper) {
+        this.locationMapper = locationMapper;
     }
 
-    private Location buildLocation(LocationRequest req) {
+    public Campaign buildCampaign(CreateCampaignRequest request, User owner) {
+        Location location = locationMapper.toEntity(request.location());
 
-        if (req == null) {
-            return null;
-        }
-
-        return new Location(
-                req.country(),
-                req.city(),
-                req.formatted(),
-                req.district(),
-                req.street(),
-                req.houseNumber(),
-                req.latitude(),
-                req.longitude()
-        );
+        return switch (request.type()) {
+            case FUNDRAISING -> buildFundraisingCampaign(request, location, owner);
+            case NEWS -> buildNewsCampaign(request, location, owner);
+            case DONATION -> buildDonationCampaign(request, location, owner);
+        };
     }
 
     private FundraisingCampaign buildFundraisingCampaign(CreateCampaignRequest request, Location location, User owner) {
