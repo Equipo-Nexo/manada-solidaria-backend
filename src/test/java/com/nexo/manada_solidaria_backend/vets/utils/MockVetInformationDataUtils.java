@@ -404,6 +404,23 @@ public class MockVetInformationDataUtils {
         );
     }
 
+    public static Stream<Arguments> provideDistanceCalculationCases() {
+        return Stream.of(
+                Arguments.of(
+                        "Calcula distanceInKm exacta cuando se envían coordenadas de usuario",
+                        -32.4075,
+                        -63.2402,
+                        is(0.0)
+                ),
+                Arguments.of(
+                        "Retorna distanceInKm en null cuando no se envían coordenadas de usuario",
+                        null,
+                        null,
+                        nullValue()
+                )
+        );
+    }
+
     public static Stream<Arguments> provideDeleteVetInformationAuthenticationCases() {
         return Stream.of(
                 Arguments.of(

@@ -233,39 +233,30 @@ public class VetInformationControllerTests extends BaseAuthenticatedIntegrationT
                 .andExpect(status().isUnauthorized());
     }
 
-    @Test
-    @DisplayName("GET /vets calcula distanceInKm en kilómetros exactos cuando se envían coordenadas de usuario")
+    @DisplayName("GET /vets calcula distanceInKm según la presencia de coordenadas")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource("com.nexo.manada_solidaria_backend.vets.utils.MockVetInformationDataUtils#provideDistanceCalculationCases")
     @Sql(
             scripts = "/sql/vets/create-vets.sql",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
     )
-    void getVetInformation_withUserCoordinates_calculatesDistanceInKm() throws Exception {
-        mockMvc.perform(
-                        get("/vets")
-                                .param("user_latitude", "-32.4075")
-                                .param("user_longitude", "-63.2402")
-                                .header("Authorization", "Bearer " + accessToken)
-                )
+    void getVetInformation_calculatesDistanceCorrectly(
+            String testName,
+            Double userLat,
+            Double userLng,
+            Matcher<?> expectedDistance
+    ) throws Exception {
+        var request = get("/vets").header("Authorization", "Bearer " + accessToken);
+        if (userLat != null && userLng != null) {
+            request.param("user_latitude", userLat.toString())
+                    .param("user_longitude", userLng.toString());
+        }
+
+        mockMvc.perform(request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Veterinaria Animalia"))
-                .andExpect(jsonPath("$[0].distanceInKm").value(0.0)) // Mismas coords
-                .andExpect(jsonPath("$[0].isOpen").value(true));     // Animalia está 24/7 abierta
-    }
-
-    @Test
-    @DisplayName("GET /vets retorna distanceInKm en null si no se envían coordenadas de usuario")
-    @Sql(
-            scripts = "/sql/vets/create-vets.sql",
-            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
-    )
-    void getVetInformation_withoutUserCoordinates_returnsNullDistance() throws Exception {
-        mockMvc.perform(
-                        get("/vets")
-                                .header("Authorization", "Bearer " + accessToken)
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].distanceInKm").value(org.hamcrest.Matchers.nullValue()))
-                .andExpect(jsonPath("$[0].isOpen").value(true)); // Animalia 24/7 abierta
+                .andExpect(jsonPath("$[0].distanceInKm", expectedDistance))
+                .andExpect(jsonPath("$[0].isOpen").value(true));
     }
 
     @DisplayName("DELETE /vets/{vetId} sin autenticación válida devuelve 401")
@@ -306,17 +297,6 @@ public class VetInformationControllerTests extends BaseAuthenticatedIntegrationT
 
         assertThat(vetInformationRepository.findById(vetId))
                 .isEmpty();
-    }
-
-    @Test
-    @DisplayName("DELETE /vets/{vetId} con ID inexistente devuelve 404")
-    void deleteVetInformation_withNonExistingId_returnsNotFound() throws Exception {
-
-        mockMvc.perform(
-                        delete("/vets/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
-                                .header("Authorization", "Bearer " + accessToken)
-                )
-                .andExpect(status().isNotFound());
     }
 
     @DisplayName("DELETE /vets/{vetId} con ID inexistente devuelve 404")

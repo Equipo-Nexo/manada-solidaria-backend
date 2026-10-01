@@ -46,16 +46,26 @@ public record VetInformationResponse(
                 vet.getVetPageUrl(),
                 vet.getDescription(),
                 LocationResponse.from(vet.getLocation()),
-                vet.getCalendar() != null
-                        ? vet.getCalendar().stream().map(ScheduleResponse::new).toList()
-                        : List.of(),
+                vet.getCalendar().stream().map(ScheduleResponse::new).toList(),
                 isOpen,
                 distanceInKm
         );
     }
 
     public VetInformationResponse(VetInformation vet) {
-        this(vet, null, null);
+        this(
+                vet.getId(),
+                vet.getName(),
+                PhoneNumberResponse.from(vet.getPhoneNumber()),
+                vet.getEmail(),
+                vet.getProfilePictureUrl(),
+                vet.getVetPageUrl(),
+                vet.getDescription(),
+                LocationResponse.from(vet.getLocation()),
+                vet.getCalendar().stream().map(ScheduleResponse::new).toList(),
+                null,
+                null
+        );
     }
 
     public record ScheduleResponse(DayOfWeek dayOfWeek, LocalTime openingTime, LocalTime closingTime) {

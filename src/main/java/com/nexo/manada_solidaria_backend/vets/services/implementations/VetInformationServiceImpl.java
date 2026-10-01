@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.vets.services.implementations;
 
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
+import com.nexo.manada_solidaria_backend.common.utils.GeoUtils;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.CreateVetInformationRequest;
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.UpdateVetInformationRequest;
@@ -26,8 +27,6 @@ import java.util.UUID;
 @AllArgsConstructor
 public class VetInformationServiceImpl implements VetInformationService {
 
-    private static final double EARTH_RADIUS_KM = 6371.0;
-
     private final VetInformationRepository repository;
     private final Clock clock;
 
@@ -38,7 +37,7 @@ public class VetInformationServiceImpl implements VetInformationService {
 
         log.info("Vet information created: id={} name={}", saved.getId(), saved.getName());
 
-        return buildResponse(saved, null, null);
+        return buildResponse(saved);
     }
 
     @Override
@@ -53,7 +52,7 @@ public class VetInformationServiceImpl implements VetInformationService {
     @Override
     public VetInformationResponse getById(UUID vetId) {
         VetInformation vet = getVetInformationOrThrow(vetId);
-        return buildResponse(vet, null, null);
+        return buildResponse(vet);
     }
 
     @Override
@@ -73,9 +72,8 @@ public class VetInformationServiceImpl implements VetInformationService {
 
         log.info("Vet information updated: id={}", updated.getId());
 
-        return buildResponse(updated, null, null);
+        return buildResponse(updated);
     }
-
 
     private VetInformation buildVetInformation(CreateVetInformationRequest request) {
 
@@ -141,41 +139,16 @@ public class VetInformationServiceImpl implements VetInformationService {
         return (query != null && !query.trim().isEmpty()) ? query.trim() : null;
     }
 
+    private VetInformationResponse buildResponse(VetInformation vet) {
+        return buildResponse(vet, null, null);
+    }
+
     private VetInformationResponse buildResponse(VetInformation vet, Double userLat, Double userLng) {
         LocalDateTime now = LocalDateTime.now(clock);
 
         Boolean isOpen = vet.isOpen(now);
-        Double distanceInKm = calculateDistanceInKm(userLat, userLng, vet.getLocation());
+        Double distanceInKm = GeoUtils.calculateDistanceInKm(userLat, userLng, vet.getLocation());
 
         return new VetInformationResponse(vet, isOpen, distanceInKm);
-    }
-
-    private Double calculateDistanceInKm(Double userLat, Double userLng, Location location) {
-        if (!hasValidCoordinates(userLat, userLng, location)) {
-            return null;
-        }
-
-        double vetLat = location.getLatitude();
-        double vetLng = location.getLongitude();
-
-        double dLat = Math.toRadians(vetLat - userLat);
-        double dLng = Math.toRadians(vetLng - userLng);
-
-        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
-                + Math.cos(Math.toRadians(userLat)) * Math.cos(Math.toRadians(vetLat))
-                * Math.sin(dLng / 2) * Math.sin(dLng / 2);
-
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        double distance = EARTH_RADIUS_KM * c;
-
-        return Math.round(distance * 100.0) / 100.0;
-    }
-
-    private boolean hasValidCoordinates(Double userLat, Double userLng, Location location) {
-        return userLat != null
-                && userLng != null
-                && location != null
-                && location.getLatitude() != null
-                && location.getLongitude() != null;
     }
 }
