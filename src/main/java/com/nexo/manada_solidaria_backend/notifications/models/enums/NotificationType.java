@@ -45,6 +45,11 @@ public enum NotificationType {
             NotificationChannel.IN_APP
     ),
 
+    NEW_FUNDRAISING_CAMPAIGN(
+            NotificationChannel.PUSH,
+            NotificationChannel.IN_APP
+    ),
+
     NEW_CARRIAGE_REQUEST(
             NotificationChannel.PUSH,
             NotificationChannel.IN_APP

@@ -1,5 +1,9 @@
 package com.nexo.manada_solidaria_backend.users.controllers.implementations;
 
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormResponse;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
+import com.nexo.manada_solidaria_backend.notifications.controllers.responses.UserNotificationsResponse;
+import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationDeliveryService;
 import com.nexo.manada_solidaria_backend.users.controllers.interfaces.UserController;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
@@ -19,6 +23,7 @@ import java.util.UUID;
 public class UserControllerImpl implements UserController {
 
     private final UserService userService;
+    private final NotificationDeliveryService notificationDeliveryService;
 
     @Override
     public UserDetailResponse getUser(UUID userId) {
@@ -41,6 +46,11 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
+    public UserNotificationsResponse getUserNotifications(UUID userId, User authenticatedUser) {
+        return notificationDeliveryService.getUserNotifications(userId, authenticatedUser);
+    }
+
+    @Override
     public ProfileResponse updateProfile(UpdateProfileRequest request, User authenticatedUser) {
         return userService.updateProfile(request, authenticatedUser);
     }
@@ -48,5 +58,10 @@ public class UserControllerImpl implements UserController {
     @Override
     public Set<Rol> updateRoles(UpdateRolesRequest request, User authenticatedUser) {
         return userService.updateRoles(request, authenticatedUser);
+    }
+
+    @Override
+    public List<AdoptionFormResponse> getFormsByUser(FormFilter filter, User authenticatedUser) {
+        return userService.getFormsByUser(filter, authenticatedUser);
     }
 }

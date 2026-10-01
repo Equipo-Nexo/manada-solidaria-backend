@@ -4,6 +4,8 @@ import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.UUID;
+
 public final class UserSpecifications {
 
     private UserSpecifications() {
@@ -33,4 +35,16 @@ public final class UserSpecifications {
     public static Specification<User> all() {
         return (root, query, cb) -> cb.conjunction();
     }
+
+    /**
+     * Builds a specification that returns all registered users except a specific one.
+     *
+     * @param id ID of the user to exclude
+     * @return a specification that gets all users except the specified one
+     */
+    public static Specification<User> allExcept(UUID id) {
+        return (root, query, cb) ->
+                cb.notEqual(root.get("id"), id);
+    }
+
 }

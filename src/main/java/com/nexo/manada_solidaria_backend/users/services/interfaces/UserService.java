@@ -1,5 +1,7 @@
 package com.nexo.manada_solidaria_backend.users.services.interfaces;
 
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormResponse;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
 import com.nexo.manada_solidaria_backend.auth.controllers.requests.CreateUserRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
@@ -42,4 +44,6 @@ public interface UserService extends UserDetailsService {
     List<User> findAll();
 
     List<User> getUserBySpecifications(Specification<User> userSpecification);
+
+    List<AdoptionFormResponse> getFormsByUser(FormFilter filter, User authenticatedUser);
 }

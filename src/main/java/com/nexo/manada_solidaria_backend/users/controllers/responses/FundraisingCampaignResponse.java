@@ -6,17 +6,9 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class FundraisingCampaignResponse extends UserPostResponse {
+public class FundraisingCampaignResponse extends CampaignUserPostResponse {
 
     public FundraisingCampaignResponse(CampaignResponse campaignResponse) {
-        super(
-                campaignResponse.id(),
-                campaignResponse.title(),
-                campaignResponse.description(),
-                campaignResponse.createdAt(),
-                campaignResponse.imageId(),
-                "fundraising",
-                campaignResponse.status()
-        );
+        super(campaignResponse, FUNDRAISING);
     }
 }

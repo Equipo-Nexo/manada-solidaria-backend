@@ -12,30 +12,48 @@ import org.hamcrest.Matcher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.time.Clock;
 import java.time.DayOfWeek;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class VetInformationControllerTests extends BaseAuthenticatedIntegrationTest {
 
+    private static final ZoneId ARGENTINA = ZoneId.of("America/Argentina/Buenos_Aires");
+    private static final LocalDateTime WEDNESDAY_AT_TEN = LocalDateTime.parse("2026-09-23T10:00");
+
     @Autowired
     private VetInformationRepository vetInformationRepository;
 
     @Autowired
     private ScheduleRepository scheduleRepository;
+
+    @MockitoBean
+    private Clock clock;
+
+    @BeforeEach
+    void freezeClock() {
+        given(clock.instant()).willReturn(WEDNESDAY_AT_TEN.atZone(ARGENTINA).toInstant());
+        given(clock.getZone()).willReturn(ARGENTINA);
+    }
 
     @DisplayName("POST /vets refleja en la response los datos enviados")
     @ParameterizedTest(name = "{index} - {0}")

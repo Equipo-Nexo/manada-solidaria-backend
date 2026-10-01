@@ -2,6 +2,7 @@ package com.nexo.manada_solidaria_backend.notifications.services.implementations
 
 import com.nexo.manada_solidaria_backend.notifications.components.notifiers.NotificationResolver;
 import com.nexo.manada_solidaria_backend.notifications.components.recipients.NotificationRecipientFactory;
+import com.nexo.manada_solidaria_backend.notifications.components.recipients.data.NotificationContext;
 import com.nexo.manada_solidaria_backend.notifications.models.data.Notification;
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
 import com.nexo.manada_solidaria_backend.notifications.models.repositories.NotificationRepository;
@@ -33,6 +34,16 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Async("notificationExecutor")
     public void notify(NotificationType type, Map<String, Object> params) {
+        sendNotificationsToUsers(type, params, null);
+    }
+
+    @Override
+    @Async("notificationExecutor")
+    public void notify(NotificationType type, Map<String, Object> params, NotificationContext context) {
+        sendNotificationsToUsers(type, params, context);
+    }
+
+    private void sendNotificationsToUsers(NotificationType type, Map<String, Object> params, NotificationContext context) {
         log.info("Sending notification {}", type);
         Notification notification = notificationRepository
                 .findByType(type)
@@ -42,7 +53,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         Set<User> recipients = notificationRecipientFactory
                 .resolve(type)
-                .getRecipients();
+                .getRecipients(context);
 
         Set<NotificationResolver> senders = notificationResolvers
                 .stream()

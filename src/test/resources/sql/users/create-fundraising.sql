@@ -49,7 +49,7 @@ MERGE INTO FUNDRAISING_CAMPAIGN (
 )
 KEY (ID)
 VALUES (
-    '44444444-4444-4444-4444-444444444444',
+    '44444444-4444-4444-4444-444444444446',
     'Recaudación para tratamiento veterinario',
     'Recaudación destinada a cubrir los gastos del tratamiento veterinario.',
     NULL,
@@ -83,5 +83,5 @@ VALUES (
     'CREATED',
     NULL,
     TIMESTAMP '2026-08-02 19:55:00',
-    '44444444-4444-4444-4444-444444444444'
+    '44444444-4444-4444-4444-444444444446'
 );

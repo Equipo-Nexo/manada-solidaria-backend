@@ -17,23 +17,29 @@ public class MockAdoptionFormDataUtils {
     public static final UUID POST_WITH_FORMS_ID = UUID.fromString("99999999-9999-9999-9999-999999999999");
     public static final UUID POST_WITHOUT_FORMS_ID = UUID.fromString("55555555-5555-5555-5555-555555555555");
     public static final UUID NON_EXISTENT_POST_ID = UUID.fromString("00000000-0000-0000-0000-000000000000");
+    public static final UUID USER_APPLICANT_ID = UUID.fromString("a1111111-1111-1111-1111-111111111111");
+    public static final UUID USER_OTHER_ID = UUID.fromString("b2222222-2222-2222-2222-222222222222");
 
-    public static CreateAdoptionFormRequest createValidRequest(UUID postId) {
+    public static CreateAdoptionFormRequest createValidRequest(UUID postId, UUID questionId1, UUID questionId2) {
         return new CreateAdoptionFormRequest(
                 postId,
                 new PhoneNumberRequest("353", "4123456"),
                 List.of(
-                        new CreateAdoptionFormRequest.QuestionFormRequest("¿Alquilás? ¿Te permiten mascotas?", "Alquilo y sí me permiten."),
-                        new CreateAdoptionFormRequest.QuestionFormRequest("¿Contás con patio cerrado?", "Sí, totalmente cerrado.")
+                        new CreateAdoptionFormRequest.QuestionFormRequest(questionId1, "Alquilo y sí me permiten."),
+                        new CreateAdoptionFormRequest.QuestionFormRequest(questionId2, "Sí, totalmente cerrado.")
                 )
         );
+    }
+
+    public static CreateAdoptionFormRequest createValidRequest(UUID postId) {
+        return createValidRequest(postId, UUID.randomUUID(), UUID.randomUUID());
     }
 
     public static CreateAdoptionFormRequest createWithoutPostId() {
         return new CreateAdoptionFormRequest(
                 null,
                 new PhoneNumberRequest("353", "4123456"),
-                List.of(new CreateAdoptionFormRequest.QuestionFormRequest("¿Tenés patio?", "Sí."))
+                List.of(new CreateAdoptionFormRequest.QuestionFormRequest(UUID.randomUUID(), "Sí."))
         );
     }
 
@@ -41,7 +47,7 @@ public class MockAdoptionFormDataUtils {
         return new CreateAdoptionFormRequest(
                 postId,
                 null,
-                List.of(new CreateAdoptionFormRequest.QuestionFormRequest("¿Tenés patio?", "Sí."))
+                List.of(new CreateAdoptionFormRequest.QuestionFormRequest(UUID.randomUUID(), "Sí."))
         );
     }
 
@@ -53,11 +59,11 @@ public class MockAdoptionFormDataUtils {
         );
     }
 
-    public static CreateAdoptionFormRequest createWithBlankQuestion(UUID postId) {
+    public static CreateAdoptionFormRequest createWithoutQuestionFormId(UUID postId) {
         return new CreateAdoptionFormRequest(
                 postId,
                 new PhoneNumberRequest("353", "4123456"),
-                List.of(new CreateAdoptionFormRequest.QuestionFormRequest("", "Respuesta sin pregunta"))
+                List.of(new CreateAdoptionFormRequest.QuestionFormRequest(null, "Respuesta sin id de pregunta"))
         );
     }
 
@@ -67,7 +73,7 @@ public class MockAdoptionFormDataUtils {
                 Arguments.of("Sin id de publicación", createWithoutPostId(), HttpStatus.BAD_REQUEST),
                 Arguments.of("Sin teléfono de contacto", createWithoutPhone(postId), HttpStatus.BAD_REQUEST),
                 Arguments.of("Sin preguntas respondidas", createWithoutQuestions(postId), HttpStatus.BAD_REQUEST),
-                Arguments.of("Pregunta en blanco", createWithBlankQuestion(postId), HttpStatus.BAD_REQUEST)
+                Arguments.of("Sin id de pregunta asociada", createWithoutQuestionFormId(postId), HttpStatus.BAD_REQUEST)
         );
     }
 
@@ -92,6 +98,20 @@ public class MockAdoptionFormDataUtils {
     }
 
     public static Stream<Arguments> provideGetFormsUnauthorizedCases() {
+        return Stream.of(
+                Arguments.of("Sin token de autorización", null),
+                Arguments.of("Con token inválido o expirado", INVALID_ACCESS_TOKEN)
+        );
+    }
+
+    public static Stream<Arguments> provideGetFormsByUserFilterCases() {
+        return Stream.of(
+                Arguments.of("Filtro OWNER retorna formularios completados por el usuario", "OWNER", 1),
+                Arguments.of("Filtro REVIEWER retorna formularios a revisar de sus publicaciones", "REVIEWER", 0)
+        );
+    }
+
+    public static Stream<Arguments> provideGetFormsByUserUnauthorizedCases() {
         return Stream.of(
                 Arguments.of("Sin token de autorización", null),
                 Arguments.of("Con token inválido o expirado", INVALID_ACCESS_TOKEN)

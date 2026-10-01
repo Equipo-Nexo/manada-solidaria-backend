@@ -48,7 +48,9 @@ public class AnimalPostServiceImpl implements AnimalPostService {
         );
 
         if (Boolean.TRUE.equals(request.needTransport())) {
-            notificationService.notify(NotificationType.NEW_CARRIAGE_REQUEST, Map.of("postId", saved.getId()));
+            notificationService.notify(
+                    NotificationType.NEW_CARRIAGE_REQUEST,
+                    Map.of("postId", saved.getId()));
         }
 
         log.info("Animal post created: id={} type={} owner={}", saved.getId(), saved.getType(), owner.getId());
@@ -129,7 +131,7 @@ public class AnimalPostServiceImpl implements AnimalPostService {
 
     @Override
     public List<AnimalPostResponse> getUserAnimalPosts(User user) {
-        return animalPostRepository.findAllByOwner(user)
+        return animalPostRepository.findAllByOwnerOrderByCreatedAtDesc(user)
                 .stream()
                 .map(AnimalPostResponse::from)
                 .toList();
