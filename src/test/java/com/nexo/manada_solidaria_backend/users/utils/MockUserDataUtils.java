@@ -15,6 +15,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -190,6 +191,30 @@ public class MockUserDataUtils {
         return Stream.of(
                 Arguments.of("El detalle de un usuario inexistente", "/users/%s"),
                 Arguments.of("El perfil de un usuario inexistente", "/users/%s/profile")
+        );
+    }
+
+    private static Stream<Arguments> provideUserDetailTypeCases() {
+        return Stream.of(
+                Arguments.of("Sin type trae todas las publicaciones", false, null, "$.posts[*].postType",
+                        contains("animal", "fundraising", "campaign", "campaign")),
+                Arguments.of("type=animal trae solo animales", false, "animal", "$.posts[*].postType", contains("animal")),
+                Arguments.of("type=campaign trae solo campañas", false, "campaign", "$.posts[*].postType",
+                        contains("campaign", "campaign")),
+                Arguments.of("type=fundraising trae solo colectas", false, "fundraising", "$.posts[*].postType",
+                        contains("fundraising")),
+                Arguments.of("Con filtro el perfil viene igual", false, "animal", "$.username", is("admin")),
+                Arguments.of("Filtra las publicaciones del usuario del path, no las del token", true, "animal", "$.posts",
+                        hasSize(0))
+        );
+    }
+
+    private static Stream<Arguments> provideUnsupportedTypeCases() {
+        return Stream.of(
+                Arguments.of("Detalle de usuario con un tipo inexistente", "/users/%s", "perro"),
+                Arguments.of("Detalle de usuario con el tipo en mayusculas", "/users/%s", "ANIMAL"),
+                Arguments.of("Mis publicaciones con un tipo inexistente", "/users/posts", "perro"),
+                Arguments.of("Mis publicaciones con el tipo en mayusculas", "/users/posts", "ANIMAL")
         );
     }
 

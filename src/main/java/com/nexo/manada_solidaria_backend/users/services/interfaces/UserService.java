@@ -29,7 +29,7 @@ public interface UserService extends UserDetailsService {
 
     void updatePassword(User user, String rawPassword);
 
-    UserDetailResponse getUser(UUID userId);
+    UserDetailResponse getUser(UUID userId, String type);
 
     UserProfileResponse getUserProfile(UUID userId);
 

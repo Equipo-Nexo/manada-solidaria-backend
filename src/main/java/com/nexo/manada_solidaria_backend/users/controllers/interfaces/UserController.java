@@ -21,7 +21,8 @@ public interface UserController {
 
     @GetMapping("/{userId}")
     UserDetailResponse getUser(
-            @PathVariable UUID userId
+            @PathVariable UUID userId,
+            @RequestParam(required = false) String type
     );
 
     @GetMapping("/{userId}/profile")

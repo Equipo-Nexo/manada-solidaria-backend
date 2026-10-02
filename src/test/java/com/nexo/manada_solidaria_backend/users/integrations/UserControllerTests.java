@@ -90,6 +90,49 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.username").value(expectedUsername));
     }
 
+    @DisplayName("GET /users/{userId}?type= filtra las publicaciones del usuario del path")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideUserDetailTypeCases")
+    @Sql(
+            scripts = {
+                    "/sql/users/user-profile-data.sql",
+                    "/sql/users/create-campaigns.sql",
+                    "/sql/users/create-animal-posts.sql",
+                    "/sql/users/create-fundraising.sql"
+            },
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    void getUser_filtersPostsByType(
+            String testName,
+            boolean otherUser,
+            String type,
+            String jsonPathExpression,
+            Matcher<?> expected
+    ) throws Exception {
+        UUID userId = otherUser ? saveUser("otro").getId() : adminId();
+
+        mockMvc.perform(
+                        get("/users/" + userId)
+                                .queryParam("type", type)
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(jsonPathExpression, expected));
+    }
+
+    @DisplayName("Un type que no es animal, campaign ni fundraising devuelve 400")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideUnsupportedTypeCases")
+    void getPosts_withUnsupportedType_returnsBadRequest(String testName, String pathTemplate, String type) throws Exception {
+        mockMvc.perform(
+                        get(pathTemplate.formatted(adminId()))
+                                .queryParam("type", type)
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0]").value("requested type is not supported"));
+    }
+
     @DisplayName("GET /users/{userId}/profile devuelve el perfil sin las publicaciones")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource(MOCK_DATA + "provideUserProfileCases")
