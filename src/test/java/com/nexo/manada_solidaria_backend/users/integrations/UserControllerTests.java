@@ -12,6 +12,7 @@ import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthenticatedIntegrationTest;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
+import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateUserLocationRequest;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.Profile;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -28,6 +29,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.StreamSupport;
 
@@ -453,6 +455,56 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @DisplayName("PUT /users/location pisa la ubicacion anterior del usuario logueado")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideUpdateLocationValidCases")
+    @Sql(statements = "UPDATE users SET latitude = 1, longitude = 2, location_updated_at = TIMESTAMP '2026-01-01 10:00:00' WHERE username = 'admin'")
+    void updateLocation_overwritesLocation(String testName, UpdateUserLocationRequest request) throws Exception {
+        putLocation(request).andExpect(status().isNoContent());
+
+        User admin = admin();
+        assertThat(admin.getLatitude()).isEqualTo(request.latitude());
+        assertThat(admin.getLongitude()).isEqualTo(request.longitude());
+        assertThat(admin.getLocationUpdatedAt()).isAfter(LocalDateTime.parse("2026-01-01T10:00:00"));
+    }
+
+    @DisplayName("PUT /users/location con coordenadas faltantes o fuera de rango devuelve 400 y no guarda nada")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideUpdateLocationInvalidCases")
+    void updateLocation_invalidCoordinates_returnsBadRequest(
+            String testName,
+            UpdateUserLocationRequest request,
+            String expectedError
+    ) throws Exception {
+        putLocation(request)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors", hasItem(expectedError)));
+
+        assertThat(admin().getLocationUpdatedAt()).isNull();
+    }
+
+    @DisplayName("PUT /users/location sin autenticacion valida devuelve 401")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideUnauthorizedTokenCases")
+    void updateLocation_unauthorized(String testName, String token) throws Exception {
+        MockHttpServletRequestBuilder request = put("/users/location")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(toJson(new UpdateUserLocationRequest(-34.6037, -58.3816)));
+        if (token != null) {
+            request = request.header("Authorization", "Bearer " + token);
+        }
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
+    }
+
+    private ResultActions putLocation(UpdateUserLocationRequest request) throws Exception {
+        return mockMvc.perform(
+                put("/users/location")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(request))
+        );
+    }
+
     private ResultActions putProfile(String body) throws Exception {
         return mockMvc.perform(
                 put("/users/profile")
@@ -521,6 +573,10 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
         Profile profile = new Profile(null, phoneNumber, new HashSet<>(List.of(roles)));
         profile.setProfileImageURL(profileImageURL);
         userRepository.save(new User(username, "x", profile));
+    }
+
+    private User admin() {
+        return userRepository.findByUsername("admin").orElseThrow();
     }
 
     private Set<Rol> rolesOfAdmin() {

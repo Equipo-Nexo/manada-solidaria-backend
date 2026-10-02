@@ -9,6 +9,7 @@ import com.nexo.manada_solidaria_backend.campaigns.services.interfaces.CampaignS
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
+import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateUserLocationRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.*;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.Profile;
@@ -123,6 +124,13 @@ public class UserServiceImpl implements UserService {
         userRepository.save(authenticatedUser);
         log.info("Profile updated: user={}", authenticatedUser.getId());
         return ProfileResponse.from(authenticatedUser.getProfile());
+    }
+
+    @Override
+    public void updateLocation(UpdateUserLocationRequest request, User authenticatedUser) {
+        authenticatedUser.updateLocation(request.latitude(), request.longitude());
+        userRepository.save(authenticatedUser);
+        log.info("Location updated: user={}", authenticatedUser.getId());
     }
 
     @Override

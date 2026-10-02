@@ -7,6 +7,7 @@ import com.nexo.manada_solidaria_backend.notifications.services.interfaces.Notif
 import com.nexo.manada_solidaria_backend.users.controllers.interfaces.UserController;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
+import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateUserLocationRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.*;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -53,6 +54,11 @@ public class UserControllerImpl implements UserController {
     @Override
     public ProfileResponse updateProfile(UpdateProfileRequest request, User authenticatedUser) {
         return userService.updateProfile(request, authenticatedUser);
+    }
+
+    @Override
+    public void updateLocation(UpdateUserLocationRequest request, User authenticatedUser) {
+        userService.updateLocation(request, authenticatedUser);
     }
 
     @Override
