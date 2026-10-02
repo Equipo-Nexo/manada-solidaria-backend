@@ -2,11 +2,14 @@
 -- LOCATION
 -- ==========================
 
-INSERT INTO location (id, name, address, number, latitude, longitude)
+INSERT INTO location (id, country, city, formatted, district, street, house_number, latitude, longitude)
 VALUES
 (
     '11111111-1111-1111-1111-111111111111',
-    'Parque Centenario',
+    'Argentina',
+    'Buenos Aires',
+    'Av. Patricias 100, Buenos Aires',
+    'Caballito',
     'Av. Patricias',
     100,
     -34.6,
@@ -14,7 +17,10 @@ VALUES
 ),
 (
     '12121212-1212-1212-1212-121212121212',
-    'Refugio Norte',
+    'Argentina',
+    'Buenos Aires',
+    'Calle Falsa 123, Buenos Aires',
+    'Norte',
     'Calle Falsa',
     123,
     -34.5,

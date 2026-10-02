@@ -17,8 +17,8 @@ public interface VetInformationRepository extends JpaRepository<VetInformation, 
             "LEFT JOIN v.calendar c " +
             "WHERE (:query IS NULL OR TRIM(:query) = '' OR " +
             "       LOWER(v.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
-            "       LOWER(l.address) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
-            "       LOWER(l.name) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+            "       LOWER(l.formatted) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            "       LOWER(l.street) LIKE LOWER(CONCAT('%', :query, '%'))) " +
             "AND (:openOnly = FALSE OR (" +
             "       c.dayOfWeek = :currentDay AND " +
             "       :currentTime BETWEEN c.openingTime AND c.closingTime" +

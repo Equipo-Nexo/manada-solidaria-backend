@@ -231,7 +231,6 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
         mockMvc.perform(delete("/campaigns/" + campaignId)
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isConflict())
-                // Substring ASCII: robusto ante la normalización de tildes del repo al commitear.
                 .andExpect(jsonPath("$.errors", hasItem(containsString("finalizada"))));
 
         assertThat(campaignRepository.findById(campaignId)).isPresent();
@@ -780,7 +779,6 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
 
     private Campaign saveDonationWithStatus(User owner, DonationFundraisingCampaignStatus status) {
         DonationCampaign campaign = MockCampaignDataUtils.buildDonationModel(owner);
-        // Fila con finishedAt == null: es el estado vigente que resuelve getCurrentStatus().
         campaign.setStatusHistory(new ArrayList<>(List.of(new DonationCampaignStatusHistory(status, campaign))));
         return campaignRepository.save(campaign);
     }

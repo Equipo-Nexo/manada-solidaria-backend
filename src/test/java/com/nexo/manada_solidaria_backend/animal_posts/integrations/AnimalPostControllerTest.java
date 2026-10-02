@@ -89,9 +89,12 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.animal.size").value("MEDIUM"))
                 .andExpect(jsonPath("$.animal.gender").value("MALE"))
                 .andExpect(jsonPath("$.animal.age").value("ADULT"))
-                .andExpect(jsonPath("$.location.name").value("Parque Centenario"))
-                .andExpect(jsonPath("$.location.address").value("Av. Patricias"))
-                .andExpect(jsonPath("$.location.number").value(100))
+                .andExpect(jsonPath("$.location.country").value("Argentina"))
+                .andExpect(jsonPath("$.location.city").value("Buenos Aires"))
+                .andExpect(jsonPath("$.location.formatted").value("Av. Patricias 100, Buenos Aires"))
+                .andExpect(jsonPath("$.location.district").value("Caballito"))
+                .andExpect(jsonPath("$.location.street").value("Av. Patricias"))
+                .andExpect(jsonPath("$.location.houseNumber").value(100))
                 .andExpect(jsonPath("$.phoneNumber.areaCode").value("3533"))
                 .andExpect(jsonPath("$.phoneNumber.number").value("436249"))
                 .andExpect(jsonPath("$.reward").value(5000))
@@ -418,8 +421,11 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         assertThat(updated.getAnimal().getGender()).isEqualTo(AnimalGender.FEMALE);
         assertThat(updated.getAnimal().getAge()).isEqualTo(AnimalAge.SENIOR);
         assertThat(updated.getAnimal().getColor()).isEqualTo("negro");
-        assertThat(updated.getLocation().getName()).isEqualTo("Refugio Nuevo");
-        assertThat(updated.getLocation().getAddress()).isEqualTo("Nueva direccion 456");
+        assertThat(updated.getLocation().getCountry()).isEqualTo("Argentina");
+        assertThat(updated.getLocation().getCity()).isEqualTo("Córdoba");
+        assertThat(updated.getLocation().getFormatted()).isEqualTo("Nueva direccion 456, Córdoba");
+        assertThat(updated.getLocation().getStreet()).isEqualTo("Nueva direccion");
+        assertThat(updated.getLocation().getHouseNumber()).isEqualTo(456);
         assertThat(updated.getLocation().getLatitude()).isEqualTo(-34.7);
         assertThat(updated.getOwner().getId()).isEqualTo(ownerId);
         assertThat(updated.getAnimal().getId()).isEqualTo(animalId);
@@ -856,6 +862,6 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     private Location location() {
-        return new Location("Parque", "Av. Patricias", 100, -34.6, -58.4);
+        return new Location("Argentina", "Buenos Aires", "Av. Patricias 100, Buenos Aires", "Caballito", "Av. Patricias", 100, -34.6, -58.4);
     }
 }

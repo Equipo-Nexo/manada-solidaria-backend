@@ -6,6 +6,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalSize;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import com.nexo.manada_solidaria_backend.common.controllers.validations.ConditionalField;
+import com.nexo.manada_solidaria_backend.locations.controllers.requests.LocationRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -99,20 +100,6 @@ public record CreateAnimalPostRequest(
             String color,
             @NotNull(message = "La edad del animal es obligatoria (usar UNKNOWN si se desconoce)")
             AnimalAge age
-    ) {
-    }
-
-    //DEFINIR VALIDACIONES PARA LOS CAMPOS DE UBICACION (LATITUD, LONGITUD, ETC)
-    public record LocationRequest(
-            @NotBlank(message = "El nombre de la ubicación es obligatorio")
-            String name,
-
-            @NotBlank(message = "La dirección es obligatoria")
-            String address,
-
-            int number,
-            double latitude,
-            double longitude
     ) {
     }
 }

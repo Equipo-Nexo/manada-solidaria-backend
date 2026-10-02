@@ -77,9 +77,12 @@ public class VetInformationServiceImpl implements VetInformationService {
     private VetInformation buildVetInformation(CreateVetInformationRequest request) {
 
         Location location = new Location(
-                request.location().name(),
-                request.location().address(),
-                request.location().number(),
+                request.location().country(),
+                request.location().city(),
+                request.location().formatted(),
+                request.location().district(),
+                request.location().street(),
+                request.location().houseNumber(),
                 request.location().latitude(),
                 request.location().longitude()
         );
