@@ -11,11 +11,11 @@ import java.util.stream.Stream;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
 import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
@@ -109,14 +109,14 @@ public class MockUserDataUtils {
                 Arguments.of("Las publicaciones vienen de la mas nueva a la mas vieja", "$.posts[*].postType",
                         contains("animal", "fundraising", "campaign", "campaign")),
                 Arguments.of("El animal trae su tipo", "$.posts[0].type", is("IN_STREET")),
-                Arguments.of("El animal trae su ubicacion", "$.posts[0].location.address", containsString("Libertador")),
+                Arguments.of("El animal trae su ubicacion", "$.posts[0].location.formatted", containsString("Libertador")),
                 Arguments.of("El animal trae su telefono", "$.posts[0].phoneNumber.number", is("000000")),
                 Arguments.of("El animal trae sus datos", "$.posts[0].animal.type", is("DOG")),
                 Arguments.of("El animal trae su nombre en title", "$.posts[0].title", containsString("Perro perdido")),
                 Arguments.of("El animal trae su imagen en imageId", "$.posts[0].imageId", nullValue()),
                 Arguments.of("El animal trae los dias desde que se publico", "$.posts[0].createdSince", is(0)),
                 Arguments.of("La card conserva su fecha de alta", "$.posts[0].createdAt", notNullValue()),
-                Arguments.of("La campaña trae su ubicacion", "$.posts[3].location.address", containsString("Sabattini")),
+                Arguments.of("La campaña trae su ubicacion", "$.posts[3].location.formatted", containsString("Sabattini")),
                 Arguments.of("La colecta trae su alias", "$.posts[1].accountAlias", is("MANADA.SOLIDARIA")),
                 Arguments.of("Conserva los campos que ya usa Mis publicaciones", "$.posts[0].keys()",
                         hasItems("id", "title", "description", "createdSince", "imageId", "postType", "status")),
@@ -141,10 +141,10 @@ public class MockUserDataUtils {
                 Arguments.of("Sin filtro: de la mas nueva a la mas vieja", null, "$[*].postType",
                         contains("animal", "fundraising", "campaign", "campaign")),
                 Arguments.of("Animales: trae su tipo", "animal", "$[0].type", is("IN_STREET")),
-                Arguments.of("Animales: trae su ubicacion", "animal", "$[0].location.address", containsString("Libertador")),
+                Arguments.of("Animales: trae su ubicacion", "animal", "$[0].location.formatted", containsString("Libertador")),
                 Arguments.of("Animales: trae su telefono", "animal", "$[0].phoneNumber.number", is("000000")),
                 Arguments.of("Campañas: solo campañas", "campaign", "$[*].postType", everyItem(is("campaign"))),
-                Arguments.of("Campañas: traen su ubicacion", "campaign", "$[0].location.address", notNullValue()),
+                Arguments.of("Campañas: traen su ubicacion", "campaign", "$[0].location.formatted", notNullValue()),
                 Arguments.of("Campañas: de la mas nueva a la mas vieja", "campaign", "$[*].id",
                         contains("44444444-4444-4444-4444-444444444445", "44444444-4444-4444-4444-444444444444")),
                 Arguments.of("Colectas: traen su alias", "fundraising", "$[0].accountAlias", is("MANADA.SOLIDARIA"))
