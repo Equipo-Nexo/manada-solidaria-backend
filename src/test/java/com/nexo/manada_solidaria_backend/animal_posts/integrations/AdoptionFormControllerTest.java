@@ -37,6 +37,9 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.FORBIDDEN_MESSAGE;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -238,7 +241,8 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
                         get("/adoption-forms/post/{postId}", postOfOtherUser.getId())
                                 .header("Authorization", "Bearer " + accessToken)
                 )
-                .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errors", hasItem(containsString(FORBIDDEN_MESSAGE))));
     }
 
     @DisplayName("GET /adoption-forms/post/{postId} sin autenticación o con token inválido devuelve UNAUTHORIZED 401")

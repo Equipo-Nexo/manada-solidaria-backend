@@ -85,8 +85,6 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     public void update(UUID animalPostId, UpdateAnimalPostRequest request, User authenticatedUser) {
         AnimalPost post = getAnimalPostOrThrow(animalPostId);
 
-        validateOwner(post, authenticatedUser);
-
         post.update(request);
         animalPostRepository.save(post);
         log.info("Animal post updated: id={} by={}", animalPostId, authenticatedUser.getId());
@@ -96,8 +94,6 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     @Transactional
     public AnimalPostResponse transitionStatus(UUID animalPostId, TransitionStatusRequest request, User authenticatedUser) {
         AnimalPost post = getAnimalPostOrThrow(animalPostId);
-
-        validateOwner(post, authenticatedUser);
 
         String previousStatus = post.getCurrentStatus().getStatus().name();
         post.transitionTo(request.status());
@@ -110,8 +106,6 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     @Override
     public void delete(UUID animalPostId, User authenticatedUser) {
         AnimalPost post = getAnimalPostOrThrow(animalPostId);
-
-        validateOwner(post, authenticatedUser);
 
         animalPostRepository.delete(post);
         log.info("Animal post deleted: id={} by={}", animalPostId, authenticatedUser.getId());
@@ -135,15 +129,6 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                 .stream()
                 .map(AnimalPostResponse::from)
                 .toList();
-    }
-
-    private void validateOwner(AnimalPost post, User authenticatedUser) {
-        if (!post.getOwner().getId().equals(authenticatedUser.getId())) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "Solo el dueño puede modificar la publicación"
-            );
-        }
     }
 
     private AnimalPost getAnimalPostOrThrow(UUID animalPostId) {

@@ -6,6 +6,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.Trans
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AnimalPostResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.HappyCaseResponse;
+import com.nexo.manada_solidaria_backend.auth.components.pre_filters.AnimalPostOwner;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,10 +21,13 @@ public interface AnimalPostService {
 
     AnimalPostResponse getAnimalPost(UUID animalPostId);
 
+    @AnimalPostOwner
     void update(UUID animalPostId, UpdateAnimalPostRequest request, User authenticatedUser);
 
+    @AnimalPostOwner
     AnimalPostResponse transitionStatus(UUID animalPostId, TransitionStatusRequest request, User authenticatedUser);
 
+    @AnimalPostOwner
     void delete(UUID animalPostId, User authenticatedUser);
 
     Page<HappyCaseResponse> getHappyCases(Pageable pageable);

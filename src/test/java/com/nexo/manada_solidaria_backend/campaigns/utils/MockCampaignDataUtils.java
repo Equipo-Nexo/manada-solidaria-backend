@@ -15,6 +15,7 @@ import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumber
 import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.locations.controllers.requests.UpdateLocationRequest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 
 import java.time.LocalDate;
@@ -756,6 +757,13 @@ public class MockCampaignDataUtils {
                         NewsCampaignStatus.FINISHED,
                         NewsCampaignStatus.STARTED
                 )
+        );
+    }
+
+    public static Stream<Arguments> provideNonOwnerRequests() {
+        return Stream.of(
+                Arguments.of("PUT /campaigns/{id}", HttpMethod.PUT, buildDonationUpdateRequest()),
+                Arguments.of("DELETE /campaigns/{id}", HttpMethod.DELETE, null)
         );
     }
 

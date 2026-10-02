@@ -20,10 +20,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -34,6 +36,7 @@ import java.util.UUID;
 
 import static com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils.NEWS_UPDATE_END_DATE;
 import static com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils.NEWS_UPDATE_START_DATE;
+import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.FORBIDDEN_MESSAGE;
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -210,16 +213,23 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
         assertThat(campaignRepository.findById(campaignId)).isEmpty();
     }
 
-    @Test
-    @DisplayName("DELETE /campaigns/{id} de un usuario que no es el owner devuelve 403 y no elimina")
-    void delete_asNonOwner_returnsForbiddenAndKeepsCampaign() throws Exception {
+    @DisplayName("El que no es dueño recibe 403 y la campaña no cambia")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource("com.nexo.manada_solidaria_backend.campaigns.utils.MockCampaignDataUtils#provideNonOwnerRequests")
+    void nonOwner_returnsForbiddenAndKeepsCampaign(String testName, HttpMethod method, Object body) throws Exception {
         UUID campaignId = saveCampaignOwnedByOtherUser().getId();
+        MockHttpServletRequestBuilder request = request(method, "/campaigns/" + campaignId)
+                .header("Authorization", "Bearer " + accessToken);
+        if (body != null) {
+            request = request.contentType(MediaType.APPLICATION_JSON).content(toJson(body));
+        }
 
-        mockMvc.perform(delete("/campaigns/" + campaignId)
-                        .header("Authorization", "Bearer " + accessToken))
-                .andExpect(status().isForbidden());
+        mockMvc.perform(request)
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errors", hasItem(containsString(FORBIDDEN_MESSAGE))));
 
-        assertThat(campaignRepository.findById(campaignId)).isPresent();
+        Campaign<?, ?> unchanged = campaignRepository.findById(campaignId).orElseThrow();
+        assertThat(unchanged.getTitle()).isEqualTo("Título Donación Test");
     }
 
     @DisplayName("DELETE /campaigns/{id} de una donación en estado final devuelve 409 y no elimina")
@@ -337,24 +347,6 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
         assertThat(updated.getCategory()).isEqualTo(NewsCampaignCategory.OTHER);
         assertThat(updated.getNewsStartDateTime()).isEqualTo(NEWS_UPDATE_START_DATE);
         assertThat(updated.getNewsEndDateTime()).isEqualTo(NEWS_UPDATE_END_DATE);
-    }
-
-    @Test
-    @DisplayName("PUT /campaigns/{id} de otro usuario devuelve 403")
-    void update_asNonOwner_returnsForbidden() throws Exception {
-        UUID campaignId = saveCampaignOwnedByOtherUser().getId();
-
-        mockMvc.perform(put("/campaigns/" + campaignId)
-                        .header("Authorization", "Bearer " + accessToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(toJson(
-                                MockCampaignDataUtils.buildDonationUpdateRequest()
-                        )))
-                .andExpect(status().isForbidden());
-
-        DonationCampaign campaign = (DonationCampaign) campaignRepository.findById(campaignId).orElseThrow();
-
-        assertThat(campaign.getTitle()).isEqualTo("Título Donación Test");
     }
 
     @Test
@@ -590,7 +582,8 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                                         )
                                 ))
                 )
-                .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errors", hasItem(containsString(FORBIDDEN_MESSAGE))));
 
         Campaign<?, ?> unchanged =
                 campaignRepository.findById(campaign.getId()).orElseThrow();

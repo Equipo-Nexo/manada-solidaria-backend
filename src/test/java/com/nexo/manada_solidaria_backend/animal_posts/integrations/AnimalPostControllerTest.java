@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
@@ -28,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
+import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.FORBIDDEN_MESSAGE;
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -442,18 +444,30 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
-    @Test
-    @DisplayName("PUT /animal-posts/{id} de un usuario que no es el owner devuelve 403")
-    void update_asNonOwner_returnsForbidden() throws Exception {
-        UUID postId = saveLostPostOwnedByOtherUser().getId();
+    @DisplayName("El que no es dueño recibe 403 y la publicación no cambia")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideNonOwnerRequests")
+    void nonOwner_returnsForbiddenAndKeepsPost(
+            String testName,
+            HttpMethod method,
+            String pathSuffix,
+            Object body
+    ) throws Exception {
+        LostPost post = saveLostPostOwnedByOtherUser();
+        StatusLostPost statusBefore = post.getCurrentStatus().getStatus();
+        MockHttpServletRequestBuilder request = request(method, "/animal-posts/" + post.getId() + pathSuffix)
+                .header("Authorization", "Bearer " + accessToken);
+        if (body != null) {
+            request = request.contentType(MediaType.APPLICATION_JSON).content(toJson(body));
+        }
 
-        mockMvc.perform(
-                        put("/animal-posts/" + postId)
-                                .header("Authorization", "Bearer " + accessToken)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(MockAnimalPostDataUtils.PUT_VALID)
-                )
-                .andExpect(status().isForbidden());
+        mockMvc.perform(request)
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errors", hasItem(containsString(FORBIDDEN_MESSAGE))));
+
+        LostPost unchanged = (LostPost) animalPostRepository.findById(post.getId()).orElseThrow();
+        assertThat(unchanged.getName()).isEqualTo("De otro");
+        assertThat(unchanged.getCurrentStatus().getStatus()).isEqualTo(statusBefore);
     }
 
     @Test
@@ -485,20 +499,6 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(0));
-    }
-
-    @Test
-    @DisplayName("DELETE /animal-posts/{id} de un usuario que no es el owner devuelve 403 y no elimina")
-    void delete_asNonOwner_returnsForbiddenAndKeepsPost() throws Exception {
-        UUID postId = saveLostPostOwnedByOtherUser().getId();
-
-        mockMvc.perform(
-                        delete("/animal-posts/" + postId)
-                                .header("Authorization", "Bearer " + accessToken)
-                )
-                .andExpect(status().isForbidden());
-
-        assertThat(animalPostRepository.findById(postId)).isPresent();
     }
 
     @Test
@@ -661,14 +661,6 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         assertThat(saved.getStatusHistory())
                 .filteredOn(history -> history.getStatus() == StatusLostPost.SEARCHING)
                 .allSatisfy(history -> assertThat(history.getFinishedAt()).isNotNull());
-    }
-
-    @Test
-    @DisplayName("PATCH /animal-posts/{id}/status de otro usuario devuelve 403")
-    void transitionStatus_notOwner_returnsForbidden() throws Exception {
-        LostPost post = saveLostPostOwnedByOtherUser();
-
-        patchStatus(post.getId(), "FOUND").andExpect(status().isForbidden());
     }
 
     @Test
