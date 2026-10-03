@@ -33,4 +33,6 @@ public interface AnimalPostService {
     Page<HappyCaseResponse> getHappyCases(Pageable pageable);
 
     List<AnimalPostResponse> getUserAnimalPosts(User user);
+
+    List<AnimalPostResponse> getActiveLostPosts();
 }

@@ -131,6 +131,15 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                 .toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<AnimalPostResponse> getActiveLostPosts() {
+        return animalPostRepository.findActiveLostPosts(LostPost.HAPPY_STATUSES)
+                .stream()
+                .map(AnimalPostResponse::from)
+                .toList();
+    }
+
     private AnimalPost getAnimalPostOrThrow(UUID animalPostId) {
         return animalPostRepository.findById(animalPostId)
                 .orElseThrow(() ->
