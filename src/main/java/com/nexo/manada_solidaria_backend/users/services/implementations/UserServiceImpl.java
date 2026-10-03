@@ -82,9 +82,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserDetailResponse getUser(UUID userId) {
+    public UserDetailResponse getUser(UUID userId, String type) {
         User user = getUserById(userId);
-        return UserDetailResponse.from(user, getUserPosts(user, null));
+        return UserDetailResponse.from(user, getUserPosts(user, type));
     }
 
     @Override
@@ -114,7 +114,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserPostResponse> getUserPosts(User user, String type) {
         return (requireAllPosts(type) ? getAllUserPosts(user) : getUserPostsByType(user, type))
-                .sorted(Comparator.comparingLong(UserPostResponse::getCreatedSince))
                 .toList();
     }
 
@@ -157,14 +156,15 @@ public class UserServiceImpl implements UserService {
 
     private Stream<UserPostResponse> getAllUserPosts(User user) {
         return Stream.of(getUserAnimalPosts(user), getUserCampaigns(user), getUserFundraisingCampaigns(user))
-                .flatMap(Function.identity());
+                .flatMap(Function.identity())
+                .sorted(Comparator.comparing(UserPostResponse::getCreatedAt).reversed());
     }
 
     private Stream<UserPostResponse> getUserPostsByType(User user, String type) {
         return switch (type) {
-            case "campaign" -> getUserCampaigns(user);
-            case "animal" -> getUserAnimalPosts(user);
-            case "fundraising" -> getUserFundraisingCampaigns(user);
+            case UserPostResponse.CAMPAIGN -> getUserCampaigns(user);
+            case UserPostResponse.ANIMAL -> getUserAnimalPosts(user);
+            case UserPostResponse.FUNDRAISING -> getUserFundraisingCampaigns(user);
             default -> throw new ResponseStatusException(BAD_REQUEST, "requested type is not supported");
         };
     }

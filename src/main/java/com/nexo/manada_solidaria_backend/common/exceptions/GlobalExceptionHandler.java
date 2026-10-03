@@ -9,6 +9,7 @@ import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -42,6 +43,21 @@ public class GlobalExceptionHandler {
                 .body(ApiError.builder()
                         .status(responseStatusException.getStatusCode().value())
                         .errors(List.of(responseStatusException.getReason()))
+                        .path(request.getRequestURI())
+                        .timestamp(LocalDateTime.now())
+                        .build()
+                );
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    ResponseEntity<ApiError> handleAccessDeniedException(AccessDeniedException ex, HttpServletRequest request) {
+        log.warn("{} {} -> 403: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(ApiError.builder()
+                        .status(HttpStatus.FORBIDDEN.value())
+                        .errors(List.of("No tenes permisos para realizar esta accion"))
                         .path(request.getRequestURI())
                         .timestamp(LocalDateTime.now())
                         .build()

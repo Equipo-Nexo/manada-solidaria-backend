@@ -233,6 +233,32 @@ public class VetInformationControllerTests extends BaseAuthenticatedIntegrationT
                 .andExpect(status().isUnauthorized());
     }
 
+    @DisplayName("GET /vets calcula distanceInKm según la presencia de coordenadas")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource("com.nexo.manada_solidaria_backend.vets.utils.MockVetInformationDataUtils#provideDistanceCalculationCases")
+    @Sql(
+            scripts = "/sql/vets/create-vets.sql",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    void getVetInformation_calculatesDistanceCorrectly(
+            String testName,
+            Double userLat,
+            Double userLng,
+            Matcher<?> expectedDistance
+    ) throws Exception {
+        var request = get("/vets").header("Authorization", "Bearer " + accessToken);
+        if (userLat != null && userLng != null) {
+            request.param("user_latitude", userLat.toString())
+                    .param("user_longitude", userLng.toString());
+        }
+
+        mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("Veterinaria Animalia"))
+                .andExpect(jsonPath("$[0].distanceInKm", expectedDistance))
+                .andExpect(jsonPath("$[0].isOpen").value(true));
+    }
+
     @DisplayName("DELETE /vets/{vetId} sin autenticación válida devuelve 401")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource("com.nexo.manada_solidaria_backend.vets.utils.MockVetInformationDataUtils#provideDeleteVetInformationAuthenticationCases")
@@ -271,17 +297,6 @@ public class VetInformationControllerTests extends BaseAuthenticatedIntegrationT
 
         assertThat(vetInformationRepository.findById(vetId))
                 .isEmpty();
-    }
-
-    @Test
-    @DisplayName("DELETE /vets/{vetId} con ID inexistente devuelve 404")
-    void deleteVetInformation_withNonExistingId_returnsNotFound() throws Exception {
-
-        mockMvc.perform(
-                        delete("/vets/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
-                                .header("Authorization", "Bearer " + accessToken)
-                )
-                .andExpect(status().isNotFound());
     }
 
     @DisplayName("DELETE /vets/{vetId} con ID inexistente devuelve 404")

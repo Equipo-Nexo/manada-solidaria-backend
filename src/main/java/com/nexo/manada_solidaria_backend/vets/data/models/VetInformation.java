@@ -11,6 +11,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
 
+import java.time.DayOfWeek;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -57,6 +60,32 @@ public class VetInformation {
         this.location.update(request.location());
 
         updateCalendar(request);
+    }
+
+    public boolean isOpen(LocalDateTime dateTime) {
+        if (hasNoSchedules()) {
+            return false;
+        }
+
+        return this.calendar.stream()
+                .anyMatch(schedule -> isScheduleOpen(schedule, dateTime.getDayOfWeek(), dateTime.toLocalTime()));
+    }
+
+    private boolean hasNoSchedules() {
+        return this.calendar == null || this.calendar.isEmpty();
+    }
+
+    private boolean isScheduleOpen(Schedule schedule, DayOfWeek day, LocalTime time) {
+        return isSameDay(schedule, day) && isTimeWithinRange(schedule, time);
+    }
+
+    private boolean isSameDay(Schedule schedule, DayOfWeek day) {
+        return schedule.getDayOfWeek() == day;
+    }
+
+    private boolean isTimeWithinRange(Schedule schedule, LocalTime time) {
+        return !time.isBefore(schedule.getOpeningTime())
+                && !time.isAfter(schedule.getClosingTime());
     }
 
     private void updateCalendar(UpdateVetInformationRequest request) {

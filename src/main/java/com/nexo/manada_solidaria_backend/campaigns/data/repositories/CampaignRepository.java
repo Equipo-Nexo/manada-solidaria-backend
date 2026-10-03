@@ -5,6 +5,7 @@ import com.nexo.manada_solidaria_backend.campaigns.data.models.Campaign;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -45,19 +46,23 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
     """)
     Page<Campaign<?, ?>> findFundraisingCampaigns(Pageable pageable);
 
+    @EntityGraph(attributePaths = {"location"})
     @Query("""
         SELECT c
         FROM Campaign c
         WHERE TYPE(c) <> FundraisingCampaign
         AND c.owner = :owner
+        ORDER BY c.createdAt DESC
     """)
     List<Campaign<?, ?>> findCampaignsByOwner(@Param("owner") User user);
 
+    @EntityGraph(attributePaths = {"location"})
     @Query("""
         SELECT c
         FROM Campaign c
         WHERE TYPE(c) = FundraisingCampaign
         AND c.owner = :owner
+        ORDER BY c.createdAt DESC
     """)
     List<Campaign<?, ?>> findFundraisingCampaignsByOwner(@Param("owner") User user);
 

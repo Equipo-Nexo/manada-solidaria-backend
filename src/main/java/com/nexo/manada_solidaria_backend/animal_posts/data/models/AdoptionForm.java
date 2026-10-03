@@ -44,20 +44,24 @@ public class AdoptionForm {
     @JoinColumn(name = "adoption_post_id", nullable = false)
     private AdoptionPost adoptionPost;
 
-    @ElementCollection
-    @CollectionTable(
-            name = "adoption_form_questions",
-            joinColumns = @JoinColumn(name = "adoption_form_id")
+    @OneToMany(
+            mappedBy = "adoptionForm",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
     )
-    private List<QuestionForm> questions = new ArrayList<>();
+    private List<AdoptionFormDetail> answers = new ArrayList<>();
 
     @Id
     private UUID id = UUID.randomUUID();
 
-    public AdoptionForm(PhoneNumber phoneNumber, User applicant, AdoptionPost adoptionPost, List<QuestionForm> questions) {
+    public AdoptionForm(PhoneNumber phoneNumber, User applicant, AdoptionPost adoptionPost) {
         this.phoneNumber = phoneNumber;
         this.applicant = applicant;
         this.adoptionPost = adoptionPost;
-        this.questions = questions;
+    }
+
+    public void addAnswer(AdoptionFormDetail detail) {
+        this.answers.add(detail);
+        detail.setAdoptionForm(this);
     }
 }

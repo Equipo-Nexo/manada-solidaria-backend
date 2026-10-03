@@ -26,8 +26,8 @@ public class UserControllerImpl implements UserController {
     private final NotificationDeliveryService notificationDeliveryService;
 
     @Override
-    public UserDetailResponse getUser(UUID userId) {
-        return userService.getUser(userId);
+    public UserDetailResponse getUser(UUID userId, String type) {
+        return userService.getUser(userId, type);
     }
 
     @Override

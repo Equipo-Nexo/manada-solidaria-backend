@@ -1,0 +1,73 @@
+info:
+  name: Get user detail
+  type: http
+  seq: 4
+
+http:
+  method: GET
+  url: "{{MANADA_SOLIDARIA_HOST}}/users/{{user_id}}"
+  params:
+    - name: type
+      value: animal
+      type: query
+      disabled: true
+    - name: type
+      value: campaign
+      type: query
+      disabled: true
+    - name: type
+      value: fundraising
+      type: query
+      disabled: true
+  auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.body.createdAt
+      operator: isString
+    - expression: res.body.posts
+      operator: isArray
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Detalle de un usuario: perfil + fecha de alta + publicaciones.
+
+  Por defecto usa `{{user_id}}`, el usuario que hizo el login (corre `Auth/Login` primero).
+  Para ver a OTRO usuario, cambia el id de la URL por el suyo (sale de `Users/Get users`).
+
+  Filtro opcional `type` (activa UNO solo en Params, en minusculas) para las pestañas del perfil:
+  - `animal`      -> solo animales
+  - `campaign`    -> solo campañas (donacion y noticias)
+  - `fundraising` -> solo colectas
+  Sin `type` vienen todas. El filtro solo afecta a `posts`: el perfil viene siempre completo.
+  Cualquier otro valor (incluido `ANIMAL` en mayusculas) da 400 `requested type is not supported`.
+
+  Respuesta:
+  {
+    "id": "...",
+    "username": "Abril",
+    "profile": {
+      "name": "Juan",
+      "lastname": "Gomez",
+      "email": "abrilconrero@gmail.com",
+      "phoneNumber": { "areaCode": "353", "number": "4182076" },
+      "profileImageURL": "cf-abril"
+    },
+    "roles": ["RESCUER", "TRANSITIONAL_HOME"],
+    "createdAt": "2026-09-07T10:15:32.412961",
+    "posts": [ ...los 7 campos de siempre + los datos de la card de la home, de la mas nueva a la mas vieja... ]
+  }
+
+  El detalle de cada card de `posts` (animal, campana, colecta) esta en `Users/Get user posts`.
+  `createdAt` es la fecha de alta, sin zona horaria; los dias transcurridos los calcula el front.
+  El perfil SIN publicaciones esta en `Users/Get user profile`.
+
+  Esperado: 200. Usuario inexistente: 404. `type` invalido: 400. Sin token: 401.

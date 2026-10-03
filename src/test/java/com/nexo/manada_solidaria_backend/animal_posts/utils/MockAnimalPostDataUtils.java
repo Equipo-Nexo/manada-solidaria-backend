@@ -1,8 +1,16 @@
 package com.nexo.manada_solidaria_backend.animal_posts.utils;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalAge;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalGender;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalSize;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
+import com.nexo.manada_solidaria_backend.locations.controllers.requests.UpdateLocationRequest;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import org.junit.jupiter.params.provider.Arguments;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
@@ -566,4 +574,23 @@ public class MockAnimalPostDataUtils {
         );
     }
 
+    public static Stream<Arguments> provideNonOwnerRequests() {
+        return Stream.of(
+                Arguments.of("PUT /animal-posts/{id}", HttpMethod.PUT, "", buildUpdateRequest()),
+                Arguments.of("PATCH /animal-posts/{id}/status", HttpMethod.PATCH, "/status", new TransitionStatusRequest("FOUND")),
+                Arguments.of("DELETE /animal-posts/{id}", HttpMethod.DELETE, "", null)
+        );
+    }
+
+    private static UpdateAnimalPostRequest buildUpdateRequest() {
+        return new UpdateAnimalPostRequest(
+                "Titulo actualizado",
+                "Descripcion actualizada",
+                "cf-image-put",
+                null,
+                null,
+                new UpdateAnimalPostRequest.AnimalUpdate(AnimalType.CAT, AnimalSize.LARGE, AnimalGender.FEMALE, "negro", AnimalAge.SENIOR),
+                new UpdateLocationRequest("Refugio Nuevo", "Nueva direccion 456", 999, -34.7, -58.7)
+        );
+    }
 }

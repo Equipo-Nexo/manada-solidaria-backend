@@ -4,10 +4,12 @@ import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.Creat
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionForm;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionFormDetail;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.QuestionForm;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AdoptionFormRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
+import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.QuestionFormRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AdoptionFormService;
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -28,6 +30,7 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
 
     private final AdoptionFormRepository adoptionFormRepository;
     private final AnimalPostRepository animalPostRepository;
+    private final QuestionFormRepository questionFormRepository;
 
     @Override
     @Transactional
@@ -48,12 +51,10 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AdoptionFormResponse> getFormsByPostId(UUID postId, User authenticatedUser) {
-        AdoptionPost post = getAdoptionPostOrThrow(postId);
+    public List<AdoptionFormResponse> getFormsByPostId(UUID animalPostId) {
+        AdoptionPost post = getAdoptionPostOrThrow(animalPostId);
 
-        validateOwnerAccess(post, authenticatedUser);
-
-        List<AdoptionForm> forms = adoptionFormRepository.findAllByAdoptionPostId(postId);
+        List<AdoptionForm> forms = adoptionFormRepository.findAllByAdoptionPostId(post.getId());
 
         return mapToAdoptionFormResponses(forms);
     }
@@ -75,20 +76,15 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
     }
 
     private AdoptionForm buildAdoptionForm(CreateAdoptionFormRequest request, User applicant, AdoptionPost post) {
-        List<QuestionForm> questions = mapToQuestionForms(request.questions());
-
-        return new AdoptionForm(
+        AdoptionForm form = new AdoptionForm(
                 PhoneNumberRequest.toDomain(request.phoneNumber()),
                 applicant,
-                post,
-                questions
+                post
         );
-    }
 
-    private List<QuestionForm> mapToQuestionForms(List<CreateAdoptionFormRequest.QuestionFormRequest> questionRequests) {
-        return questionRequests.stream()
-                .map(q -> new QuestionForm(q.question(), q.answer()))
-                .toList();
+        request.questions().forEach(qReq -> form.addAnswer(buildFormDetail(qReq, form)));
+
+        return form;
     }
 
     private AdoptionPost getAdoptionPostOrThrow(UUID adoptionPostId) {
@@ -116,15 +112,6 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
         }
     }
 
-    private void validateOwnerAccess(AdoptionPost post, User user) {
-        if (!post.getOwner().getId().equals(user.getId())) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "No tienes permisos para ver los formularios de esta publicación"
-            );
-        }
-    }
-
     private List<AdoptionFormResponse> mapToAdoptionFormResponses(List<AdoptionForm> forms) {
         return forms.stream()
                 .map(AdoptionFormResponse::from)
@@ -136,5 +123,15 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
             case OWNER -> adoptionFormRepository.findAllByApplicantId(userId);
             case REVIEWER -> adoptionFormRepository.findAllByPostOwnerId(userId);
         };
+    }
+
+    private AdoptionFormDetail buildFormDetail(CreateAdoptionFormRequest.QuestionFormRequest qReq, AdoptionForm form) {
+        QuestionForm questionForm = questionFormRepository.findById(qReq.questionFormId())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Pregunta no encontrada: " + qReq.questionFormId()
+                ));
+
+        return new AdoptionFormDetail(qReq.answer(), form, questionForm);
     }
 }
