@@ -12,14 +12,13 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
@@ -35,26 +34,33 @@ public class MapServiceImpl implements MapService {
 
     @Override
     public MapResponse getMap() {
-        CompletableFuture<List<AnimalPostResponse>> lostPosts =
-                CompletableFuture.supplyAsync(animalPostService::getActiveLostPosts, mapExecutor);
-        CompletableFuture<List<VetInformationResponse>> vets =
-                CompletableFuture.supplyAsync(() -> vetInformationService.getAll(null, false, null, null), mapExecutor);
-        CompletableFuture<List<VetInformationResponse>> openVets =
-                CompletableFuture.supplyAsync(() -> vetInformationService.getAll(null, true, null, null), mapExecutor);
+        CompletableFuture<List<AnimalPostResponse>> animalPosts = getAnimalPostsAsync();
+        CompletableFuture<List<VetInformationResponse>> vets = getVetsAsync();
 
-        Map<AnimalPostFilter, List<MapItemResponse>> animalsByType = lostPosts.join().stream()
-                .collect(Collectors.groupingBy(AnimalPostResponse::type, Collectors.mapping(this::toMapItem, Collectors.toList())));
-        Set<UUID> openVetIds = openVets.join().stream()
-                .map(VetInformationResponse::id)
-                .collect(Collectors.toSet());
+        Map<AnimalPostFilter, List<MapItemResponse>> animalPostsByType = groupByType(animalPosts.join());
+        DayOfWeek today = LocalDate.now(clock).getDayOfWeek();
 
         return new MapResponse(
-                animalsByType.getOrDefault(AnimalPostFilter.LOST, List.of()),
-                animalsByType.getOrDefault(AnimalPostFilter.IN_STREET, List.of()),
-                vets.join().stream()
-                        .map(vet -> MapItemResponse.from(vet, openVetIds.contains(vet.id())))
-                        .toList()
+                animalPostsByType.getOrDefault(AnimalPostFilter.LOST, List.of()),
+                animalPostsByType.getOrDefault(AnimalPostFilter.IN_STREET, List.of()),
+                vets.join().stream().map(vet -> MapItemResponse.from(vet, today)).toList()
         );
+    }
+
+    private CompletableFuture<List<AnimalPostResponse>> getAnimalPostsAsync() {
+        return CompletableFuture.supplyAsync(animalPostService::getActiveLostPosts, mapExecutor);
+    }
+
+    private CompletableFuture<List<VetInformationResponse>> getVetsAsync() {
+        return CompletableFuture.supplyAsync(vetInformationService::getAll, mapExecutor);
+    }
+
+    private Map<AnimalPostFilter, List<MapItemResponse>> groupByType(List<AnimalPostResponse> animalPosts) {
+        return animalPosts.stream()
+                .collect(Collectors.groupingBy(
+                        AnimalPostResponse::type,
+                        Collectors.mapping(this::toMapItem, Collectors.toList())
+                ));
     }
 
     private MapItemResponse toMapItem(AnimalPostResponse post) {

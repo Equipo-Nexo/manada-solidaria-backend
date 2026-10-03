@@ -14,7 +14,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Clock;
@@ -42,12 +41,19 @@ public class VetInformationServiceImpl implements VetInformationService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<VetInformationResponse> getAll(String query, Boolean openOnly, Double userLat, Double userLng) {
         log.debug("Listing vets: query={} openOnly={} lat={} lng={}", query, openOnly, userLat, userLng);
         return getVets(userLat, userLng, query, openOnly)
                 .stream()
                 .map(vet -> buildResponse(vet, userLat, userLng))
+                .toList();
+    }
+
+    @Override
+    public List<VetInformationResponse> getAll() {
+        return repository.findAllByOrderByNameAsc()
+                .stream()
+                .map(this::buildResponse)
                 .toList();
     }
 

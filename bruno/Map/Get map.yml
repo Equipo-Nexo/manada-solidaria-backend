@@ -36,14 +36,15 @@ docs: |-
         "id": "b0d6c1f4-7f1e-4a52-9a43-2f6f8f0a1c11",
         "imageUrl": "https://.../milo.jpg",
         "name": "Milo",
-        "status": "LOST",
+        "status": "SEARCHING",
         "firstLineDescription": { "iconName": "Clock", "text": "2" },
+        "secondLineDescription": { "iconName": "LocationPin", "text": "Constancio Vigil 1821, San Justo" },
         "longitude": -63.2411,
         "latitude": -32.4102,
         "location": "Constancio Vigil 1821, San Justo"
       }
     ],
-    "inStreetAnimals": [ ...mismo formato, "status": "IN_STREET"... ],
+    "inStreetAnimals": [ ...mismo formato, "status": "TO_RESCUE"... ],
     "vets": [
       {
         "id": "5c1f0a52-2f0b-4d8e-8a57-0d6d7f0b9a22",
@@ -51,6 +52,7 @@ docs: |-
         "name": "Dr. Seba Veterinaria",
         "status": "OPEN",
         "firstLineDescription": { "iconName": "Phone", "text": "353-4010369" },
+        "secondLineDescription": { "iconName": "Clock", "text": "08:00 - 13:00 | 16:00 - 20:00" },
         "longitude": -63.2451,
         "latitude": -32.4152,
         "location": "San Martin 540, Villa Maria"
@@ -59,11 +61,15 @@ docs: |-
   }
 
   Campos de cada item:
-  - `status`: animales `LOST` | `IN_STREET` (solo publicaciones activas, las mas nuevas primero).
+  - `status`: animales, el estado vigente de la publicacion (`CREATED` | `SEARCHING` | `TO_RESCUE`;
+    solo publicaciones activas, las mas nuevas primero). El tipo lo da la lista (`lostAnimals` / `inStreetAnimals`).
     Veterinarias `OPEN` | `CLOSED` segun el horario de hoy (hora de Argentina); vienen todas, ordenadas por nombre.
   - `firstLineDescription.iconName`: `Clock` (animales) o `Phone` (veterinarias).
   - `firstLineDescription.text`: en animales es la **cantidad de dias desde que se publico**, como texto
     (`"0"` es hoy, `"1"` ayer, `"2"`...). El front arma la frase. En veterinarias es `codigoArea-numero`.
+  - `secondLineDescription`: en animales `LocationPin` con la direccion (mismo texto que `location`, `null` si no hay).
+    En veterinarias `Clock` con los turnos de hoy ordenados (`"08:00 - 13:00 | 16:00 - 20:00"`), `null` si hoy no atiende.
+    El front agrega "Hoy" y "hs".
   - `location`: direccion + numero + nombre del lugar, o `null` si no tiene ninguno de los datos.
 
   Esperado: 200 (si no hay nada, las tres listas vienen `[]`). Sin token o token invalido: 401.

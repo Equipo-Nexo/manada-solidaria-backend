@@ -9,7 +9,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.BatchSize;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
@@ -31,7 +30,6 @@ public class VetInformation {
     private String vetPageUrl;
     private String description;
     @OneToMany(mappedBy = "vet", cascade = CascadeType.ALL, orphanRemoval = true)
-    @BatchSize(size = 50)
     private List<Schedule> calendar;
     @ManyToOne(cascade = CascadeType.ALL)
     private Location location;

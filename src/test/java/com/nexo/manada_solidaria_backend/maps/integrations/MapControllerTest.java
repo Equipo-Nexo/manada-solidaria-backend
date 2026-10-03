@@ -24,9 +24,11 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.TimeZone;
 
 import static com.nexo.manada_solidaria_backend.common.configs.ClockConfig.ARGENTINA;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -60,6 +62,18 @@ class MapControllerTest extends BaseAuthenticatedIntegrationTest {
         mockMvc.perform(get("/map").header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath(jsonPathExpression, expected));
+    }
+
+    @DisplayName("GET /map marca la veterinaria abierta o cerrada segun su turno de hoy")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideOpeningHourCases")
+    @Sql("/sql/maps/map-data.sql")
+    void vetStatusFollowsOpeningHours(String testName, String time, String expectedStatus) throws Exception {
+        given(clock.instant()).willReturn(WEDNESDAY_AT_TEN.with(LocalTime.parse(time)).atZone(ARGENTINA).toInstant());
+
+        mockMvc.perform(get("/map").header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.vets[?(@.name == 'Dr. Seba Veterinaria')].status", contains(expectedStatus)));
     }
 
     @Test
