@@ -1,0 +1,46 @@
+info:
+  name: Update location
+  type: http
+  seq: 7
+
+http:
+  method: PUT
+  url: "{{MANADA_SOLIDARIA_HOST}}/users/location"
+  body:
+    type: json
+    data: |-
+      {
+          "latitude": -34.6037,
+          "longitude": -58.3816
+      }
+  auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "204"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Guarda la ultima ubicacion del usuario logueado (el del token). Pisa la anterior:
+  solo se guarda la ultima, junto con la fecha y hora en que se actualizo.
+
+  Body:
+  - `latitude`: obligatoria, entre -90 y 90 (los bordes valen)
+  - `longitude`: obligatoria, entre -180 y 180 (los bordes valen)
+
+  Respuesta: 204 sin body.
+
+  Errores:
+  - 400 si falta alguna coordenada o esta fuera de rango. Ej.:
+    { "status": 400, "errors": ["La latitud debe estar entre -90 y 90"], "path": "/users/location" }
+  - 400 si el body esta mal formado (ej.: "latitude": "abc")
+  - 401 sin token o con token invalido
+
+  La ubicacion NO se devuelve en ningun otro endpoint (ni en el detalle ni en el perfil del usuario).

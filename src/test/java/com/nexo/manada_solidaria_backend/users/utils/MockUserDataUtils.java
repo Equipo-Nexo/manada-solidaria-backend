@@ -2,6 +2,7 @@ package com.nexo.manada_solidaria_backend.users.utils;
 
 import com.nexo.manada_solidaria_backend.users.controllers.requests.EditableRol;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
+import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateUserLocationRequest;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import org.junit.jupiter.params.provider.Arguments;
 
@@ -243,6 +244,26 @@ public class MockUserDataUtils {
         return Stream.of(
                 Arguments.of("Sin token", null),
                 Arguments.of("Con token invalido", INVALID_ACCESS_TOKEN)
+        );
+    }
+
+    private static Stream<Arguments> provideUpdateLocationValidCases() {
+        return Stream.of(
+                Arguments.of("Guarda una ubicacion de Buenos Aires", new UpdateUserLocationRequest(-34.6037, -58.3816)),
+                Arguments.of("Acepta los maximos (90, 180)", new UpdateUserLocationRequest(90.0, 180.0)),
+                Arguments.of("Acepta los minimos (-90, -180)", new UpdateUserLocationRequest(-90.0, -180.0)),
+                Arguments.of("Acepta el cero (0, 0)", new UpdateUserLocationRequest(0.0, 0.0))
+        );
+    }
+
+    private static Stream<Arguments> provideUpdateLocationInvalidCases() {
+        return Stream.of(
+                Arguments.of("Sin latitud", new UpdateUserLocationRequest(null, -58.3816), "La latitud es obligatoria"),
+                Arguments.of("Sin longitud", new UpdateUserLocationRequest(-34.6037, null), "La longitud es obligatoria"),
+                Arguments.of("Latitud mayor a 90", new UpdateUserLocationRequest(90.0001, 0.0), "La latitud debe estar entre -90 y 90"),
+                Arguments.of("Latitud menor a -90", new UpdateUserLocationRequest(-90.0001, 0.0), "La latitud debe estar entre -90 y 90"),
+                Arguments.of("Longitud mayor a 180", new UpdateUserLocationRequest(0.0, 180.0001), "La longitud debe estar entre -180 y 180"),
+                Arguments.of("Longitud menor a -180", new UpdateUserLocationRequest(0.0, -180.0001), "La longitud debe estar entre -180 y 180")
         );
     }
 
