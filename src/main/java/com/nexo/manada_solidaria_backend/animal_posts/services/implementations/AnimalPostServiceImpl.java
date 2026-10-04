@@ -6,13 +6,18 @@ import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.GetAn
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AnimalPostResponse;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.HappyCaseResponse;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusLostPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
 import com.nexo.manada_solidaria_backend.common.utils.EnumUtils;
+import com.nexo.manada_solidaria_backend.locations.data.models.Location;
+import com.nexo.manada_solidaria_backend.notifications.components.recipients.data.NotificationContext;
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -28,6 +33,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -51,6 +57,13 @@ public class AnimalPostServiceImpl implements AnimalPostService {
             notificationService.notify(
                     NotificationType.NEW_CARRIAGE_REQUEST,
                     Map.of("postId", saved.getId()));
+        }
+
+        if (isLostPet(saved)) {
+            notificationService.notify(
+                    NotificationType.SIMILAR_ANIMAL_RECENTLY_LOST,
+                    Map.of("postId", saved.getId(), "location", describe(saved.getLocation())),
+                    new NotificationContext(owner.getId(), saved.getAnimal().getType()));
         }
 
         log.info("Animal post created: id={} type={} owner={}", saved.getId(), saved.getType(), owner.getId());
@@ -129,6 +142,19 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                 .stream()
                 .map(AnimalPostResponse::from)
                 .toList();
+    }
+
+    @Override
+    public Set<UUID> getSearchingOwnerIds(AnimalType animalType) {
+        return animalPostRepository.findOwnerIdsByAnimalTypeAndStatus(animalType, StatusLostPost.SEARCHING);
+    }
+
+    private static boolean isLostPet(AnimalPost<?, ?> post) {
+        return post.getType() == AnimalPostFilter.LOST;
+    }
+
+    private static String describe(Location location) {
+        return location.getAddress() + " " + location.getNumber() + ", " + location.getName();
     }
 
     private AnimalPost getAnimalPostOrThrow(UUID animalPostId) {

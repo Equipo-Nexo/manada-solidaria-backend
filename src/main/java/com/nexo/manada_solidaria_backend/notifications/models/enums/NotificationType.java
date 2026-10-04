@@ -53,6 +53,10 @@ public enum NotificationType {
     NEW_CARRIAGE_REQUEST(
             NotificationChannel.PUSH,
             NotificationChannel.IN_APP
+    ),
+
+    SIMILAR_ANIMAL_RECENTLY_LOST(
+            NotificationChannel.PUSH
     );
 
     private final Set<NotificationChannel> channels;

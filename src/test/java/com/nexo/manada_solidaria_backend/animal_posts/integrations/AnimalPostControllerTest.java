@@ -9,10 +9,22 @@ import com.nexo.manada_solidaria_backend.animal_posts.utils.MockAnimalPostDataUt
 import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthenticatedIntegrationTest;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
+import com.nexo.manada_solidaria_backend.notifications.clients.WebPushClient;
+import com.nexo.manada_solidaria_backend.notifications.models.data.Notification;
+import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationChannel;
+import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationDelivery;
+import com.nexo.manada_solidaria_backend.notifications.models.data.PushSubscription;
+import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationStatus;
+import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
+import com.nexo.manada_solidaria_backend.notifications.models.repositories.NotificationDeliveryRepository;
+import com.nexo.manada_solidaria_backend.notifications.models.repositories.NotificationRepository;
+import com.nexo.manada_solidaria_backend.notifications.models.repositories.PushSuscriptionRepository;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.Profile;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import com.nexo.manada_solidaria_backend.users.data.repositories.UserRepository;
+import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
 import org.hamcrest.Matcher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,17 +34,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.*;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.FORBIDDEN_MESSAGE;
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -47,6 +64,56 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     private AnimalPostRepository animalPostRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private NotificationRepository notificationRepository;
+    @Autowired
+    private NotificationDeliveryRepository notificationDeliveryRepository;
+    @Autowired
+    private PushSuscriptionRepository pushSuscriptionRepository;
+
+    @MockitoBean
+    private WebPushClient webPushClient;
+
+    @DisplayName("POST /animal-posts LOST notifica por push a quien busca un animal del mismo tipo")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideSimilarLostPetRecipientCases")
+    void create_lost_notifiesOwnersSearchingSameAnimalType(String testName, String body, String username, int expectedDeliveries) throws Exception {
+        seedSimilarLostPetScenario();
+        givenPushResponds(201);
+
+        postAnimalPost(body).andExpect(status().isCreated());
+
+        assertThat(similarLostPetDeliveriesOf(username)).hasSize(expectedDeliveries);
+    }
+
+    @Test
+    @DisplayName("POST /animal-posts LOST: el push lleva la direccion y el link al post, y queda SENT")
+    void create_lost_sendsPushWithAddressAndLink() throws Exception {
+        seedSimilarLostPetScenario();
+        givenPushResponds(201);
+
+        String response = postAnimalPost(MockAnimalPostDataUtils.LOST_VALID)
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        String postId = mapper.readTree(response).get("id").asText();
+
+        NotificationDelivery delivery = similarLostPetDeliveriesOf("busca-perro").getFirst();
+        assertThat(delivery.getMessage()).isEqualTo("Se publicó un animal en Av. Patricias 100, Parque Centenario. Revisá si puede ser tu mascota perdida.");
+        assertThat(delivery.getRedirectTo()).isEqualTo("/animal/detalle/" + postId);
+        assertThat(delivery.getStatusHistory().getLast().getStatus()).isEqualTo(NotificationStatus.SENT);
+    }
+
+    @Test
+    @DisplayName("POST /animal-posts LOST: si falla el push el post se crea igual y la entrega queda FAILED")
+    void create_lost_whenPushFails_createsPostAndMarksDeliveryFailed() throws Exception {
+        seedSimilarLostPetScenario();
+        given(webPushClient.send(any(), any())).willThrow(new IOException("push caido"));
+
+        postAnimalPost(MockAnimalPostDataUtils.LOST_VALID).andExpect(status().isCreated());
+
+        assertThat(similarLostPetDeliveriesOf("busca-perro").getFirst().getStatusHistory().getLast().getStatus())
+                .isEqualTo(NotificationStatus.FAILED);
+    }
 
     @DisplayName("POST /animal-post — código de estado por payload")
     @ParameterizedTest(name = "{index} - {0}")
@@ -849,5 +916,75 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
 
     private Location location() {
         return new Location("Parque", "Av. Patricias", 100, -34.6, -58.4);
+    }
+
+    private void seedSimilarLostPetScenario() {
+        notificationRepository.save(new Notification(
+                "🚨 ¡Publicaron un animal perdido!",
+                "Se publicó un animal en {location}. Revisá si puede ser tu mascota perdida.",
+                null,
+                "/animal/detalle/{postId}",
+                NotificationType.SIMILAR_ANIMAL_RECENTLY_LOST
+        ));
+        saveLostPostOf(subscribedUser("busca-perro"), AnimalType.DOG, StatusLostPost.SEARCHING, true);
+        User twoDogs = subscribedUser("busca-dos-perros");
+        saveLostPostOf(twoDogs, AnimalType.DOG, StatusLostPost.SEARCHING, true);
+        saveLostPostOf(twoDogs, AnimalType.DOG, StatusLostPost.SEARCHING, true);
+        saveLostPostOf(subscribedUser("busca-gato"), AnimalType.CAT, StatusLostPost.SEARCHING, true);
+        LostPost found = new LostPost("Ya aparecio", "Descripción", "cf-img", null, new PhoneNumber("3533", "436249"), true, subscribedUser("encontro-perro"), location(), animal(), null);
+        found.transitionTo("FOUND");
+        animalPostRepository.save(found);
+        saveLostPostOf(subscribedUser("rescata-perro"), AnimalType.DOG, StatusLostPost.TO_RESCUE, false);
+        User admin = admin();
+        subscribe(admin);
+        saveLostPostOf(admin, AnimalType.DOG, StatusLostPost.SEARCHING, true);
+    }
+
+    private User subscribedUser(String username) {
+        User user = userRepository.save(new User(username, "x",
+                new Profile(username + "@mail.com", new PhoneNumber("353", "4014524"), Set.of(Rol.COMMUNITY))));
+        subscribe(user);
+        return user;
+    }
+
+    private void subscribe(User user) {
+        PushSubscription subscription = new PushSubscription();
+        subscription.setUser(user);
+        subscription.setEndpoint("https://push.test/" + user.getUsername());
+        subscription.setEndpointHash(Arrays.copyOf(user.getUsername().getBytes(), 32));
+        subscription.setP256dh("p256dh");
+        subscription.setAuth("auth");
+        pushSuscriptionRepository.save(subscription);
+    }
+
+    private void saveLostPostOf(User owner, AnimalType type, StatusLostPost status, boolean hasOwner) {
+        LostPost post = new LostPost("De " + owner.getUsername(), "Descripción", "cf-img", null, new PhoneNumber("3533", "436249"), hasOwner, owner, location(), animal(type, AnimalSize.MEDIUM, AnimalGender.MALE, null, null), null);
+        post.setStatusHistory(new ArrayList<>(List.of(new LostPostStatusHistory(status, post))));
+        animalPostRepository.save(post);
+    }
+
+    private void givenPushResponds(int statusCode) throws Exception {
+        HttpResponse response = mock(HttpResponse.class);
+        StatusLine statusLine = mock(StatusLine.class);
+        given(statusLine.getStatusCode()).willReturn(statusCode);
+        given(response.getStatusLine()).willReturn(statusLine);
+        given(webPushClient.send(any(), any())).willReturn(response);
+    }
+
+    private List<NotificationDelivery> similarLostPetDeliveriesOf(String username) {
+        User recipient = userRepository.findByUsername(username).orElseThrow();
+        return notificationDeliveryRepository.findAllByRecipientAndChannelOrderByCreatedAtDesc(recipient, NotificationChannel.PUSH)
+                .stream()
+                .filter(delivery -> delivery.getNotification().getType() == NotificationType.SIMILAR_ANIMAL_RECENTLY_LOST)
+                .toList();
+    }
+
+    private ResultActions postAnimalPost(String body) throws Exception {
+        return mockMvc.perform(
+                post("/animal-posts")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body)
+        );
     }
 }

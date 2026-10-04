@@ -593,4 +593,16 @@ public class MockAnimalPostDataUtils {
                 new UpdateLocationRequest("Refugio Nuevo", "Nueva direccion 456", 999, -34.7, -58.7)
         );
     }
+
+    public static Stream<Arguments> provideSimilarLostPetRecipientCases() {
+        return Stream.of(
+                Arguments.of("Recibe quien busca un perro", LOST_VALID, "busca-perro", 1),
+                Arguments.of("Con dos perros buscados recibe una sola vez", LOST_VALID, "busca-dos-perros", 1),
+                Arguments.of("No recibe quien busca un gato", LOST_VALID, "busca-gato", 0),
+                Arguments.of("No recibe quien ya encontro a su perro", LOST_VALID, "encontro-perro", 0),
+                Arguments.of("No recibe quien publico un perro en la calle", LOST_VALID, "rescata-perro", 0),
+                Arguments.of("No recibe el autor aunque busque un perro", LOST_VALID, "admin", 0),
+                Arguments.of("Un animal en la calle no notifica", LOST_STREET_WITHOUT_PHONE, "busca-perro", 0)
+        );
+    }
 }
