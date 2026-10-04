@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.animal_posts.services.implementations;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAdoptionFormRequest;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormDetailResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionForm;
@@ -64,6 +65,16 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
     public List<AdoptionFormResponse> getFormsByUser(UUID userId, FormFilter filter) {
         List<AdoptionForm> forms = fetchFormsByFilter(userId, filter);
         return mapToAdoptionFormResponses(forms);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public AdoptionFormDetailResponse getFormById(UUID adoptionFormId, User authenticatedUser) {
+        AdoptionForm form = getAdoptionFormOrThrow(adoptionFormId);
+
+        validateCanAccessForm(form, authenticatedUser);
+
+        return AdoptionFormDetailResponse.from(form);
     }
 
     private void validateNotOwner(AdoptionPost post, User applicant) {
@@ -134,5 +145,25 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
                 ));
 
         return new AdoptionFormDetail(aReq.answer(), form, questionForm);
+    }
+
+    private AdoptionForm getAdoptionFormOrThrow(UUID adoptionFormId) {
+        return adoptionFormRepository.findById(adoptionFormId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "El formulario de adopción no fue encontrado"
+                ));
+    }
+
+    private void validateCanAccessForm(AdoptionForm form, User user) {
+        boolean isApplicant = form.getApplicant().getId().equals(user.getId());
+        boolean isPostOwner = form.getAdoptionPost().getOwner().getId().equals(user.getId());
+
+        if (!isApplicant && !isPostOwner) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "No tienes permisos para consultar este formulario de adopción"
+            );
+        }
     }
 }
