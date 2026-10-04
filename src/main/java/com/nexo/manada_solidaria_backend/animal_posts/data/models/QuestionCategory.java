@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -23,6 +25,9 @@ public class QuestionCategory {
 
     @Column(name = "sort_order")
     private Integer order;
+
+    @OneToMany(mappedBy = "category")
+    private List<QuestionForm> questions = new ArrayList<>();
 
     @Id
     private UUID id = UUID.randomUUID();
