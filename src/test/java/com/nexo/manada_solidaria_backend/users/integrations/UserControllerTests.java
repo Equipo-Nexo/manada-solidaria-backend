@@ -582,4 +582,5 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
     private Set<Rol> rolesOfAdmin() {
         return userRepository.findByUsername("admin").orElseThrow().getProfile().getRoles();
     }
+    
 }

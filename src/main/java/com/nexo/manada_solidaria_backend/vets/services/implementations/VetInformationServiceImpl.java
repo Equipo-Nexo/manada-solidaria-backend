@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.vets.services.implementations;
 
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
+import com.nexo.manada_solidaria_backend.common.utils.GeoUtils;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.CreateVetInformationRequest;
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.UpdateVetInformationRequest;
@@ -36,7 +37,7 @@ public class VetInformationServiceImpl implements VetInformationService {
 
         log.info("Vet information created: id={} name={}", saved.getId(), saved.getName());
 
-        return new VetInformationResponse(saved);
+        return buildResponse(saved);
     }
 
     @Override
@@ -44,13 +45,14 @@ public class VetInformationServiceImpl implements VetInformationService {
         log.debug("Listing vets: query={} openOnly={} lat={} lng={}", query, openOnly, userLat, userLng);
         return getVets(userLat, userLng, query, openOnly)
                 .stream()
-                .map(VetInformationResponse::new)
+                .map(vet -> buildResponse(vet, userLat, userLng))
                 .toList();
     }
 
     @Override
     public VetInformationResponse getById(UUID vetId) {
-        return new VetInformationResponse(getVetInformationOrThrow(vetId));
+        VetInformation vet = getVetInformationOrThrow(vetId);
+        return buildResponse(vet);
     }
 
     @Override
@@ -70,9 +72,8 @@ public class VetInformationServiceImpl implements VetInformationService {
 
         log.info("Vet information updated: id={}", updated.getId());
 
-        return new VetInformationResponse(updated);
+        return buildResponse(updated);
     }
-
 
     private VetInformation buildVetInformation(CreateVetInformationRequest request) {
 
@@ -138,4 +139,16 @@ public class VetInformationServiceImpl implements VetInformationService {
         return (query != null && !query.trim().isEmpty()) ? query.trim() : null;
     }
 
+    private VetInformationResponse buildResponse(VetInformation vet) {
+        return buildResponse(vet, null, null);
+    }
+
+    private VetInformationResponse buildResponse(VetInformation vet, Double userLat, Double userLng) {
+        LocalDateTime now = LocalDateTime.now(clock);
+
+        Boolean isOpen = vet.isOpen(now);
+        Double distanceInKm = GeoUtils.calculateDistanceInKm(userLat, userLng, vet.getLocation());
+
+        return new VetInformationResponse(vet, isOpen, distanceInKm);
+    }
 }
