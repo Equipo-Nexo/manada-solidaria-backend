@@ -1,10 +1,19 @@
-ALTER TABLE users
-    ADD COLUMN latitude DOUBLE NULL,
-    ADD COLUMN longitude DOUBLE NULL,
-    ADD COLUMN location_updated_at DATETIME(6) NULL;
+CREATE TABLE user_location (
+    id BINARY(16) NOT NULL,
+    user_id BINARY(16) NOT NULL,
+    latitude DOUBLE NOT NULL,
+    longitude DOUBLE NOT NULL,
+    created_at DATETIME(6) NOT NULL,
 
--- ROLLBACK (borra las ubicaciones guardadas; no se pueden restaurar)
--- ALTER TABLE users
---     DROP COLUMN latitude,
---     DROP COLUMN longitude,
---     DROP COLUMN location_updated_at;
+    PRIMARY KEY (id),
+
+    INDEX idx_user_location_user_created_at (user_id, created_at),
+
+    CONSTRAINT fk_user_location_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+);
+
+-- ROLLBACK (borra el historial de ubicaciones; no se puede restaurar)
+-- DROP TABLE user_location;

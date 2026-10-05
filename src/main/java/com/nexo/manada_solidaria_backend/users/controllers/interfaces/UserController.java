@@ -4,7 +4,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.Adop
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
 import com.nexo.manada_solidaria_backend.notifications.controllers.responses.UserNotificationsResponse;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
-import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateUserLocationRequest;
+import com.nexo.manada_solidaria_backend.users.controllers.requests.CreateUserLocationRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.*;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
@@ -56,10 +56,10 @@ public interface UserController {
             @AuthenticationPrincipal User authenticatedUser
     );
 
-    @PutMapping("/location")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    void updateLocation(
-            @Valid @RequestBody UpdateUserLocationRequest request,
+    @PostMapping("/location")
+    @ResponseStatus(HttpStatus.CREATED)
+    void createLocation(
+            @Valid @RequestBody CreateUserLocationRequest request,
             @AuthenticationPrincipal User authenticatedUser
     );
 

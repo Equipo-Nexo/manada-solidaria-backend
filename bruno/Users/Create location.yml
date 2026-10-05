@@ -1,10 +1,10 @@
 info:
-  name: Update location
+  name: Create location
   type: http
   seq: 7
 
 http:
-  method: PUT
+  method: POST
   url: "{{MANADA_SOLIDARIA_HOST}}/users/location"
   body:
     type: json
@@ -19,7 +19,7 @@ runtime:
   assertions:
     - expression: res.status
       operator: eq
-      value: "204"
+      value: "201"
 
 settings:
   encodeUrl: true
@@ -28,14 +28,14 @@ settings:
   maxRedirects: 5
 
 docs: |-
-  Guarda la ultima ubicacion del usuario logueado (el del token). Pisa la anterior:
-  solo se guarda la ultima, junto con la fecha y hora en que se actualizo.
+  Agrega la ubicacion actual del usuario logueado (el del token) a su historial.
+  No pisa las anteriores: cada llamada guarda un registro nuevo con la fecha y hora.
 
   Body:
   - `latitude`: obligatoria, entre -90 y 90 (los bordes valen)
   - `longitude`: obligatoria, entre -180 y 180 (los bordes valen)
 
-  Respuesta: 204 sin body.
+  Respuesta: 201 sin body.
 
   Errores:
   - 400 si falta alguna coordenada o esta fuera de rango. Ej.:

@@ -4,7 +4,7 @@ import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 
-public record UpdateUserLocationRequest(
+public record CreateUserLocationRequest(
         @NotNull(message = "La latitud es obligatoria")
         @DecimalMin(value = "-90.0", message = "La latitud debe estar entre -90 y 90")
         @DecimalMax(value = "90.0", message = "La latitud debe estar entre -90 y 90")

@@ -5,7 +5,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
 import com.nexo.manada_solidaria_backend.auth.controllers.requests.CreateUserRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
-import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateUserLocationRequest;
+import com.nexo.manada_solidaria_backend.users.controllers.requests.CreateUserLocationRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.*;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -40,7 +40,9 @@ public interface UserService extends UserDetailsService {
 
     ProfileResponse updateProfile(UpdateProfileRequest request, User authenticatedUser);
 
-    void updateLocation(UpdateUserLocationRequest request, User authenticatedUser);
+    void createLocation(CreateUserLocationRequest request, User authenticatedUser);
+
+    Optional<UsualLocationResponse> getUsualLocation(User user);
 
     Set<Rol> updateRoles(UpdateRolesRequest request, User authenticatedUser);
 

@@ -9,16 +9,19 @@ import com.nexo.manada_solidaria_backend.campaigns.services.interfaces.CampaignS
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
-import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateUserLocationRequest;
+import com.nexo.manada_solidaria_backend.users.controllers.requests.CreateUserLocationRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.*;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.Profile;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
+import com.nexo.manada_solidaria_backend.users.data.models.UserLocation;
+import com.nexo.manada_solidaria_backend.users.data.repositories.UserLocationRepository;
 import com.nexo.manada_solidaria_backend.users.data.repositories.UserRepository;
 import com.nexo.manada_solidaria_backend.users.services.interfaces.UserService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -38,7 +41,11 @@ import static org.springframework.http.HttpStatus.*;
 @Slf4j
 public class UserServiceImpl implements UserService {
 
+    private static final int USUAL_LOCATION_WINDOW = 50;
+    private static final int ZONE_DECIMALS = 1;
+
     private final UserRepository userRepository;
+    private final UserLocationRepository userLocationRepository;
     private final CampaignService campaignService;
     private final AnimalPostService animalPostService;
     private final PasswordEncoder passwordEncoder;
@@ -127,10 +134,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateLocation(UpdateUserLocationRequest request, User authenticatedUser) {
-        authenticatedUser.updateLocation(request.latitude(), request.longitude());
-        userRepository.save(authenticatedUser);
-        log.info("Location updated: user={}", authenticatedUser.getId());
+    public void createLocation(CreateUserLocationRequest request, User authenticatedUser) {
+        userLocationRepository.save(new UserLocation(authenticatedUser, request.latitude(), request.longitude()));
+        log.info("Location saved: user={}", authenticatedUser.getId());
+    }
+
+    @Override
+    public Optional<UsualLocationResponse> getUsualLocation(User user) {
+        return userLocationRepository.findMostFrequentZone(user, USUAL_LOCATION_WINDOW, ZONE_DECIMALS, Limit.of(1))
+                .map(zone -> new UsualLocationResponse(zone.getLatitude(), zone.getLongitude()));
     }
 
     @Override

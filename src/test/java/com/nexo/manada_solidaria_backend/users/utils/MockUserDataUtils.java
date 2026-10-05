@@ -2,10 +2,12 @@ package com.nexo.manada_solidaria_backend.users.utils;
 
 import com.nexo.manada_solidaria_backend.users.controllers.requests.EditableRol;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
-import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateUserLocationRequest;
+import com.nexo.manada_solidaria_backend.users.controllers.requests.CreateUserLocationRequest;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import org.junit.jupiter.params.provider.Arguments;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -247,23 +249,23 @@ public class MockUserDataUtils {
         );
     }
 
-    private static Stream<Arguments> provideUpdateLocationValidCases() {
+    private static Stream<Arguments> provideCreateLocationValidCases() {
         return Stream.of(
-                Arguments.of("Guarda una ubicacion de Buenos Aires", new UpdateUserLocationRequest(-34.6037, -58.3816)),
-                Arguments.of("Acepta los maximos (90, 180)", new UpdateUserLocationRequest(90.0, 180.0)),
-                Arguments.of("Acepta los minimos (-90, -180)", new UpdateUserLocationRequest(-90.0, -180.0)),
-                Arguments.of("Acepta el cero (0, 0)", new UpdateUserLocationRequest(0.0, 0.0))
+                Arguments.of("Guarda una ubicacion de Buenos Aires", new CreateUserLocationRequest(-34.6037, -58.3816)),
+                Arguments.of("Acepta los maximos (90, 180)", new CreateUserLocationRequest(90.0, 180.0)),
+                Arguments.of("Acepta los minimos (-90, -180)", new CreateUserLocationRequest(-90.0, -180.0)),
+                Arguments.of("Acepta el cero (0, 0)", new CreateUserLocationRequest(0.0, 0.0))
         );
     }
 
-    private static Stream<Arguments> provideUpdateLocationInvalidCases() {
+    private static Stream<Arguments> provideCreateLocationInvalidCases() {
         return Stream.of(
-                Arguments.of("Sin latitud", new UpdateUserLocationRequest(null, -58.3816), "La latitud es obligatoria"),
-                Arguments.of("Sin longitud", new UpdateUserLocationRequest(-34.6037, null), "La longitud es obligatoria"),
-                Arguments.of("Latitud mayor a 90", new UpdateUserLocationRequest(90.0001, 0.0), "La latitud debe estar entre -90 y 90"),
-                Arguments.of("Latitud menor a -90", new UpdateUserLocationRequest(-90.0001, 0.0), "La latitud debe estar entre -90 y 90"),
-                Arguments.of("Longitud mayor a 180", new UpdateUserLocationRequest(0.0, 180.0001), "La longitud debe estar entre -180 y 180"),
-                Arguments.of("Longitud menor a -180", new UpdateUserLocationRequest(0.0, -180.0001), "La longitud debe estar entre -180 y 180")
+                Arguments.of("Sin latitud", new CreateUserLocationRequest(null, -58.3816), "La latitud es obligatoria"),
+                Arguments.of("Sin longitud", new CreateUserLocationRequest(-34.6037, null), "La longitud es obligatoria"),
+                Arguments.of("Latitud mayor a 90", new CreateUserLocationRequest(90.0001, 0.0), "La latitud debe estar entre -90 y 90"),
+                Arguments.of("Latitud menor a -90", new CreateUserLocationRequest(-90.0001, 0.0), "La latitud debe estar entre -90 y 90"),
+                Arguments.of("Longitud mayor a 180", new CreateUserLocationRequest(0.0, 180.0001), "La longitud debe estar entre -180 y 180"),
+                Arguments.of("Longitud menor a -180", new CreateUserLocationRequest(0.0, -180.0001), "La longitud debe estar entre -180 y 180")
         );
     }
 
@@ -312,5 +314,31 @@ public class MockUserDataUtils {
                 Arguments.of("VET no es auto-asignable", ROLES_WITH_VET),
                 Arguments.of("COMMUNITY no es auto-asignable, lo deriva el back", ROLES_WITH_COMMUNITY)
         );
+    }
+
+    private static final double[] VILLA_MARIA = {-32.41, -63.24};
+    private static final double[] CORDOBA = {-31.42, -64.19};
+
+    private static Stream<Arguments> provideUsualLocationCases() {
+        return Stream.of(
+                Arguments.of("Si viajo una vez, gana la ciudad donde mas se conecta",
+                        concat(times(3, VILLA_MARIA), times(1, CORDOBA)), VILLA_MARIA[0], VILLA_MARIA[1]),
+                Arguments.of("Solo cuentan las ultimas 50: si se mudo, gana la ciudad nueva",
+                        concat(times(40, VILLA_MARIA), times(30, CORDOBA)), CORDOBA[0], CORDOBA[1]),
+                Arguments.of("Con empate gana la zona mas reciente",
+                        concat(times(1, VILLA_MARIA), times(1, CORDOBA)), CORDOBA[0], CORDOBA[1]),
+                Arguments.of("Dentro de la misma ciudad devuelve el promedio de sus puntos",
+                        List.of(new double[]{-32.40, -63.24}, new double[]{-32.42, -63.22}), -32.41, -63.23)
+        );
+    }
+
+    private static List<double[]> times(int count, double[] point) {
+        return Collections.nCopies(count, point);
+    }
+
+    private static List<double[]> concat(List<double[]> older, List<double[]> newer) {
+        List<double[]> points = new ArrayList<>(older);
+        points.addAll(newer);
+        return points;
     }
 }

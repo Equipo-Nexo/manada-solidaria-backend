@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.users.data.models;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,6 +14,7 @@ import java.util.UUID;
 
 @Entity
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @Table(name = "users")
@@ -25,23 +27,8 @@ public class User implements UserDetails {
     private Profile profile;
     @Column(updatable = false)
     private final LocalDateTime createdAt = LocalDateTime.now();
-    private Double latitude;
-    private Double longitude;
-    private LocalDateTime locationUpdatedAt;
     @Id
     private final UUID id = UUID.randomUUID();
-
-    public User(String username, String password, Profile profile) {
-        this.username = username;
-        this.password = password;
-        this.profile = profile;
-    }
-
-    public void updateLocation(Double latitude, Double longitude) {
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.locationUpdatedAt = LocalDateTime.now();
-    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
