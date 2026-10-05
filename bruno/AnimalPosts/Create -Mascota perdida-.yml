@@ -51,8 +51,8 @@ settings:
   maxRedirects: 5
 
 docs: |-
-  Notificacion (MS-206): al crear una mascota perdida (LOST con hasOwner=true) se manda un push
-  "🚨 ¡Publicaron un animal perdido!" a los usuarios que buscan un animal del mismo tipo (tienen un
+  Notificacion (MS-206): al crear una mascota perdida (LOST con hasOwner=true) se manda un push y una
+  notificacion de campanita "🚨 ¡Publicaron un animal perdido!" a los usuarios que buscan un animal del mismo tipo (tienen un
   LOST en SEARCHING), menos al autor y una sola vez por usuario. La respuesta no cambia (201) y
   el post se crea aunque falle el envio. Los "en la calle" no notifican.
 

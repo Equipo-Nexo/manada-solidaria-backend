@@ -115,6 +115,23 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .isEqualTo(NotificationStatus.FAILED);
     }
 
+    @Test
+    @DisplayName("POST /animal-posts LOST: notifica por campanita aunque el usuario no tenga push")
+    void create_lost_notifiesInAppWithoutPushSubscription() throws Exception {
+        seedSimilarLostPetScenario();
+        givenPushResponds(201);
+        User withoutPush = userRepository.save(new User("busca-perro-sin-push", "x",
+                new Profile("busca-perro-sin-push@mail.com", new PhoneNumber("353", "4014524"), Set.of(Rol.COMMUNITY))));
+        saveLostPostOf(withoutPush, AnimalType.DOG, StatusLostPost.SEARCHING, true);
+
+        postAnimalPost(MockAnimalPostDataUtils.LOST_VALID).andExpect(status().isCreated());
+
+        assertThat(similarLostPetDeliveriesOf("busca-perro-sin-push", NotificationChannel.PUSH)).isEmpty();
+        assertThat(similarLostPetDeliveriesOf("busca-perro-sin-push", NotificationChannel.IN_APP))
+                .singleElement()
+                .satisfies(delivery -> assertThat(delivery.getStatusHistory().getLast().getStatus()).isEqualTo(NotificationStatus.SENT));
+    }
+
     @DisplayName("POST /animal-post — código de estado por payload")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource(MOCK_DATA + "provideCreateCases")
@@ -972,8 +989,12 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     private List<NotificationDelivery> similarLostPetDeliveriesOf(String username) {
+        return similarLostPetDeliveriesOf(username, NotificationChannel.PUSH);
+    }
+
+    private List<NotificationDelivery> similarLostPetDeliveriesOf(String username, NotificationChannel channel) {
         User recipient = userRepository.findByUsername(username).orElseThrow();
-        return notificationDeliveryRepository.findAllByRecipientAndChannelOrderByCreatedAtDesc(recipient, NotificationChannel.PUSH)
+        return notificationDeliveryRepository.findAllByRecipientAndChannelOrderByCreatedAtDesc(recipient, channel)
                 .stream()
                 .filter(delivery -> delivery.getNotification().getType() == NotificationType.SIMILAR_ANIMAL_RECENTLY_LOST)
                 .toList();
