@@ -1,0 +1,52 @@
+info:
+  name: Get user notifications
+  type: http
+  seq: 7
+
+http:
+  method: GET
+  url: "{{MANADA_SOLIDARIA_HOST}}/users/{{user_id}}/notifications"
+  auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.body.hasUnreadNotification
+      operator: isBoolean
+    - expression: res.body.notifications
+      operator: isArray
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Notificaciones de la campanita (canal IN_APP) del usuario logueado, de la mas nueva a la mas vieja.
+
+  Usa `{{user_id}}`, el usuario que hizo el login (corre `Auth/Login` primero).
+  Devuelve siempre las del usuario del token, aunque se cambie el id de la URL.
+
+  Respuesta:
+  {
+    "hasUnreadNotification": true,
+    "notifications": [
+      {
+        "id": "...",
+        "title": "🚨 ¡Publicaron un animal perdido!",
+        "description": "Se publicó un animal en Bv. España 200, Plaza Centenario. Revisá si puede ser tu mascota perdida.",
+        "createdAt": "2026-10-05T10:03:59.998444",
+        "readed": false,
+        "redirectTo": "/animal/detalle/<id del post>"
+      }
+    ]
+  }
+
+  Para ver la de animal perdido: con otro usuario publica un LOST con hasOwner=true del mismo tipo
+  de animal que uno tuyo en SEARCHING (`AnimalPosts/Create "Mascota perdida"`). Tu propia publicacion no te notifica.
+  Sin notificaciones: 200 con `notifications: []` y `hasUnreadNotification: false`.
+
+  Esperado: 200. Sin token: 401.
