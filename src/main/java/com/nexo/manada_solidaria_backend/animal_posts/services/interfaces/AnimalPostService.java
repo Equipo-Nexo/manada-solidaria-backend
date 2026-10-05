@@ -37,4 +37,6 @@ public interface AnimalPostService {
     List<AnimalPostResponse> getUserAnimalPosts(User user);
 
     Set<UUID> getSearchingOwnerIds(AnimalType animalType);
+
+    List<AnimalPostResponse> getActiveLostPosts();
 }

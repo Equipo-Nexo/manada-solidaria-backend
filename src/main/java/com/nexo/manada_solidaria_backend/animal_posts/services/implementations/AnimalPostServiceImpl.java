@@ -149,6 +149,15 @@ public class AnimalPostServiceImpl implements AnimalPostService {
         return animalPostRepository.findOwnerIdsByAnimalTypeAndStatus(animalType, StatusLostPost.SEARCHING);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<AnimalPostResponse> getActiveLostPosts() {
+        return animalPostRepository.findActiveLostPosts(LostPost.HAPPY_STATUSES)
+                .stream()
+                .map(AnimalPostResponse::from)
+                .toList();
+    }
+
     private static boolean isLostPet(AnimalPost<?, ?> post) {
         return post.getType() == AnimalPostFilter.LOST;
     }

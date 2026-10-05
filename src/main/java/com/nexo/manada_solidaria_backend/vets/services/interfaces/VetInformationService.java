@@ -14,6 +14,8 @@ public interface VetInformationService {
 
     List<VetInformationResponse> getAll(String search, Boolean openOnly, Double userLatitude, Double userLongitude);
 
+    List<VetInformationResponse> getAll();
+
     VetInformationResponse getById(UUID vetId);
 
     void delete(UUID vetId);
