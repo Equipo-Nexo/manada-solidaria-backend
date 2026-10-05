@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,8 @@ public class QuestionCategory {
     private Integer order;
 
     @OneToMany(mappedBy = "category")
+    @OrderBy("order ASC")
+    @BatchSize(size = 50)
     private List<QuestionForm> questions = new ArrayList<>();
 
     @Id

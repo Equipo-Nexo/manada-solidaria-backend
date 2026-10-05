@@ -6,6 +6,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.models.QuestionCatego
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.QuestionForm;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.QuestionFormDetail;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -56,6 +57,7 @@ public record QuestionCategoryResponse(
                 category.getDescription(),
                 category.getQuestions().stream()
                         .filter(QuestionForm::isActive)
+                        .sorted(Comparator.comparing(QuestionForm::getOrder, Comparator.nullsLast(Comparator.naturalOrder())))
                         .map(QuestionFormResponse::from)
                         .toList()
         );
