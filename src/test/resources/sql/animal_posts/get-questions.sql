@@ -6,7 +6,7 @@ VALUES
 INSERT INTO question_forms (id, title, question_type, icon_name, placeholder, sort_order, is_active, category_id)
 VALUES
 ('a1111111-1111-1111-1111-111111111111', 'Tipo de vivienda', 'SELECTION', 'Home', 'Seleccioná una opción', 1, true, '11111111-1111-1111-1111-111111111111'),
-('a2222222-2222-2222-2222-222222222222', '¿Tenés experiencia previa con mascotas?', 'SELECTION', 'HeartHandshake', 'Seleccioná una opción', 1, true, '22222222-2222-2222-2222-222222222222');
+('a2222222-2222-2222-2222-222222222222', '¿Tenés experiencia previa con mascotas?', 'SELECTION', 'HandHeart', 'Seleccioná una opción', 1, true, '22222222-2222-2222-2222-222222222222');
 
 INSERT INTO question_form_details (id, description, question_form_id)
 VALUES
