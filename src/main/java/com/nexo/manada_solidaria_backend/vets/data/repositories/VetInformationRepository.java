@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.vets.data.repositories;
 
 import com.nexo.manada_solidaria_backend.vets.data.models.VetInformation;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,6 +12,9 @@ import java.util.List;
 import java.util.UUID;
 
 public interface VetInformationRepository extends JpaRepository<VetInformation, UUID> {
+
+    @EntityGraph(attributePaths = {"location", "calendar"})
+    List<VetInformation> findAllByOrderByNameAsc();
 
     @Query("SELECT v FROM VetInformation v " +
             "LEFT JOIN FETCH v.location l " +

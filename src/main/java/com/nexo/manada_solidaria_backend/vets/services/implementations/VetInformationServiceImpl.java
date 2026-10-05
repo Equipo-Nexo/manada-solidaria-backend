@@ -50,6 +50,14 @@ public class VetInformationServiceImpl implements VetInformationService {
     }
 
     @Override
+    public List<VetInformationResponse> getAll() {
+        return repository.findAllByOrderByNameAsc()
+                .stream()
+                .map(this::buildResponse)
+                .toList();
+    }
+
+    @Override
     public VetInformationResponse getById(UUID vetId) {
         VetInformation vet = getVetInformationOrThrow(vetId);
         return buildResponse(vet);
