@@ -385,6 +385,84 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
         mockMvc.perform(request).andExpect(status().isUnauthorized());
     }
 
+    @Test
+    @DisplayName("POST /adoption-forms/{adoptionFormId}/read — El reviewer marca el formulario como leído y retorna 204 NO_CONTENT")
+    void markAsRead_asReviewer_returnsNoContentAndUpdatesStatus() throws Exception {
+        User owner = createOtherUser("owner-read", "owner_read@mail.com");
+        User applicant = createOtherUser("applicant-read", "applicant_read@mail.com");
+
+        AdoptionPost post = saveAdoptionPost("Gatito para revisión", owner);
+        AdoptionForm form = new AdoptionForm(
+                "Quiero adoptar esta mascota",
+                new PhoneNumber("353", "4123456"),
+                applicant,
+                post
+        );
+        AdoptionForm savedForm = adoptionFormRepository.save(form);
+        assertThat(savedForm.isRead()).isFalse();
+
+        String ownerToken = createTokenForUser(owner);
+
+        mockMvc.perform(
+                        post("/adoption-forms/{adoptionFormId}/read", savedForm.getId())
+                                .header("Authorization", "Bearer " + ownerToken)
+                )
+                .andExpect(status().isNoContent());
+
+        AdoptionForm updatedForm = adoptionFormRepository.findById(savedForm.getId()).orElseThrow();
+        assertThat(updatedForm.isRead()).isTrue();
+    }
+
+    @Test
+    @DisplayName("POST /adoption-forms/{adoptionFormId}/read — Un usuario que NO es el dueño de la publicación devuelve 403 FORBIDDEN")
+    void markAsRead_whenUserIsNotReviewer_returnsForbidden() throws Exception {
+        User owner = createOtherUser("owner-read-forb", "owner_read_forb@mail.com");
+        User applicant = createOtherUser("applicant-read-forb", "applicant_read_forb@mail.com");
+
+        AdoptionPost post = saveAdoptionPost("Mascota en adopción", owner);
+        AdoptionForm form = new AdoptionForm(
+                "Descripción de prueba",
+                new PhoneNumber("353", "4123456"),
+                applicant,
+                post
+        );
+        AdoptionForm savedForm = adoptionFormRepository.save(form);
+
+        // El usuario autenticado (admin) NO es el dueño de la publicación (owner)
+        mockMvc.perform(
+                        post("/adoption-forms/{adoptionFormId}/read", savedForm.getId())
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errors", hasItem(containsString("No tienes permisos para revisar este formulario de adopción"))));
+
+        AdoptionForm unchangedForm = adoptionFormRepository.findById(savedForm.getId()).orElseThrow();
+        assertThat(unchangedForm.isRead()).isFalse();
+    }
+
+    @Test
+    @DisplayName("POST /adoption-forms/{adoptionFormId}/read — ID de formulario inexistente devuelve 404 NOT_FOUND")
+    void markAsRead_nonExistentForm_returnsNotFound() throws Exception {
+        mockMvc.perform(
+                        post("/adoption-forms/{adoptionFormId}/read", UUID.randomUUID())
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isNotFound());
+    }
+
+    @DisplayName("POST /adoption-forms/{adoptionFormId}/read — Sin autenticación o con token inválido devuelve 401 UNAUTHORIZED")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideGetFormsUnauthorizedCases")
+    void markAsRead_unauthorizedCases(String testName, String token) throws Exception {
+        MockHttpServletRequestBuilder request = post("/adoption-forms/{adoptionFormId}/read", MockAdoptionFormDataUtils.FORM_ID);
+
+        if (token != null) {
+            request = request.header("Authorization", "Bearer " + token);
+        }
+
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
+    }
+
     private String createTokenForUser(User user) throws Exception {
         String response = mockMvc.perform(
                 post("/auth/login")
@@ -470,83 +548,5 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
         );
         form.addAnswer(new AdoptionFormDetail("Sí", form, q));
         adoptionFormRepository.save(form);
-    }
-
-    @Test
-    @DisplayName("POST /adoption-forms/{adoptionFormId}/read — El reviewer marca el formulario como leído y retorna 204 NO_CONTENT")
-    void markAsRead_asReviewer_returnsNoContentAndUpdatesStatus() throws Exception {
-        User owner = createOtherUser("owner-read", "owner_read@mail.com");
-        User applicant = createOtherUser("applicant-read", "applicant_read@mail.com");
-
-        AdoptionPost post = saveAdoptionPost("Gatito para revisión", owner);
-        AdoptionForm form = new AdoptionForm(
-                "Quiero adoptar esta mascota",
-                new PhoneNumber("353", "4123456"),
-                applicant,
-                post
-        );
-        AdoptionForm savedForm = adoptionFormRepository.save(form);
-        assertThat(savedForm.isRead()).isFalse();
-
-        String ownerToken = createTokenForUser(owner);
-
-        mockMvc.perform(
-                        post("/adoption-forms/{adoptionFormId}/read", savedForm.getId())
-                                .header("Authorization", "Bearer " + ownerToken)
-                )
-                .andExpect(status().isNoContent());
-
-        AdoptionForm updatedForm = adoptionFormRepository.findById(savedForm.getId()).orElseThrow();
-        assertThat(updatedForm.isRead()).isTrue();
-    }
-
-    @Test
-    @DisplayName("POST /adoption-forms/{adoptionFormId}/read — Un usuario que NO es el dueño de la publicación devuelve 403 FORBIDDEN")
-    void markAsRead_whenUserIsNotReviewer_returnsForbidden() throws Exception {
-        User owner = createOtherUser("owner-read-forb", "owner_read_forb@mail.com");
-        User applicant = createOtherUser("applicant-read-forb", "applicant_read_forb@mail.com");
-
-        AdoptionPost post = saveAdoptionPost("Mascota en adopción", owner);
-        AdoptionForm form = new AdoptionForm(
-                "Descripción de prueba",
-                new PhoneNumber("353", "4123456"),
-                applicant,
-                post
-        );
-        AdoptionForm savedForm = adoptionFormRepository.save(form);
-
-        // El usuario autenticado (admin) NO es el dueño de la publicación (owner)
-        mockMvc.perform(
-                        post("/adoption-forms/{adoptionFormId}/read", savedForm.getId())
-                                .header("Authorization", "Bearer " + accessToken)
-                )
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.errors", hasItem(containsString("No tienes permisos para revisar este formulario de adopción"))));
-
-        AdoptionForm unchangedForm = adoptionFormRepository.findById(savedForm.getId()).orElseThrow();
-        assertThat(unchangedForm.isRead()).isFalse();
-    }
-
-    @Test
-    @DisplayName("POST /adoption-forms/{adoptionFormId}/read — ID de formulario inexistente devuelve 404 NOT_FOUND")
-    void markAsRead_nonExistentForm_returnsNotFound() throws Exception {
-        mockMvc.perform(
-                        post("/adoption-forms/{adoptionFormId}/read", UUID.randomUUID())
-                                .header("Authorization", "Bearer " + accessToken)
-                )
-                .andExpect(status().isNotFound());
-    }
-
-    @DisplayName("POST /adoption-forms/{adoptionFormId}/read — Sin autenticación o con token inválido devuelve 401 UNAUTHORIZED")
-    @ParameterizedTest(name = "{index} - {0}")
-    @MethodSource(MOCK_DATA + "provideGetFormsUnauthorizedCases")
-    void markAsRead_unauthorizedCases(String testName, String token) throws Exception {
-        MockHttpServletRequestBuilder request = post("/adoption-forms/{adoptionFormId}/read", MockAdoptionFormDataUtils.FORM_ID);
-
-        if (token != null) {
-            request = request.header("Authorization", "Bearer " + token);
-        }
-
-        mockMvc.perform(request).andExpect(status().isUnauthorized());
     }
 }
