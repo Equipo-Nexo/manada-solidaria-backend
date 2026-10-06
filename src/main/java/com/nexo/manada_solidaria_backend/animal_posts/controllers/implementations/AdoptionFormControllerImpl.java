@@ -32,4 +32,9 @@ public class AdoptionFormControllerImpl implements AdoptionFormController {
     public AdoptionFormDetailResponse getFormById(UUID adoptionFormId, User authenticatedUser) {
         return adoptionFormService.getFormById(adoptionFormId, authenticatedUser);
     }
+
+    @Override
+    public void markAsRead(UUID formId, User authenticatedUser) {
+        adoptionFormService.markAsRead(formId, authenticatedUser);
+    }
 }
