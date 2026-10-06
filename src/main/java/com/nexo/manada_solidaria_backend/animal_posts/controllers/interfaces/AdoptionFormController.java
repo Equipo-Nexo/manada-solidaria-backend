@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.animal_posts.controllers.interfaces;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAdoptionFormRequest;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormDetailResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormResponse;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import jakarta.validation.Valid;
@@ -25,6 +26,13 @@ public interface AdoptionFormController {
     @ResponseStatus(HttpStatus.OK)
     List<AdoptionFormResponse> getFormsByPostId(
             @PathVariable("postId") UUID postId,
+            @AuthenticationPrincipal User authenticatedUser
+    );
+
+    @GetMapping("/{adoptionFormId}")
+    @ResponseStatus(HttpStatus.OK)
+    AdoptionFormDetailResponse getFormById(
+            @PathVariable("adoptionFormId") UUID adoptionFormId,
             @AuthenticationPrincipal User authenticatedUser
     );
 }

@@ -28,6 +28,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,6 +64,9 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -212,6 +216,89 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     @Test
+    @DisplayName("GET /adoption-forms/{adoptionFormId} — Obtiene el detalle del formulario para el postulante")
+    void getFormById_returnsOk() throws Exception {
+        User owner = createOtherUser("owner-get-id", "owner_get_id@mail.com");
+        User applicant = createOtherUser("applicant-get-id", "applicant_get_id@mail.com");
+
+        AdoptionPost post = saveAdoptionPost("Busco hogar para gata", owner);
+        QuestionForm q1 = saveQuestion("¿Alquilás? ¿Te permiten mascotas?");
+        QuestionForm q2 = saveQuestion("¿Contás con patio cerrado?");
+
+        AdoptionForm form = new AdoptionForm(
+                "Quiero una gatita para que le haga compañía a mi gato de 2 años para que crezcan juntos.",
+                new PhoneNumber("353", "4123456"),
+                applicant,
+                post
+        );
+        form.addAnswer(new AdoptionFormDetail("Alquilo y sí me permiten.", form, q1));
+        form.addAnswer(new AdoptionFormDetail("Sí, totalmente cerrado.", form, q2));
+        AdoptionForm savedForm = adoptionFormRepository.save(form);
+
+        String applicantToken = createTokenForUser(applicant);
+
+        mockMvc.perform(
+                        get("/adoption-forms/{adoptionFormId}", savedForm.getId())
+                                .header("Authorization", "Bearer " + applicantToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(savedForm.getId().toString()))
+                .andExpect(jsonPath("$.adoptionPostId").value(post.getId().toString()))
+                .andExpect(jsonPath("$.animalName").value("Busco hogar para gata"))
+                .andExpect(jsonPath("$.applicantId").value(applicant.getId().toString()))
+                .andExpect(jsonPath("$.description").value("Quiero una gatita para que le haga compañía a mi gato de 2 años para que crezcan juntos."))
+                .andExpect(jsonPath("$.phoneNumber.areaCode").value("353"))
+                .andExpect(jsonPath("$.phoneNumber.number").value("4123456"))
+                .andExpect(jsonPath("$.categories").isArray());
+    }
+
+    @Test
+    @DisplayName("GET /adoption-forms/{adoptionFormId} cuando un usuario sin relación intenta acceder devuelve FORBIDDEN 403")
+    void getFormById_unauthorizedUser_returnsForbidden() throws Exception {
+        User owner = createOtherUser("owner-forb", "owner_forb@mail.com");
+        User applicant = createOtherUser("applicant-forb", "applicant_forb@mail.com");
+        AdoptionPost post = saveAdoptionPost("Mascota en adopción", owner);
+
+        AdoptionForm form = new AdoptionForm(
+                "Descripción de prueba",
+                new PhoneNumber("353", "4123456"),
+                applicant,
+                post
+        );
+        AdoptionForm savedForm = adoptionFormRepository.save(form);
+
+        mockMvc.perform(
+                        get("/adoption-forms/{adoptionFormId}", savedForm.getId())
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errors", hasItem(containsString("No tienes permisos para consultar este formulario de adopción"))));
+    }
+
+    @Test
+    @DisplayName("GET /adoption-forms/{adoptionFormId} con ID inexistente devuelve NOT_FOUND 404")
+    void getFormById_nonExistent_returnsNotFound() throws Exception {
+        mockMvc.perform(
+                        get("/adoption-forms/{adoptionFormId}", UUID.randomUUID())
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isNotFound());
+    }
+
+    @DisplayName("GET /adoption-forms/{adoptionFormId} sin autenticación o con token inválido devuelve UNAUTHORIZED 401")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideGetFormsUnauthorizedCases")
+    void getFormById_unauthorizedCases(String testName, String token) throws Exception {
+        MockHttpServletRequestBuilder request = get("/adoption-forms/{adoptionFormId}", MockAdoptionFormDataUtils.FORM_ID);
+
+        if (token != null) {
+            request = request.header("Authorization", "Bearer " + token);
+        }
+
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
+    }
+
+    @Test
     @DisplayName("GET /adoption-forms/post/{postId} — El dueño de la publicación obtiene sus formularios exitosamente")
     void getFormsByPostId_asOwner_returnsOk() throws Exception {
         User owner = admin();
@@ -298,6 +385,15 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
         mockMvc.perform(request).andExpect(status().isUnauthorized());
     }
 
+    private String createTokenForUser(User user) throws Exception {
+        String response = mockMvc.perform(
+                post("/auth/login")
+                        .header("Authorization", getCredentials(user.getUsername(), "password"))
+        ).andReturn().getResponse().getContentAsString();
+
+        return mapper.readTree(response).get("accessToken").asText();
+    }
+
     private AdoptionPost saveAdoptionPost(String name, User owner) {
         AdoptionPost post = new AdoptionPost(
                 name,
@@ -330,7 +426,11 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     private User createOtherUser(String username, String email) {
-        User user = new User(username, "password", new Profile(email, new PhoneNumber("353", "999999"), Set.of(Rol.COMMUNITY)));
+        User user = new User(
+                username,
+                passwordEncoder.encode("password"),
+                new Profile(email, new PhoneNumber("353", "999999"), Set.of(Rol.COMMUNITY))
+        );
         return userRepository.save(user);
     }
 
