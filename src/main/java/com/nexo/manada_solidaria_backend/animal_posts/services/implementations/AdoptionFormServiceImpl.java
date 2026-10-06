@@ -77,12 +77,13 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
 
     private AdoptionForm buildAdoptionForm(CreateAdoptionFormRequest request, User applicant, AdoptionPost post) {
         AdoptionForm form = new AdoptionForm(
+                request.description(),
                 PhoneNumberRequest.toDomain(request.phoneNumber()),
                 applicant,
                 post
         );
 
-        request.questions().forEach(qReq -> form.addAnswer(buildFormDetail(qReq, form)));
+        request.answers().forEach(aReq -> form.addAnswer(buildFormDetail(aReq, form)));
 
         return form;
     }
@@ -125,13 +126,13 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
         };
     }
 
-    private AdoptionFormDetail buildFormDetail(CreateAdoptionFormRequest.QuestionFormRequest qReq, AdoptionForm form) {
-        QuestionForm questionForm = questionFormRepository.findById(qReq.questionFormId())
+    private AdoptionFormDetail buildFormDetail(CreateAdoptionFormRequest.AnswerFormRequest aReq, AdoptionForm form) {
+        QuestionForm questionForm = questionFormRepository.findById(aReq.questionId())
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "Pregunta no encontrada: " + qReq.questionFormId()
+                        "Pregunta no encontrada: " + aReq.questionId()
                 ));
 
-        return new AdoptionFormDetail(qReq.answer(), form, questionForm);
+        return new AdoptionFormDetail(aReq.answer(), form, questionForm);
     }
 }

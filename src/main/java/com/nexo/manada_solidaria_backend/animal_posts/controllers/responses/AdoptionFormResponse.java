@@ -2,7 +2,6 @@ package com.nexo.manada_solidaria_backend.animal_posts.controllers.responses;
 
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionForm;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionFormDetail;
-import com.nexo.manada_solidaria_backend.animal_posts.data.models.QuestionForm;
 import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 
@@ -15,13 +14,14 @@ public record AdoptionFormResponse(
         UUID adoptionPostId,
         UUID applicantId,
         String applicantName,
+        String description,
         PhoneNumber phoneNumber,
         boolean isRead,
         LocalDateTime createdAt,
-        List<QuestionFormResponse> questions
+        List<QuestionFormResponse> answers
 ) {
     public record QuestionFormResponse(
-            UUID questionFormId,
+            UUID questionId,
             String questionTitle,
             String answer
     ) {
@@ -40,6 +40,7 @@ public record AdoptionFormResponse(
                 form.getAdoptionPost().getId(),
                 form.getApplicant().getId(),
                 buildApplicantFullName(form.getApplicant()),
+                form.getDescription(),
                 form.getPhoneNumber(),
                 form.isRead(),
                 form.getCreatedAt(),

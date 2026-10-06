@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +42,7 @@ public class QuestionForm {
     private QuestionCategory category;
 
     @OneToMany(mappedBy = "questionForm", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 50)
     private List<QuestionFormDetail> details = new ArrayList<>();
 
     @Id

@@ -36,8 +36,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.FORBIDDEN_MESSAGE;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
@@ -68,7 +68,7 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
     private ObjectMapper objectMapper;
 
     @Test
-    @DisplayName("POST /adoption-forms válido: persiste el formulario, sus preguntas y asocia el usuario autenticado")
+    @DisplayName("POST /adoption-forms válido: persiste el formulario con descripción, sus respuestas y asocia el usuario autenticado")
     void createForm_persistsFormAndReturnsCreated() throws Exception {
         User postOwner = createOtherUser("owner-user", "owner@mail.com");
         AdoptionPost post = saveAdoptionPost("Gatito en adopción", postOwner);
@@ -93,13 +93,15 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.adoptionPostId").value(post.getId().toString()))
                 .andExpect(jsonPath("$.applicantId").value(authenticatedUser.getId().toString()))
+                .andExpect(jsonPath("$.description").value("Quiero adoptar una gatita para que crezca con mi gato."))
                 .andExpect(jsonPath("$.phoneNumber.areaCode").value("353"))
                 .andExpect(jsonPath("$.phoneNumber.number").value("4123456"))
                 .andExpect(jsonPath("$.isRead").value(false))
                 .andExpect(jsonPath("$.createdAt").exists())
-                .andExpect(jsonPath("$.questions", hasSize(2)))
-                .andExpect(jsonPath("$.questions[0].questionTitle").value("¿Alquilás? ¿Te permiten mascotas?"))
-                .andExpect(jsonPath("$.questions[0].answer").value("Alquilo y sí me permiten."));
+                .andExpect(jsonPath("$.answers", hasSize(2)))
+                .andExpect(jsonPath("$.answers[0].questionId").value(q1.getId().toString()))
+                .andExpect(jsonPath("$.answers[0].questionTitle").value("¿Alquilás? ¿Te permiten mascotas?"))
+                .andExpect(jsonPath("$.answers[0].answer").value("Alquilo y sí me permiten."));
 
         List<AdoptionForm> savedForms = adoptionFormRepository.findAll();
         assertThat(savedForms).hasSize(1);
@@ -107,6 +109,7 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
         AdoptionForm saved = savedForms.get(0);
         assertThat(saved.getAdoptionPost().getId()).isEqualTo(post.getId());
         assertThat(saved.getApplicant().getId()).isEqualTo(authenticatedUser.getId());
+        assertThat(saved.getDescription()).isEqualTo("Quiero adoptar una gatita para que crezca con mi gato.");
         assertThat(saved.isRead()).isFalse();
         assertThat(saved.getAnswers()).hasSize(2);
         assertThat(saved.getAnswers().get(0).getQuestionForm().getTitle()).isEqualTo("¿Alquilás? ¿Te permiten mascotas?");
@@ -183,10 +186,11 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
 
         CreateAdoptionFormRequest request = new CreateAdoptionFormRequest(
                 post.getId(),
+                "Descripción opcional corta",
                 new PhoneNumberRequest("353", "4123456"),
                 List.of(
-                        new CreateAdoptionFormRequest.QuestionFormRequest(q1.getId(), ""),
-                        new CreateAdoptionFormRequest.QuestionFormRequest(q2.getId(), "No")
+                        new CreateAdoptionFormRequest.AnswerFormRequest(q1.getId(), ""),
+                        new CreateAdoptionFormRequest.AnswerFormRequest(q2.getId(), "No")
                 )
         );
 
@@ -198,8 +202,9 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.questions", hasSize(2)))
-                .andExpect(jsonPath("$.questions[0].answer").value(""));
+                .andExpect(jsonPath("$.description").value("Descripción opcional corta"))
+                .andExpect(jsonPath("$.answers", hasSize(2)))
+                .andExpect(jsonPath("$.answers[0].answer").value(""));
 
         List<AdoptionForm> savedForms = adoptionFormRepository.findAll();
         assertThat(savedForms).hasSize(1);
@@ -345,6 +350,7 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
         AdoptionPost postOfOther = saveAdoptionPost("Mascota de otro", postOwner);
         QuestionForm q = saveQuestion("¿Patio?");
         AdoptionForm form = new AdoptionForm(
+                "Descripción del solicitante",
                 new PhoneNumber("353", "4123456"),
                 applicant,
                 postOfOther
@@ -357,6 +363,7 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
         AdoptionPost adminPost = saveAdoptionPost("Mascota de admin", postOwner);
         QuestionForm q = saveQuestion("¿Patio?");
         AdoptionForm form = new AdoptionForm(
+                "Descripción del solicitante",
                 new PhoneNumber("353", "4123456"),
                 applicant,
                 adminPost

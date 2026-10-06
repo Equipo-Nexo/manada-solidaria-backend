@@ -23,10 +23,11 @@ public class MockAdoptionFormDataUtils {
     public static CreateAdoptionFormRequest createValidRequest(UUID postId, UUID questionId1, UUID questionId2) {
         return new CreateAdoptionFormRequest(
                 postId,
+                "Quiero adoptar una gatita para que crezca con mi gato.",
                 new PhoneNumberRequest("353", "4123456"),
                 List.of(
-                        new CreateAdoptionFormRequest.QuestionFormRequest(questionId1, "Alquilo y sí me permiten."),
-                        new CreateAdoptionFormRequest.QuestionFormRequest(questionId2, "Sí, totalmente cerrado.")
+                        new CreateAdoptionFormRequest.AnswerFormRequest(questionId1, "Alquilo y sí me permiten."),
+                        new CreateAdoptionFormRequest.AnswerFormRequest(questionId2, "Sí, totalmente cerrado.")
                 )
         );
     }
@@ -38,22 +39,25 @@ public class MockAdoptionFormDataUtils {
     public static CreateAdoptionFormRequest createWithoutPostId() {
         return new CreateAdoptionFormRequest(
                 null,
+                "Quiero adoptar una mascota.",
                 new PhoneNumberRequest("353", "4123456"),
-                List.of(new CreateAdoptionFormRequest.QuestionFormRequest(UUID.randomUUID(), "Sí."))
+                List.of(new CreateAdoptionFormRequest.AnswerFormRequest(UUID.randomUUID(), "Sí."))
         );
     }
 
     public static CreateAdoptionFormRequest createWithoutPhone(UUID postId) {
         return new CreateAdoptionFormRequest(
                 postId,
+                "Quiero adoptar una mascota.",
                 null,
-                List.of(new CreateAdoptionFormRequest.QuestionFormRequest(UUID.randomUUID(), "Sí."))
+                List.of(new CreateAdoptionFormRequest.AnswerFormRequest(UUID.randomUUID(), "Sí."))
         );
     }
 
     public static CreateAdoptionFormRequest createWithoutQuestions(UUID postId) {
         return new CreateAdoptionFormRequest(
                 postId,
+                "Quiero adoptar una mascota.",
                 new PhoneNumberRequest("353", "4123456"),
                 Collections.emptyList()
         );
@@ -62,8 +66,9 @@ public class MockAdoptionFormDataUtils {
     public static CreateAdoptionFormRequest createWithoutQuestionFormId(UUID postId) {
         return new CreateAdoptionFormRequest(
                 postId,
+                "Quiero adoptar una mascota.",
                 new PhoneNumberRequest("353", "4123456"),
-                List.of(new CreateAdoptionFormRequest.QuestionFormRequest(null, "Respuesta sin id de pregunta"))
+                List.of(new CreateAdoptionFormRequest.AnswerFormRequest(null, "Respuesta sin id de pregunta"))
         );
     }
 
