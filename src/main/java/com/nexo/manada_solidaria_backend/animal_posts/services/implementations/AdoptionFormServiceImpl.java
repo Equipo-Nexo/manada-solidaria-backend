@@ -148,7 +148,7 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
     }
 
     private AdoptionForm getAdoptionFormOrThrow(UUID adoptionFormId) {
-        return adoptionFormRepository.findById(adoptionFormId)
+        return adoptionFormRepository.findByIdWithDetailsOrdered(adoptionFormId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "El formulario de adopción no fue encontrado"

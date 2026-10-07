@@ -37,27 +37,19 @@ public record AdoptionFormDetailResponse(
     ) {}
 
     public static AdoptionFormDetailResponse from(AdoptionForm form) {
-        Map<QuestionCategory, List<QuestionAnswerResponse>> categoryMap = new LinkedHashMap<>();
+        Map<QuestionCategory, List<AdoptionFormDetail>> categoryMap = new LinkedHashMap<>();
 
         for (AdoptionFormDetail detail : form.getAnswers()) {
             QuestionCategory category = detail.getQuestionForm().getCategory();
-
-            QuestionAnswerResponse qAns = new QuestionAnswerResponse(
-                    detail.getQuestionForm().getId(),
-                    detail.getQuestionForm().getTitle(),
-                    detail.getQuestionForm().getIconName(),
-                    detail.getAnswer()
-            );
-
-            categoryMap.computeIfAbsent(category, k -> new ArrayList<>()).add(qAns);
+            categoryMap.computeIfAbsent(category, k -> new ArrayList<>()).add(detail);
         }
 
         List<CategoryAnswersResponse> categoriesList = categoryMap.entrySet().stream()
-                .map(entry -> new CategoryAnswersResponse(
-                        entry.getKey() != null ? entry.getKey().getId() : null,
-                        entry.getKey() != null ? entry.getKey().getName() : "General",
-                        entry.getValue()
+                .sorted(Comparator.comparing(
+                        entry -> entry.getKey() != null ? entry.getKey().getOrder() : null,
+                        Comparator.nullsLast(Comparator.naturalOrder())
                 ))
+                .map(AdoptionFormDetailResponse::toCategoryAnswersResponse)
                 .toList();
 
         return new AdoptionFormDetailResponse(
@@ -72,6 +64,29 @@ public record AdoptionFormDetailResponse(
                 form.isRead(),
                 form.getCreatedAt(),
                 categoriesList
+        );
+    }
+
+    private static CategoryAnswersResponse toCategoryAnswersResponse(Map.Entry<QuestionCategory, List<AdoptionFormDetail>> entry) {
+        QuestionCategory category = entry.getKey();
+
+        List<QuestionAnswerResponse> sortedQuestions = entry.getValue().stream()
+                .sorted(Comparator.comparing(
+                        detail -> detail.getQuestionForm().getOrder(),
+                        Comparator.nullsLast(Comparator.naturalOrder())
+                ))
+                .map(detail -> new QuestionAnswerResponse(
+                        detail.getQuestionForm().getId(),
+                        detail.getQuestionForm().getTitle(),
+                        detail.getQuestionForm().getIconName(),
+                        detail.getAnswer()
+                ))
+                .toList();
+
+        return new CategoryAnswersResponse(
+                category != null ? category.getId() : null,
+                category != null ? category.getName() : "General",
+                sortedQuestions
         );
     }
 
