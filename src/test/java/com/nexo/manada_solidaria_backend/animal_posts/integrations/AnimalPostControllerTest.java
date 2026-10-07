@@ -783,6 +783,77 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         mockMvc.perform(request).andExpect(status().isUnauthorized());
     }
 
+    @DisplayName("POST /animal-posts avisa a los hogares de transito, menos al autor, solo si la adopcion busca transito")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideTransitNotificationCreateCases")
+    @Sql(statements = "INSERT INTO profile_roles (profile_id, role) VALUES ('11111111-1111-1111-1111-111111111111', 'TRANSITIONAL_HOME')")
+    void create_notifiesTransitHomesWhenSearchingTransit(String testName, String body, String username, int expectedDeliveries) throws Exception {
+        seedTransitScenario();
+
+        postAnimalPost(body).andExpect(status().isCreated());
+
+        assertThat(transitDeliveriesOf(username)).hasSize(expectedDeliveries);
+    }
+
+    @DisplayName("PATCH /animal-posts/{id}/status avisa a los hogares de transito solo si la adopcion pasa a buscar transito")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideTransitNotificationTransitionCases")
+    void transitionStatus_notifiesTransitHomesWhenSearchingTransit(
+            String testName,
+            String startStatus,
+            String targetStatus,
+            int expectedDeliveries
+    ) throws Exception {
+        seedTransitScenario();
+        AdoptionPost post = saveAdoptionPost("Adopcion", StatusAdoptionPost.valueOf(startStatus));
+
+        patchStatus(post.getId(), targetStatus).andExpect(status().isOk());
+
+        assertThat(transitDeliveriesOf("transito")).hasSize(expectedDeliveries);
+    }
+
+    @Test
+    @DisplayName("El aviso de transito en la campanita lleva el texto y el link al post, y queda SENT")
+    void transitNotification_hasTextAndLinkToPost() throws Exception {
+        seedTransitScenario();
+
+        String response = postAnimalPost(MockAnimalPostDataUtils.ADOPTION_VALID)
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        String postId = mapper.readTree(response).get("id").asText();
+
+        NotificationDelivery delivery = transitDeliveriesOf("transito").getFirst();
+        assertThat(delivery.getTitle()).isEqualTo("🏠 Un animal necesita hogar de tránsito");
+        assertThat(delivery.getMessage()).isEqualTo("Hay un animal buscando adopción y tránsito. ¿Podés recibirlo?");
+        assertThat(delivery.getRedirectTo()).isEqualTo("/animal/detalle/" + postId);
+        assertThat(delivery.getStatusHistory().getLast().getStatus()).isEqualTo(NotificationStatus.SENT);
+    }
+
+    private void seedTransitScenario() {
+        notificationRepository.save(new Notification(
+                "🏠 Un animal necesita hogar de tránsito",
+                "Hay un animal buscando adopción y tránsito. ¿Podés recibirlo?",
+                null,
+                "/animal/detalle/{postId}",
+                NotificationType.IN_ADOPTION_AND_TRANSIT_PET
+        ));
+        saveUserWithRole("transito", Rol.TRANSITIONAL_HOME);
+        saveUserWithRole("comunidad", Rol.COMMUNITY);
+    }
+
+    private void saveUserWithRole(String username, Rol role) {
+        userRepository.save(new User(username, "x",
+                new Profile(username + "@mail.com", new PhoneNumber("353", "4014524"), Set.of(role))));
+    }
+
+    private List<NotificationDelivery> transitDeliveriesOf(String username) {
+        User recipient = userRepository.findByUsername(username).orElseThrow();
+        return notificationDeliveryRepository.findAllByRecipientAndChannelOrderByCreatedAtDesc(recipient, NotificationChannel.IN_APP)
+                .stream()
+                .filter(delivery -> delivery.getNotification().getType() == NotificationType.IN_ADOPTION_AND_TRANSIT_PET)
+                .toList();
+    }
+
     private void seedAnimalVariety() {
         saveLostPost("Perro chico perdido", StatusLostPost.SEARCHING, true,
                 animal(AnimalType.DOG, AnimalSize.SMALL, AnimalGender.MALE, AnimalAge.PUPPY, "BLACK"));

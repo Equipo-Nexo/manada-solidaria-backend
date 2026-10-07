@@ -37,3 +37,8 @@ settings:
   followRedirects: true
   maxRedirects: 5
   forwardAuthorizationHeader: true
+
+docs: |-
+  Notificacion (MS-205): si una adopcion pasa a SEARCHING_ADOPT_AND_TRANSIT (perdio el transito y lo vuelve a buscar)
+  se manda un push y una notificacion de campanita "🏠 Un animal necesita hogar de tránsito" a los usuarios con rol
+  TRANSITIONAL_HOME, menos al autor. Ninguna otra transicion notifica. La respuesta no cambia (200).

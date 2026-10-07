@@ -66,6 +66,10 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                     new NotificationContext(owner.getId(), saved.getAnimal().getType()));
         }
 
+        if (isSearchingTransit(saved)) {
+            notifyTransitHomes(saved);
+        }
+
         log.info("Animal post created: id={} type={} owner={}", saved.getId(), saved.getType(), owner.getId());
         return AnimalPostResponse.from(saved);
     }
@@ -113,7 +117,22 @@ public class AnimalPostServiceImpl implements AnimalPostService {
         log.info("Animal post status changed: id={} {} -> {} by={}",
                 animalPostId, previousStatus, request.status(), authenticatedUser.getId());
 
-        return AnimalPostResponse.from(animalPostRepository.save(post));
+        AnimalPost saved = animalPostRepository.save(post);
+        if (isSearchingTransit(saved)) {
+            notifyTransitHomes(saved);
+        }
+        return AnimalPostResponse.from(saved);
+    }
+
+    private static boolean isSearchingTransit(AnimalPost<?, ?> post) {
+        return post instanceof AdoptionPost adoptionPost && adoptionPost.isSearchingTransit();
+    }
+
+    private void notifyTransitHomes(AnimalPost<?, ?> post) {
+        notificationService.notify(
+                NotificationType.IN_ADOPTION_AND_TRANSIT_PET,
+                Map.of("postId", post.getId()),
+                new NotificationContext(post.getOwner().getId()));
     }
 
     @Override

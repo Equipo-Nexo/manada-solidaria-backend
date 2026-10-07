@@ -79,4 +79,8 @@ public class AdoptionPost extends AnimalPost<StatusAdoptionPost, AdoptionPostSta
     public boolean isAdopted() {
         return getCurrentStatus().getStatus() == StatusAdoptionPost.ADOPTED;
     }
+
+    public boolean isSearchingTransit() {
+        return getCurrentStatus().getStatus() == StatusAdoptionPost.SEARCHING_ADOPT_AND_TRANSIT;
+    }
 }
