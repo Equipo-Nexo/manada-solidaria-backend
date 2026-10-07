@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.users.services.implementations;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormResponse;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormsWithCountersResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AdoptionFormService;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
@@ -146,7 +147,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AdoptionFormResponse> getFormsByUser(FormFilter filter, User authenticatedUser) {
+    public AdoptionFormsWithCountersResponse getFormsByUser(FormFilter filter, User authenticatedUser) {
         return adoptionFormService.getFormsByUser(authenticatedUser.getId(), filter);
     }
 

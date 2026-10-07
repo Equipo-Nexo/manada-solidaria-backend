@@ -353,13 +353,19 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
     @DisplayName("GET /users/adoption-forms — Consulta exitosa parametrizada por filtro (OWNER y REVIEWER)")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource(MOCK_DATA + "provideGetFormsByUserFilterCases")
-    void getFormsByUser_successCases(String testName, String filter, int expectedSize) throws Exception {
+    void getFormsByUser_successCases(
+            String testName,
+            String filter,
+            int expectedTotal,
+            int expectedPending,
+            int expectedReviewed
+    ) throws Exception {
         adoptionFormRepository.deleteAll();
 
         User currentAdmin = admin();
         User otherUser = createOtherUser("other-user-filter-" + UUID.randomUUID(), "otherfilter@mail.com");
 
-        setupMockFormsForFilter(filter, expectedSize, currentAdmin, otherUser);
+        setupMockFormsForFilter(filter, expectedTotal, currentAdmin, otherUser);
 
         mockMvc.perform(
                         get("/users/adoption-forms")
@@ -367,8 +373,22 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
                                 .header("Authorization", "Bearer " + accessToken)
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$", hasSize(expectedSize)));
+                .andExpect(jsonPath("$.counters.total").value(expectedTotal))
+                .andExpect(jsonPath("$.counters.pending").value(expectedPending))
+                .andExpect(jsonPath("$.counters.reviewed").value(expectedReviewed))
+                .andExpect(jsonPath("$.forms").isArray())
+                .andExpect(jsonPath("$.forms", hasSize(expectedTotal)));
+    }
+
+    @Test
+    @DisplayName("GET /users/adoption-forms sin parámetro filter devuelve BAD_REQUEST 400")
+    void getFormsByUser_withoutFilter_returnsBadRequest() throws Exception {
+        mockMvc.perform(
+                        get("/users/adoption-forms")
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0]").value("El parámetro 'filter' es obligatorio. Valores permitidos: OWNER, REVIEWER."));
     }
 
     @DisplayName("GET /users/adoption-forms — Sin autenticación o con token inválido devuelve UNAUTHORIZED 401")

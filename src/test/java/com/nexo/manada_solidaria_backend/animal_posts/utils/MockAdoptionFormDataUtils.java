@@ -103,8 +103,8 @@ public class MockAdoptionFormDataUtils {
 
     public static Stream<Arguments> provideGetFormsByUserFilterCases() {
         return Stream.of(
-                Arguments.of("Filtro OWNER retorna formularios completados por el usuario", "OWNER", 1),
-                Arguments.of("Filtro REVIEWER retorna formularios a revisar de sus publicaciones", "REVIEWER", 0)
+                Arguments.of("Filtro OWNER retorna formularios completados por el usuario", "OWNER", 1, 1, 0),
+                Arguments.of("Filtro REVIEWER retorna formularios a revisar de sus publicaciones", "REVIEWER", 0, 0, 0)
         );
     }
 
