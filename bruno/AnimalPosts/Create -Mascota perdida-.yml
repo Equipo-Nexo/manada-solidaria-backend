@@ -51,6 +51,11 @@ settings:
   maxRedirects: 5
 
 docs: |-
+  Notificacion (MS-206): al crear una mascota perdida (LOST con hasOwner=true) se manda un push y una
+  notificacion de campanita "🚨 ¡Publicaron un animal perdido!" a los usuarios que buscan un animal del mismo tipo (tienen un
+  LOST en SEARCHING), menos al autor y una sola vez por usuario. La respuesta no cambia (201) y
+  el post se crea aunque falle el envio. Los "en la calle" no notifican.
+
   Generated from cURL: curl --location 'http://localhost:8080/animal-post' \
   --header 'Content-Type: application/json' \
   --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI1MWFkZWE2ZC01ZGM1LTQxZmUtYTJhMy0wNTVlZjM2ZmIxZTAiLCJleHAiOjE3ODEwNTU4NDQsImlhdCI6MTc4MTA1MjI0NCwicm9sZXMiOlsiQ09NTVVOSVRZIl19.6XcZETal-dQhxNo6sw0rSUhHQDtfK_0GXtBa8Za9C18' \
