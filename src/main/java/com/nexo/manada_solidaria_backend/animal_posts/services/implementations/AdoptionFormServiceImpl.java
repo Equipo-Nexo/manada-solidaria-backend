@@ -77,6 +77,20 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
         return AdoptionFormDetailResponse.from(form);
     }
 
+    @Override
+    @Transactional
+    public void markAsRead(UUID formId, User reviewer) {
+        AdoptionForm form = getAdoptionFormOrThrow(formId);
+
+        validateIsReviewer(form, reviewer);
+
+        if (!form.isRead()) {
+            form.setRead(true);
+            adoptionFormRepository.save(form);
+            log.info("Adoption form marked as read: id={} by reviewer={}", formId, reviewer.getId());
+        }
+    }
+
     private void validateNotOwner(AdoptionPost post, User applicant) {
         if (post.getOwner().getId().equals(applicant.getId())) {
             throw new ResponseStatusException(
@@ -163,6 +177,17 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
                     "No tienes permisos para consultar este formulario de adopción"
+            );
+        }
+    }
+
+    private void validateIsReviewer(AdoptionForm form, User reviewer) {
+        boolean isPostOwner = form.getAdoptionPost().getOwner().getId().equals(reviewer.getId());
+
+        if (!isPostOwner) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "No tienes permisos para revisar este formulario de adopción"
             );
         }
     }
