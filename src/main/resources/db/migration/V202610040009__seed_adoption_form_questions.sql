@@ -178,4 +178,4 @@ INSERT INTO question_form_details (id, description, question_form_id) VALUES
 -- Opciones: ¿Tenés posibilidad de darle atención veterinaria...?
 INSERT INTO question_form_details (id, description, question_form_id) VALUES
 (UUID_TO_BIN('d06c3a57-a7cc-478b-bafb-17ac1e880075'), 'Sí', UUID_TO_BIN('83827721-847f-4d27-b211-de046017f84e')),
-(UUID_TO_BIN('139fed22-cd8a-4f63-89ce-a30a2785348d'), 'No', UUID_TO_BIN('83827721-847f-4d27-b211-de046017f84e'));
+(UUID_TO_BIN('889fed22-cd8a-4f63-89ce-a30a2785348f'), 'No', UUID_TO_BIN('83827721-847f-4d27-b211-de046017f84e'));
