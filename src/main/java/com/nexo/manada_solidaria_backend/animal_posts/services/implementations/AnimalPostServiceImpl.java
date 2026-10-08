@@ -18,6 +18,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.Animal
 import com.nexo.manada_solidaria_backend.common.utils.EnumUtils;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.notifications.components.recipients.data.NotificationContext;
+import com.nexo.manada_solidaria_backend.notifications.components.recipients.data.NotificationContext.AnimalTraits;
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -59,11 +60,11 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                     Map.of("postId", saved.getId()));
         }
 
-        if (isLostPet(saved)) {
+        if (isStreetAnimal(saved)) {
             notificationService.notify(
                     NotificationType.SIMILAR_ANIMAL_RECENTLY_LOST,
                     Map.of("postId", saved.getId(), "location", describe(saved.getLocation())),
-                    new NotificationContext(owner.getId(), saved.getAnimal().getType()));
+                    new NotificationContext(owner.getId(), new AnimalTraits(saved.getAnimal().getType(), saved.getAnimal().getColor())));
         }
 
         log.info("Animal post created: id={} type={} owner={}", saved.getId(), saved.getType(), owner.getId());
@@ -145,8 +146,8 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     }
 
     @Override
-    public Set<UUID> getSearchingOwnerIds(AnimalType animalType) {
-        return animalPostRepository.findOwnerIdsByAnimalTypeAndStatus(animalType, StatusLostPost.SEARCHING);
+    public Set<UUID> getSearchingOwnerIds(AnimalType animalType, String animalColor) {
+        return animalPostRepository.findOwnerIdsByAnimalTypeColorAndStatus(animalType, animalColor, StatusLostPost.SEARCHING);
     }
 
     @Override
@@ -158,8 +159,8 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                 .toList();
     }
 
-    private static boolean isLostPet(AnimalPost<?, ?> post) {
-        return post.getType() == AnimalPostFilter.LOST;
+    private static boolean isStreetAnimal(AnimalPost<?, ?> post) {
+        return post.getType() == AnimalPostFilter.IN_STREET;
     }
 
     private static String describe(Location location) {

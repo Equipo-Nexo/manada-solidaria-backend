@@ -6,10 +6,16 @@ import java.util.UUID;
 
 public record NotificationContext(
         UUID postOwnerId,
-        AnimalType animalType
+        AnimalTraits animal
 ) {
 
     public NotificationContext(UUID postOwnerId) {
         this(postOwnerId, null);
+    }
+
+    public record AnimalTraits(
+            AnimalType type,
+            String color
+    ) {
     }
 }
