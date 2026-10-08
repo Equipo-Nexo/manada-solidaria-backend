@@ -24,8 +24,8 @@ public class AdoptionFormItemResponse {
     public static AdoptionFormItemResponse from(AdoptionForm form) {
         return AdoptionFormItemResponse.builder()
                 .id(form.getId())
-                .animalName(form.getAdoptionPost() != null ? form.getAdoptionPost().getName() : null)
-                .animalImageUrl(form.getAdoptionPost() != null ? form.getAdoptionPost().getImageUrl() : null)
+                .animalName(form.getAdoptionPost().getName())
+                .animalName(form.getAdoptionPost().getImageUrl())
                 .description(form.getDescription())
                 .isRead(form.isRead())
                 .createdAt(form.getCreatedAt())
