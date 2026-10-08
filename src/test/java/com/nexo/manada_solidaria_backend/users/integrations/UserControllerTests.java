@@ -458,12 +458,12 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
-    @DisplayName("POST /users/location suma la ubicacion al historial del usuario logueado sin borrar la anterior")
+    @DisplayName("POST /users/save-location suma la ubicacion al historial del usuario logueado sin borrar la anterior")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource(MOCK_DATA + "provideCreateLocationValidCases")
     @Sql(statements = "INSERT INTO user_location (id, user_id, latitude, longitude, created_at) SELECT RANDOM_UUID(), id, 1, 2, TIMESTAMP '2026-01-01 10:00:00' FROM users WHERE username = 'admin'")
     void createLocation_addsToHistory(String testName, CreateUserLocationRequest request) throws Exception {
-        postLocation(request).andExpect(status().isCreated());
+        postLocation(request).andExpect(status().isNoContent());
 
         List<UserLocation> history = locationsOfAdmin();
         UserLocation latest = history.stream().max(Comparator.comparing(UserLocation::getCreatedAt)).orElseThrow();
@@ -472,7 +472,7 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
         assertThat(latest.getLongitude()).isEqualTo(request.longitude());
     }
 
-    @DisplayName("POST /users/location con coordenadas faltantes o fuera de rango devuelve 400 y no guarda nada")
+    @DisplayName("POST /users/save-location con coordenadas faltantes o fuera de rango devuelve 400 y no guarda nada")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource(MOCK_DATA + "provideCreateLocationInvalidCases")
     void createLocation_invalidCoordinates_returnsBadRequest(
@@ -487,11 +487,11 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
         assertThat(locationsOfAdmin()).isEmpty();
     }
 
-    @DisplayName("POST /users/location sin autenticacion valida devuelve 401")
+    @DisplayName("POST /users/save-location sin autenticacion valida devuelve 401")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource(MOCK_DATA + "provideUnauthorizedTokenCases")
     void createLocation_unauthorized(String testName, String token) throws Exception {
-        MockHttpServletRequestBuilder request = post("/users/location")
+        MockHttpServletRequestBuilder request = post("/users/save-location")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(toJson(new CreateUserLocationRequest(-34.6037, -58.3816)));
         if (token != null) {
@@ -502,7 +502,7 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
 
     private ResultActions postLocation(CreateUserLocationRequest request) throws Exception {
         return mockMvc.perform(
-                post("/users/location")
+                post("/users/save-location")
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(toJson(request))

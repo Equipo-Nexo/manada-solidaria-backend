@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: "{{MANADA_SOLIDARIA_HOST}}/users/location"
+  url: "{{MANADA_SOLIDARIA_HOST}}/users/save-location"
   body:
     type: json
     data: |-
@@ -19,7 +19,7 @@ runtime:
   assertions:
     - expression: res.status
       operator: eq
-      value: "201"
+      value: "204"
 
 settings:
   encodeUrl: true
@@ -35,11 +35,11 @@ docs: |-
   - `latitude`: obligatoria, entre -90 y 90 (los bordes valen)
   - `longitude`: obligatoria, entre -180 y 180 (los bordes valen)
 
-  Respuesta: 201 sin body.
+  Respuesta: 204.
 
   Errores:
   - 400 si falta alguna coordenada o esta fuera de rango. Ej.:
-    { "status": 400, "errors": ["La latitud debe estar entre -90 y 90"], "path": "/users/location" }
+    { "status": 400, "errors": ["La latitud debe estar entre -90 y 90"], "path": "/users/save-location" }
   - 400 si el body esta mal formado (ej.: "latitude": "abc")
   - 401 sin token o con token invalido
 

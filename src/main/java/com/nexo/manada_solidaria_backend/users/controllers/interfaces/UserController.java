@@ -56,8 +56,8 @@ public interface UserController {
             @AuthenticationPrincipal User authenticatedUser
     );
 
-    @PostMapping("/location")
-    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/save-location")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     void createLocation(
             @Valid @RequestBody CreateUserLocationRequest request,
             @AuthenticationPrincipal User authenticatedUser
