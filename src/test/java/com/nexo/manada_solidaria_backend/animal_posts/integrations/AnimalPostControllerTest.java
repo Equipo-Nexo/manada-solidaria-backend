@@ -824,7 +824,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
 
         NotificationDelivery delivery = transitDeliveriesOf("transito").getFirst();
         assertThat(delivery.getTitle()).isEqualTo("🏠 Un animal necesita hogar de tránsito");
-        assertThat(delivery.getMessage()).isEqualTo("Hay un animal buscando adopción y tránsito. ¿Podés recibirlo?");
+        assertThat(delivery.getMessage()).isEqualTo("Hay un animal buscando tránsito. ¿Podés recibirlo?");
         assertThat(delivery.getRedirectTo()).isEqualTo("/animal/detalle/" + postId);
         assertThat(delivery.getStatusHistory().getLast().getStatus()).isEqualTo(NotificationStatus.SENT);
     }
@@ -832,7 +832,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     private void seedTransitScenario() {
         notificationRepository.save(new Notification(
                 "🏠 Un animal necesita hogar de tránsito",
-                "Hay un animal buscando adopción y tránsito. ¿Podés recibirlo?",
+                "Hay un animal buscando tránsito. ¿Podés recibirlo?",
                 null,
                 "/animal/detalle/{postId}",
                 NotificationType.IN_ADOPTION_AND_TRANSIT_PET
