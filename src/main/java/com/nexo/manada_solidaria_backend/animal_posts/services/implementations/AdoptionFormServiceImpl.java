@@ -1,7 +1,7 @@
 package com.nexo.manada_solidaria_backend.animal_posts.services.implementations;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAdoptionFormRequest;
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormResponse;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.*;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionForm;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionFormDetail;
@@ -61,9 +61,25 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AdoptionFormResponse> getFormsByUser(UUID userId, FormFilter filter) {
+    public AdoptionFormsWithCountersResponse getFormsByUser(UUID userId, FormFilter filter) {
+        validateFilter(filter);
+
         List<AdoptionForm> forms = fetchFormsByFilter(userId, filter);
-        return mapToAdoptionFormResponses(forms);
+
+        return AdoptionFormsWithCountersResponse.builder()
+                .counters(buildCounters(forms))
+                .forms(mapToFormItemResponses(forms))
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public AdoptionFormDetailResponse getFormById(UUID adoptionFormId, User authenticatedUser) {
+        AdoptionForm form = getAdoptionFormOrThrow(adoptionFormId);
+
+        validateCanAccessForm(form, authenticatedUser);
+
+        return AdoptionFormDetailResponse.from(form);
     }
 
     private void validateNotOwner(AdoptionPost post, User applicant) {
@@ -77,12 +93,13 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
 
     private AdoptionForm buildAdoptionForm(CreateAdoptionFormRequest request, User applicant, AdoptionPost post) {
         AdoptionForm form = new AdoptionForm(
+                request.description(),
                 PhoneNumberRequest.toDomain(request.phoneNumber()),
                 applicant,
                 post
         );
 
-        request.questions().forEach(qReq -> form.addAnswer(buildFormDetail(qReq, form)));
+        request.answers().forEach(aReq -> form.addAnswer(buildFormDetail(aReq, form)));
 
         return form;
     }
@@ -125,13 +142,60 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
         };
     }
 
-    private AdoptionFormDetail buildFormDetail(CreateAdoptionFormRequest.QuestionFormRequest qReq, AdoptionForm form) {
-        QuestionForm questionForm = questionFormRepository.findById(qReq.questionFormId())
+    private AdoptionFormDetail buildFormDetail(CreateAdoptionFormRequest.AnswerFormRequest aReq, AdoptionForm form) {
+        QuestionForm questionForm = questionFormRepository.findById(aReq.questionId())
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "Pregunta no encontrada: " + qReq.questionFormId()
+                        "Pregunta no encontrada: " + aReq.questionId()
                 ));
 
-        return new AdoptionFormDetail(qReq.answer(), form, questionForm);
+        return new AdoptionFormDetail(aReq.answer(), form, questionForm);
+    }
+
+    private AdoptionForm getAdoptionFormOrThrow(UUID adoptionFormId) {
+        return adoptionFormRepository.findById(adoptionFormId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "El formulario de adopción no fue encontrado"
+                ));
+    }
+
+    private void validateCanAccessForm(AdoptionForm form, User user) {
+        boolean isApplicant = form.getApplicant().getId().equals(user.getId());
+        boolean isPostOwner = form.getAdoptionPost().getOwner().getId().equals(user.getId());
+
+        if (!isApplicant && !isPostOwner) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "No tienes permisos para consultar este formulario de adopción"
+            );
+        }
+    }
+
+    private void validateFilter(FormFilter filter) {
+        if (filter == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "El parámetro 'filter' es obligatorio. Valores permitidos: OWNER, REVIEWER."
+            );
+        }
+    }
+
+    private AdoptionFormCountersResponse buildCounters(List<AdoptionForm> forms) {
+        long total = forms.size();
+        long reviewed = forms.stream().filter(AdoptionForm::isRead).count();
+        long pending = total - reviewed;
+
+        return AdoptionFormCountersResponse.builder()
+                .total(total)
+                .pending(pending)
+                .reviewed(reviewed)
+                .build();
+    }
+
+    private List<AdoptionFormItemResponse> mapToFormItemResponses(List<AdoptionForm> forms) {
+        return forms.stream()
+                .map(AdoptionFormItemResponse::from)
+                .toList();
     }
 }
