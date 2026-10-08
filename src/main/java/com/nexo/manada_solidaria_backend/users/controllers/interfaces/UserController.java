@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.users.controllers.interfaces;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormResponse;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormsWithCountersResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
 import com.nexo.manada_solidaria_backend.notifications.controllers.responses.UserNotificationsResponse;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
@@ -61,8 +62,8 @@ public interface UserController {
     );
 
     @GetMapping("/adoption-forms")
-    List<AdoptionFormResponse> getFormsByUser(
-            @RequestParam FormFilter filter,
+    AdoptionFormsWithCountersResponse getFormsByUser(
+            @RequestParam(required = false) FormFilter filter,
             @AuthenticationPrincipal User authenticatedUser
     );
 }
