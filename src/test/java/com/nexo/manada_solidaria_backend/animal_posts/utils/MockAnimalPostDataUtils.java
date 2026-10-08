@@ -463,6 +463,24 @@ public class MockAnimalPostDataUtils {
         );
     }
 
+    private static Stream<Arguments> provideTransitNotificationCreateCases() {
+        return Stream.of(
+                Arguments.of("Una adopcion que busca transito avisa al hogar de transito", ADOPTION_VALID, "transito", 1),
+                Arguments.of("Un usuario sin el rol de transito no recibe el aviso", ADOPTION_VALID, "comunidad", 0),
+                Arguments.of("El autor no recibe el aviso de su propio post aunque sea transito", ADOPTION_VALID, "admin", 0),
+                Arguments.of("Una adopcion que ya tiene transito no avisa", ADOPTION_IN_TRANSIT, "transito", 0),
+                Arguments.of("Un perdido no avisa", LOST_VALID, "transito", 0)
+        );
+    }
+
+    private static Stream<Arguments> provideTransitNotificationTransitionCases() {
+        return Stream.of(
+                Arguments.of("Una adopcion que pierde el transito avisa", "SEARCHING_ADOPT", "SEARCHING_ADOPT_AND_TRANSIT", 1),
+                Arguments.of("Una adopcion que consigue transito no avisa", "SEARCHING_ADOPT_AND_TRANSIT", "SEARCHING_ADOPT", 0),
+                Arguments.of("Una adopcion que pasa a adoptada no avisa", "SEARCHING_ADOPT_AND_TRANSIT", "ADOPTED", 0)
+        );
+    }
+
     private static Stream<Arguments> provideLostTransitionCases() {
         return Stream.of(
                 Arguments.of("Un LOST con dueno transiciona a SEARCHING", LOST_VALID, "SEARCHING"),
