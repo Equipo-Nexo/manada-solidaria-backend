@@ -12,9 +12,12 @@ import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthenticatedIntegrationTest;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
+import com.nexo.manada_solidaria_backend.users.controllers.requests.CreateUserLocationRequest;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.Profile;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
+import com.nexo.manada_solidaria_backend.users.data.models.UserLocation;
+import com.nexo.manada_solidaria_backend.users.data.repositories.UserLocationRepository;
 import com.nexo.manada_solidaria_backend.users.data.repositories.UserRepository;
 import com.nexo.manada_solidaria_backend.users.utils.MockUserDataUtils;
 import org.hamcrest.Matcher;
@@ -50,6 +53,8 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private UserLocationRepository userLocationRepository;
     @Autowired
     private AnimalPostRepository animalPostRepository;
 
@@ -453,6 +458,57 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    @DisplayName("POST /users/save-location suma la ubicacion al historial del usuario logueado sin borrar la anterior")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideCreateLocationValidCases")
+    @Sql(statements = "INSERT INTO user_location (id, user_id, latitude, longitude, created_at) SELECT RANDOM_UUID(), id, 1, 2, TIMESTAMP '2026-01-01 10:00:00' FROM users WHERE username = 'admin'")
+    void createLocation_addsToHistory(String testName, CreateUserLocationRequest request) throws Exception {
+        postLocation(request).andExpect(status().isNoContent());
+
+        List<UserLocation> history = locationsOfAdmin();
+        UserLocation latest = history.stream().max(Comparator.comparing(UserLocation::getCreatedAt)).orElseThrow();
+        assertThat(history).hasSize(2);
+        assertThat(latest.getLatitude()).isEqualTo(request.latitude());
+        assertThat(latest.getLongitude()).isEqualTo(request.longitude());
+    }
+
+    @DisplayName("POST /users/save-location con coordenadas faltantes o fuera de rango devuelve 400 y no guarda nada")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideCreateLocationInvalidCases")
+    void createLocation_invalidCoordinates_returnsBadRequest(
+            String testName,
+            CreateUserLocationRequest request,
+            String expectedError
+    ) throws Exception {
+        postLocation(request)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors", hasItem(expectedError)));
+
+        assertThat(locationsOfAdmin()).isEmpty();
+    }
+
+    @DisplayName("POST /users/save-location sin autenticacion valida devuelve 401")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideUnauthorizedTokenCases")
+    void createLocation_unauthorized(String testName, String token) throws Exception {
+        MockHttpServletRequestBuilder request = post("/users/save-location")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(toJson(new CreateUserLocationRequest(-34.6037, -58.3816)));
+        if (token != null) {
+            request = request.header("Authorization", "Bearer " + token);
+        }
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
+    }
+
+    private ResultActions postLocation(CreateUserLocationRequest request) throws Exception {
+        return mockMvc.perform(
+                post("/users/save-location")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(toJson(request))
+        );
+    }
+
     private ResultActions putProfile(String body) throws Exception {
         return mockMvc.perform(
                 put("/users/profile")
@@ -521,6 +577,17 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
         Profile profile = new Profile(null, phoneNumber, new HashSet<>(List.of(roles)));
         profile.setProfileImageURL(profileImageURL);
         userRepository.save(new User(username, "x", profile));
+    }
+
+    private List<UserLocation> locationsOfAdmin() {
+        UUID adminId = admin().getId();
+        return userLocationRepository.findAll().stream()
+                .filter(location -> location.getUser().getId().equals(adminId))
+                .toList();
+    }
+
+    private User admin() {
+        return userRepository.findByUsername("admin").orElseThrow();
     }
 
     private Set<Rol> rolesOfAdmin() {
