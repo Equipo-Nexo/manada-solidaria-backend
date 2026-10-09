@@ -28,7 +28,7 @@ public class SimilarAnimalRecentlyLostRecipientResolver extends NotificationReci
 
     @Override
     public Specification<User> buildSpecification(NotificationContext context) {
-        return UserSpecifications.idIn(animalPostService.getSearchingOwnerIds(context.animalType()))
+        return UserSpecifications.idIn(animalPostService.getSearchingOwnerIds(context.animal().type(), context.animal().color()))
                 .and(UserSpecifications.allExcept(context.postOwnerId()));
     }
 }

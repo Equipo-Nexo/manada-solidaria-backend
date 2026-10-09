@@ -74,7 +74,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     @MockitoBean
     private WebPushClient webPushClient;
 
-    @DisplayName("POST /animal-posts LOST notifica por push a quien busca un animal del mismo tipo")
+    @DisplayName("POST /animal-posts de un animal en la calle notifica por push a quien busca uno del mismo tipo")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource(MOCK_DATA + "provideSimilarLostPetRecipientCases")
     void create_lost_notifiesOwnersSearchingSameAnimalType(String testName, String body, String username, int expectedDeliveries) throws Exception {
@@ -87,36 +87,36 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     @Test
-    @DisplayName("POST /animal-posts LOST: el push lleva la direccion y el link al post, y queda SENT")
+    @DisplayName("POST /animal-posts en la calle: el push lleva la direccion y el link al post, y queda SENT")
     void create_lost_sendsPushWithAddressAndLink() throws Exception {
         seedSimilarLostPetScenario();
         givenPushResponds(201);
 
-        String response = postAnimalPost(MockAnimalPostDataUtils.LOST_VALID)
+        String response = postAnimalPost(MockAnimalPostDataUtils.LOST_STREET_WITHOUT_PHONE)
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
         String postId = mapper.readTree(response).get("id").asText();
 
         NotificationDelivery delivery = similarLostPetDeliveriesOf("busca-perro").getFirst();
-        assertThat(delivery.getMessage()).isEqualTo("Se publicó un animal en Av. Patricias 100, Parque Centenario. Revisá si puede ser tu mascota perdida.");
+        assertThat(delivery.getMessage()).isEqualTo("Vieron un animal en Corrientes 500, Esquina. Revisá si puede ser tu mascota perdida.");
         assertThat(delivery.getRedirectTo()).isEqualTo("/animal/detalle/" + postId);
         assertThat(delivery.getStatusHistory().getLast().getStatus()).isEqualTo(NotificationStatus.SENT);
     }
 
     @Test
-    @DisplayName("POST /animal-posts LOST: si falla el push el post se crea igual y la entrega queda FAILED")
+    @DisplayName("POST /animal-posts en la calle: si falla el push el post se crea igual y la entrega queda FAILED")
     void create_lost_whenPushFails_createsPostAndMarksDeliveryFailed() throws Exception {
         seedSimilarLostPetScenario();
         given(webPushClient.send(any(), any())).willThrow(new IOException("push caido"));
 
-        postAnimalPost(MockAnimalPostDataUtils.LOST_VALID).andExpect(status().isCreated());
+        postAnimalPost(MockAnimalPostDataUtils.LOST_STREET_WITHOUT_PHONE).andExpect(status().isCreated());
 
         assertThat(similarLostPetDeliveriesOf("busca-perro").getFirst().getStatusHistory().getLast().getStatus())
                 .isEqualTo(NotificationStatus.FAILED);
     }
 
     @Test
-    @DisplayName("POST /animal-posts LOST: notifica por campanita aunque el usuario no tenga push")
+    @DisplayName("POST /animal-posts en la calle: notifica por campanita aunque el usuario no tenga push")
     void create_lost_notifiesInAppWithoutPushSubscription() throws Exception {
         seedSimilarLostPetScenario();
         givenPushResponds(201);
@@ -124,12 +124,30 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 new Profile("busca-perro-sin-push@mail.com", new PhoneNumber("353", "4014524"), Set.of(Rol.COMMUNITY))));
         saveLostPostOf(withoutPush, AnimalType.DOG, StatusLostPost.SEARCHING, true);
 
-        postAnimalPost(MockAnimalPostDataUtils.LOST_VALID).andExpect(status().isCreated());
+        postAnimalPost(MockAnimalPostDataUtils.LOST_STREET_WITHOUT_PHONE).andExpect(status().isCreated());
 
         assertThat(similarLostPetDeliveriesOf("busca-perro-sin-push", NotificationChannel.PUSH)).isEmpty();
         assertThat(similarLostPetDeliveriesOf("busca-perro-sin-push", NotificationChannel.IN_APP))
                 .singleElement()
                 .satisfies(delivery -> assertThat(delivery.getStatusHistory().getLast().getStatus()).isEqualTo(NotificationStatus.SENT));
+    }
+
+    @DisplayName("POST /animal-posts en la calle: el color solo descarta cuando los dos estan cargados y son distintos")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideSimilarLostPetColorCases")
+    void create_street_matchesColorOnlyWhenBothAreLoaded(
+            String testName,
+            String streetColor,
+            String searchedColor,
+            int expectedDeliveries
+    ) throws Exception {
+        seedSimilarLostPetScenario();
+        givenPushResponds(201);
+        saveLostPostOf(subscribedUser("busca-por-color"), AnimalType.DOG, searchedColor, StatusLostPost.SEARCHING, true);
+
+        postAnimalPost(MockAnimalPostDataUtils.streetDogWithColor(streetColor)).andExpect(status().isCreated());
+
+        assertThat(similarLostPetDeliveriesOf("busca-por-color")).hasSize(expectedDeliveries);
     }
 
     @DisplayName("POST /animal-post — código de estado por payload")
@@ -1008,8 +1026,8 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
 
     private void seedSimilarLostPetScenario() {
         notificationRepository.save(new Notification(
-                "🚨 ¡Publicaron un animal perdido!",
-                "Se publicó un animal en {location}. Revisá si puede ser tu mascota perdida.",
+                "🚨 Vieron un animal en la calle",
+                "Vieron un animal en {location}. Revisá si puede ser tu mascota perdida.",
                 null,
                 "/animal/detalle/{postId}",
                 NotificationType.SIMILAR_ANIMAL_RECENTLY_LOST
@@ -1046,7 +1064,11 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     private void saveLostPostOf(User owner, AnimalType type, StatusLostPost status, boolean hasOwner) {
-        LostPost post = new LostPost("De " + owner.getUsername(), "Descripción", "cf-img", null, new PhoneNumber("3533", "436249"), hasOwner, owner, location(), animal(type, AnimalSize.MEDIUM, AnimalGender.MALE, null, null), null);
+        saveLostPostOf(owner, type, null, status, hasOwner);
+    }
+
+    private void saveLostPostOf(User owner, AnimalType type, String color, StatusLostPost status, boolean hasOwner) {
+        LostPost post = new LostPost("De " + owner.getUsername(), "Descripción", "cf-img", null, new PhoneNumber("3533", "436249"), hasOwner, owner, location(), animal(type, AnimalSize.MEDIUM, AnimalGender.MALE, null, color), null);
         post.setStatusHistory(new ArrayList<>(List.of(new LostPostStatusHistory(status, post))));
         animalPostRepository.save(post);
     }

@@ -614,13 +614,38 @@ public class MockAnimalPostDataUtils {
 
     public static Stream<Arguments> provideSimilarLostPetRecipientCases() {
         return Stream.of(
-                Arguments.of("Recibe quien busca un perro", LOST_VALID, "busca-perro", 1),
-                Arguments.of("Con dos perros buscados recibe una sola vez", LOST_VALID, "busca-dos-perros", 1),
-                Arguments.of("No recibe quien busca un gato", LOST_VALID, "busca-gato", 0),
-                Arguments.of("No recibe quien ya encontro a su perro", LOST_VALID, "encontro-perro", 0),
-                Arguments.of("No recibe quien publico un perro en la calle", LOST_VALID, "rescata-perro", 0),
-                Arguments.of("No recibe el autor aunque busque un perro", LOST_VALID, "admin", 0),
-                Arguments.of("Un animal en la calle no notifica", LOST_STREET_WITHOUT_PHONE, "busca-perro", 0)
+                Arguments.of("Recibe quien busca un perro", LOST_STREET_WITHOUT_PHONE, "busca-perro", 1),
+                Arguments.of("Con dos perros buscados recibe una sola vez", LOST_STREET_WITHOUT_PHONE, "busca-dos-perros", 1),
+                Arguments.of("No recibe quien busca un gato", LOST_STREET_WITHOUT_PHONE, "busca-gato", 0),
+                Arguments.of("No recibe quien ya encontro a su perro", LOST_STREET_WITHOUT_PHONE, "encontro-perro", 0),
+                Arguments.of("No recibe quien publico un perro en la calle", LOST_STREET_WITHOUT_PHONE, "rescata-perro", 0),
+                Arguments.of("No recibe el autor aunque busque un perro", LOST_STREET_WITHOUT_PHONE, "admin", 0),
+                Arguments.of("Una mascota perdida con dueno no notifica", LOST_VALID, "busca-perro", 0)
         );
+    }
+
+    public static Stream<Arguments> provideSimilarLostPetColorCases() {
+        return Stream.of(
+                Arguments.of("Mismo color recibe", "BLACK", "BLACK", 1),
+                Arguments.of("Otro color no recibe", "BLACK", "BROWN", 0),
+                Arguments.of("Si la mascota buscada no tiene color, recibe", "BLACK", null, 1),
+                Arguments.of("Si el animal en la calle no tiene color, recibe", null, "BROWN", 1),
+                Arguments.of("OTHER con OTHER recibe", "OTHER", "OTHER", 1),
+                Arguments.of("OTHER con un color de la lista no recibe", "OTHER", "BLACK", 0)
+        );
+    }
+
+    public static String streetDogWithColor(String color) {
+        return """
+                {
+                  "type": "LOST",
+                  "name": "Animal en la calle",
+                  "description": "Lo vi deambulando",
+                  "imageId": "cf-image-street",
+                  "hasOwner": false,
+                  "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE", "age": "ADULT", "color": %s },
+                  "location": { "name": "Esquina", "address": "Corrientes", "number": 500, "latitude": -34.6, "longitude": -58.4 }
+                }
+                """.formatted(color == null ? "null" : "\"" + color + "\"");
     }
 }
