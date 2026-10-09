@@ -3,5 +3,5 @@ security:
     rp-id: manadasolidaria.com
     allowed-origins: https://manadasolidaria.com
   cors:
-    allowed-origins: http://manadasolidaria.com, https://manadasolidaria.com
+    allowed-origins: http://www.manadasolidaria.com, https://www.manadasolidaria.com
     allowed-credentials: true
