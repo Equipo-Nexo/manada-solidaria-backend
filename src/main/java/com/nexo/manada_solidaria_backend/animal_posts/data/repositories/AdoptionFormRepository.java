@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface AdoptionFormRepository extends JpaRepository<AdoptionForm, UUID> {
@@ -18,4 +19,14 @@ public interface AdoptionFormRepository extends JpaRepository<AdoptionForm, UUID
 
     @Query("SELECT f FROM AdoptionForm f WHERE f.adoptionPost.owner.id = :ownerId")
     List<AdoptionForm> findAllByPostOwnerId(@Param("ownerId") UUID ownerId);
+
+    @Query("""
+        SELECT DISTINCT f FROM AdoptionForm f
+        LEFT JOIN FETCH f.answers a
+        LEFT JOIN FETCH a.questionForm q
+        LEFT JOIN FETCH q.category c
+        WHERE f.id = :id
+        ORDER BY c.order ASC NULLS LAST, q.order ASC NULLS LAST
+    """)
+    Optional<AdoptionForm> findByIdWithDetailsOrdered(@Param("id") UUID id);
 }

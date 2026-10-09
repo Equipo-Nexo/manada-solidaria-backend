@@ -8,9 +8,11 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionForm;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionFormDetail;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPostStatusHistory;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.QuestionCategory;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.QuestionForm;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AdoptionFormRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
+import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.QuestionCategoryRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.QuestionFormRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.utils.MockAdoptionFormDataUtils;
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
@@ -28,6 +30,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,8 +39,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.FORBIDDEN_MESSAGE;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
@@ -62,20 +65,26 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
     private QuestionFormRepository questionFormRepository;
 
     @Autowired
+    private QuestionCategoryRepository questionCategoryRepository;
+
+    @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private ObjectMapper objectMapper;
 
     @Test
-    @DisplayName("POST /adoption-forms válido: persiste el formulario, sus preguntas y asocia el usuario autenticado")
+    @DisplayName("POST /adoption-forms válido: persiste el formulario con descripción, sus respuestas y asocia el usuario autenticado")
     void createForm_persistsFormAndReturnsCreated() throws Exception {
         User postOwner = createOtherUser("owner-user", "owner@mail.com");
         AdoptionPost post = saveAdoptionPost("Gatito en adopción", postOwner);
         User authenticatedUser = admin();
 
-        QuestionForm q1 = saveQuestion("¿Alquilás? ¿Te permiten mascotas?");
-        QuestionForm q2 = saveQuestion("¿Contás con patio cerrado?");
+        QuestionForm q1 = saveQuestion("¿Alquilás? ¿Te permiten mascotas?", 1, null);
+        QuestionForm q2 = saveQuestion("¿Contás con patio cerrado?", 2, null);
 
         CreateAdoptionFormRequest request = MockAdoptionFormDataUtils.createValidRequest(
                 post.getId(),
@@ -93,13 +102,15 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.adoptionPostId").value(post.getId().toString()))
                 .andExpect(jsonPath("$.applicantId").value(authenticatedUser.getId().toString()))
+                .andExpect(jsonPath("$.description").value("Quiero adoptar una gatita para que crezca con mi gato."))
                 .andExpect(jsonPath("$.phoneNumber.areaCode").value("353"))
                 .andExpect(jsonPath("$.phoneNumber.number").value("4123456"))
                 .andExpect(jsonPath("$.isRead").value(false))
                 .andExpect(jsonPath("$.createdAt").exists())
-                .andExpect(jsonPath("$.questions", hasSize(2)))
-                .andExpect(jsonPath("$.questions[0].questionTitle").value("¿Alquilás? ¿Te permiten mascotas?"))
-                .andExpect(jsonPath("$.questions[0].answer").value("Alquilo y sí me permiten."));
+                .andExpect(jsonPath("$.answers", hasSize(2)))
+                .andExpect(jsonPath("$.answers[0].questionId").value(q1.getId().toString()))
+                .andExpect(jsonPath("$.answers[0].questionTitle").value("¿Alquilás? ¿Te permiten mascotas?"))
+                .andExpect(jsonPath("$.answers[0].answer").value("Alquilo y sí me permiten."));
 
         List<AdoptionForm> savedForms = adoptionFormRepository.findAll();
         assertThat(savedForms).hasSize(1);
@@ -107,6 +118,7 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
         AdoptionForm saved = savedForms.get(0);
         assertThat(saved.getAdoptionPost().getId()).isEqualTo(post.getId());
         assertThat(saved.getApplicant().getId()).isEqualTo(authenticatedUser.getId());
+        assertThat(saved.getDescription()).isEqualTo("Quiero adoptar una gatita para que crezca con mi gato.");
         assertThat(saved.isRead()).isFalse();
         assertThat(saved.getAnswers()).hasSize(2);
         assertThat(saved.getAnswers().get(0).getQuestionForm().getTitle()).isEqualTo("¿Alquilás? ¿Te permiten mascotas?");
@@ -117,8 +129,8 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
     void createForm_whenApplicantIsOwner_returnsBadRequest() throws Exception {
         User ownerAndApplicant = admin();
         AdoptionPost post = saveAdoptionPost("Mi perro en adopción", ownerAndApplicant);
-        QuestionForm q1 = saveQuestion("¿Tenés patio?");
-        QuestionForm q2 = saveQuestion("¿Experiencia previa?");
+        QuestionForm q1 = saveQuestion("¿Tenés patio?", 1, null);
+        QuestionForm q2 = saveQuestion("¿Experiencia previa?", 2, null);
 
         mockMvc.perform(
                         post("/adoption-forms")
@@ -132,8 +144,8 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
     @Test
     @DisplayName("POST /adoption-forms para una publicación inexistente devuelve NOT_FOUND 404")
     void createForm_nonExistentPost_returnsNotFound() throws Exception {
-        QuestionForm q1 = saveQuestion("¿Tenés patio?");
-        QuestionForm q2 = saveQuestion("¿Experiencia previa?");
+        QuestionForm q1 = saveQuestion("¿Tenés patio?", 1, null);
+        QuestionForm q2 = saveQuestion("¿Experiencia previa?", 2, null);
 
         mockMvc.perform(
                         post("/adoption-forms")
@@ -178,15 +190,16 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
         User postOwner = createOtherUser("owner-user", "owner@mail.com");
         AdoptionPost post = saveAdoptionPost("Gatito en adopción", postOwner);
 
-        QuestionForm q1 = saveQuestion("¿Tenés patio?");
-        QuestionForm q2 = saveQuestion("¿Alquilás?");
+        QuestionForm q1 = saveQuestion("¿Tenés patio?", 1, null);
+        QuestionForm q2 = saveQuestion("¿Alquilás?", 2, null);
 
         CreateAdoptionFormRequest request = new CreateAdoptionFormRequest(
                 post.getId(),
+                "Descripción opcional corta",
                 new PhoneNumberRequest("353", "4123456"),
                 List.of(
-                        new CreateAdoptionFormRequest.QuestionFormRequest(q1.getId(), ""),
-                        new CreateAdoptionFormRequest.QuestionFormRequest(q2.getId(), "No")
+                        new CreateAdoptionFormRequest.AnswerFormRequest(q1.getId(), ""),
+                        new CreateAdoptionFormRequest.AnswerFormRequest(q2.getId(), "No")
                 )
         );
 
@@ -198,12 +211,133 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
                 )
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.questions", hasSize(2)))
-                .andExpect(jsonPath("$.questions[0].answer").value(""));
+                .andExpect(jsonPath("$.description").value("Descripción opcional corta"))
+                .andExpect(jsonPath("$.answers", hasSize(2)))
+                .andExpect(jsonPath("$.answers[0].answer").value(""));
 
         List<AdoptionForm> savedForms = adoptionFormRepository.findAll();
         assertThat(savedForms).hasSize(1);
         assertThat(savedForms.get(0).getAnswers().get(0).getAnswer()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("GET /adoption-forms/{adoptionFormId} — Obtiene el detalle del formulario para el postulante")
+    void getFormById_returnsOk() throws Exception {
+        User owner = createOtherUser("owner-get-id", "owner_get_id@mail.com");
+        User applicant = createOtherUser("applicant-get-id", "applicant_get_id@mail.com");
+
+        AdoptionPost post = saveAdoptionPost("Busco hogar para gata", owner);
+        QuestionForm q1 = saveQuestion("¿Alquilás? ¿Te permiten mascotas?", 1, null);
+        QuestionForm q2 = saveQuestion("¿Contás con patio cerrado?", 2, null);
+
+        AdoptionForm form = new AdoptionForm(
+                "Quiero una gatita para que le haga compañía a mi gato de 2 años para que crezcan juntos.",
+                new PhoneNumber("353", "4123456"),
+                applicant,
+                post
+        );
+        form.addAnswer(new AdoptionFormDetail("Alquilo y sí me permiten.", form, q1));
+        form.addAnswer(new AdoptionFormDetail("Sí, totalmente cerrado.", form, q2));
+        AdoptionForm savedForm = adoptionFormRepository.save(form);
+
+        String applicantToken = createTokenForUser(applicant);
+
+        mockMvc.perform(
+                        get("/adoption-forms/{adoptionFormId}", savedForm.getId())
+                                .header("Authorization", "Bearer " + applicantToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(savedForm.getId().toString()))
+                .andExpect(jsonPath("$.adoptionPostId").value(post.getId().toString()))
+                .andExpect(jsonPath("$.animalName").value("Busco hogar para gata"))
+                .andExpect(jsonPath("$.applicantId").value(applicant.getId().toString()))
+                .andExpect(jsonPath("$.description").value("Quiero una gatita para que le haga compañía a mi gato de 2 años para que crezcan juntos."))
+                .andExpect(jsonPath("$.phoneNumber.areaCode").value("353"))
+                .andExpect(jsonPath("$.phoneNumber.number").value("4123456"))
+                .andExpect(jsonPath("$.categories").isArray());
+    }
+
+    @Test
+    @DisplayName("GET /adoption-forms/{adoptionFormId} — Devuelve las preguntas ordenadas por su sort_order dentro de la categoría")
+    void getFormById_returnsQuestionsOrderedByCategoryAndQuestionOrder() throws Exception {
+        User owner = createOtherUser("owner-order", "owner_order@mail.com");
+        User applicant = createOtherUser("applicant-order", "applicant_order@mail.com");
+
+        AdoptionPost post = saveAdoptionPost("Perro en adopción", owner);
+        QuestionCategory category = saveCategory("Hogar", 1);
+
+        QuestionForm qThird = saveQuestion("Tercera pregunta", 3, category);
+        QuestionForm qFirst = saveQuestion("Primera pregunta", 1, category);
+        QuestionForm qSecond = saveQuestion("Segunda pregunta", 2, category);
+
+        AdoptionForm form = new AdoptionForm(
+                "Postulación ordenada",
+                new PhoneNumber("353", "4123456"),
+                applicant,
+                post
+        );
+
+        form.addAnswer(new AdoptionFormDetail("Respuesta 3", form, qThird));
+        form.addAnswer(new AdoptionFormDetail("Respuesta 1", form, qFirst));
+        form.addAnswer(new AdoptionFormDetail("Respuesta 2", form, qSecond));
+
+        AdoptionForm savedForm = adoptionFormRepository.save(form);
+        String applicantToken = createTokenForUser(applicant);
+
+        mockMvc.perform(
+                        get("/adoption-forms/{adoptionFormId}", savedForm.getId())
+                                .header("Authorization", "Bearer " + applicantToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.categories[0].questions[0].questionTitle").value("Primera pregunta"))
+                .andExpect(jsonPath("$.categories[0].questions[1].questionTitle").value("Segunda pregunta"))
+                .andExpect(jsonPath("$.categories[0].questions[2].questionTitle").value("Tercera pregunta"));
+    }
+
+    @Test
+    @DisplayName("GET /adoption-forms/{adoptionFormId} cuando un usuario sin relación intenta acceder devuelve FORBIDDEN 403")
+    void getFormById_unauthorizedUser_returnsForbidden() throws Exception {
+        User owner = createOtherUser("owner-forb", "owner_forb@mail.com");
+        User applicant = createOtherUser("applicant-forb", "applicant_forb@mail.com");
+        AdoptionPost post = saveAdoptionPost("Mascota en adopción", owner);
+
+        AdoptionForm form = new AdoptionForm(
+                "Descripción de prueba",
+                new PhoneNumber("353", "4123456"),
+                applicant,
+                post
+        );
+        AdoptionForm savedForm = adoptionFormRepository.save(form);
+
+        mockMvc.perform(
+                        get("/adoption-forms/{adoptionFormId}", savedForm.getId())
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errors", hasItem(containsString("No tienes permisos para consultar este formulario de adopción"))));
+    }
+
+    @Test
+    @DisplayName("GET /adoption-forms/{adoptionFormId} con ID inexistente devuelve NOT_FOUND 404")
+    void getFormById_nonExistent_returnsNotFound() throws Exception {
+        mockMvc.perform(
+                        get("/adoption-forms/{adoptionFormId}", UUID.randomUUID())
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isNotFound());
+    }
+
+    @DisplayName("GET /adoption-forms/{adoptionFormId} sin autenticación o con token inválido devuelve UNAUTHORIZED 401")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideGetFormsUnauthorizedCases")
+    void getFormById_unauthorizedCases(String testName, String token) throws Exception {
+        MockHttpServletRequestBuilder request = get("/adoption-forms/{adoptionFormId}", MockAdoptionFormDataUtils.FORM_ID);
+
+        if (token != null) {
+            request = request.header("Authorization", "Bearer " + token);
+        }
+
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -293,6 +427,15 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
         mockMvc.perform(request).andExpect(status().isUnauthorized());
     }
 
+    private String createTokenForUser(User user) throws Exception {
+        String response = mockMvc.perform(
+                post("/auth/login")
+                        .header("Authorization", getCredentials(user.getUsername(), "password"))
+        ).andReturn().getResponse().getContentAsString();
+
+        return mapper.readTree(response).get("accessToken").asText();
+    }
+
     private AdoptionPost saveAdoptionPost(String name, User owner) {
         AdoptionPost post = new AdoptionPost(
                 name,
@@ -309,15 +452,26 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
         return animalPostRepository.save(post);
     }
 
-    private QuestionForm saveQuestion(String title) {
+    private QuestionCategory saveCategory(String name, Integer order) {
+        QuestionCategory category = new QuestionCategory(
+                name,
+                "Descripción de categoría",
+                order,
+                new ArrayList<>(),
+                UUID.randomUUID()
+        );
+        return questionCategoryRepository.save(category);
+    }
+
+    private QuestionForm saveQuestion(String title, Integer order, QuestionCategory category) {
         QuestionForm q = new QuestionForm(
                 title,
                 QuestionType.TEXT,
                 "icon",
                 "placeholder",
-                1,
+                order,
                 true,
-                null,
+                category,
                 new ArrayList<>(),
                 UUID.randomUUID()
         );
@@ -325,7 +479,11 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     private User createOtherUser(String username, String email) {
-        User user = new User(username, "password", new Profile(email, new PhoneNumber("353", "999999"), Set.of(Rol.COMMUNITY)));
+        User user = new User(
+                username,
+                passwordEncoder.encode("password"),
+                new Profile(email, new PhoneNumber("353", "999999"), Set.of(Rol.COMMUNITY))
+        );
         return userRepository.save(user);
     }
 
@@ -343,8 +501,9 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
 
     private void createFormAsOwner(User applicant, User postOwner) {
         AdoptionPost postOfOther = saveAdoptionPost("Mascota de otro", postOwner);
-        QuestionForm q = saveQuestion("¿Patio?");
+        QuestionForm q = saveQuestion("¿Patio?", 1, null);
         AdoptionForm form = new AdoptionForm(
+                "Descripción del solicitante",
                 new PhoneNumber("353", "4123456"),
                 applicant,
                 postOfOther
@@ -355,8 +514,9 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
 
     private void createFormAsReviewer(User postOwner, User applicant) {
         AdoptionPost adminPost = saveAdoptionPost("Mascota de admin", postOwner);
-        QuestionForm q = saveQuestion("¿Patio?");
+        QuestionForm q = saveQuestion("¿Patio?", 1, null);
         AdoptionForm form = new AdoptionForm(
+                "Descripción del solicitante",
                 new PhoneNumber("353", "4123456"),
                 applicant,
                 adminPost

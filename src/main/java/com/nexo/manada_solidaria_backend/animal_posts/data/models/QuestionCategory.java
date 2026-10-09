@@ -5,7 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -23,6 +26,11 @@ public class QuestionCategory {
 
     @Column(name = "sort_order")
     private Integer order;
+
+    @OneToMany(mappedBy = "category")
+    @OrderBy("order ASC")
+    @BatchSize(size = 50)
+    private List<QuestionForm> questions = new ArrayList<>();
 
     @Id
     private UUID id = UUID.randomUUID();

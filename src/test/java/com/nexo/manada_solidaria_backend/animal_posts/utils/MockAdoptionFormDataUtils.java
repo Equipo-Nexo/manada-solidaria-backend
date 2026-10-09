@@ -14,19 +14,19 @@ import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.I
 
 public class MockAdoptionFormDataUtils {
 
+    public static final UUID FORM_ID = UUID.fromString("c1111111-1111-1111-1111-111111111111");
     public static final UUID POST_WITH_FORMS_ID = UUID.fromString("99999999-9999-9999-9999-999999999999");
     public static final UUID POST_WITHOUT_FORMS_ID = UUID.fromString("55555555-5555-5555-5555-555555555555");
     public static final UUID NON_EXISTENT_POST_ID = UUID.fromString("00000000-0000-0000-0000-000000000000");
-    public static final UUID USER_APPLICANT_ID = UUID.fromString("a1111111-1111-1111-1111-111111111111");
-    public static final UUID USER_OTHER_ID = UUID.fromString("b2222222-2222-2222-2222-222222222222");
 
     public static CreateAdoptionFormRequest createValidRequest(UUID postId, UUID questionId1, UUID questionId2) {
         return new CreateAdoptionFormRequest(
                 postId,
+                "Quiero adoptar una gatita para que crezca con mi gato.",
                 new PhoneNumberRequest("353", "4123456"),
                 List.of(
-                        new CreateAdoptionFormRequest.QuestionFormRequest(questionId1, "Alquilo y sí me permiten."),
-                        new CreateAdoptionFormRequest.QuestionFormRequest(questionId2, "Sí, totalmente cerrado.")
+                        new CreateAdoptionFormRequest.AnswerFormRequest(questionId1, "Alquilo y sí me permiten."),
+                        new CreateAdoptionFormRequest.AnswerFormRequest(questionId2, "Sí, totalmente cerrado.")
                 )
         );
     }
@@ -38,22 +38,25 @@ public class MockAdoptionFormDataUtils {
     public static CreateAdoptionFormRequest createWithoutPostId() {
         return new CreateAdoptionFormRequest(
                 null,
+                "Quiero adoptar una mascota.",
                 new PhoneNumberRequest("353", "4123456"),
-                List.of(new CreateAdoptionFormRequest.QuestionFormRequest(UUID.randomUUID(), "Sí."))
+                List.of(new CreateAdoptionFormRequest.AnswerFormRequest(UUID.randomUUID(), "Sí."))
         );
     }
 
     public static CreateAdoptionFormRequest createWithoutPhone(UUID postId) {
         return new CreateAdoptionFormRequest(
                 postId,
+                "Quiero adoptar una mascota.",
                 null,
-                List.of(new CreateAdoptionFormRequest.QuestionFormRequest(UUID.randomUUID(), "Sí."))
+                List.of(new CreateAdoptionFormRequest.AnswerFormRequest(UUID.randomUUID(), "Sí."))
         );
     }
 
     public static CreateAdoptionFormRequest createWithoutQuestions(UUID postId) {
         return new CreateAdoptionFormRequest(
                 postId,
+                "Quiero adoptar una mascota.",
                 new PhoneNumberRequest("353", "4123456"),
                 Collections.emptyList()
         );
@@ -62,8 +65,9 @@ public class MockAdoptionFormDataUtils {
     public static CreateAdoptionFormRequest createWithoutQuestionFormId(UUID postId) {
         return new CreateAdoptionFormRequest(
                 postId,
+                "Quiero adoptar una mascota.",
                 new PhoneNumberRequest("353", "4123456"),
-                List.of(new CreateAdoptionFormRequest.QuestionFormRequest(null, "Respuesta sin id de pregunta"))
+                List.of(new CreateAdoptionFormRequest.AnswerFormRequest(null, "Respuesta sin id de pregunta"))
         );
     }
 
@@ -81,13 +85,6 @@ public class MockAdoptionFormDataUtils {
         return Stream.of(
                 Arguments.of("Sin token de autorización", null),
                 Arguments.of("Con token inválido o expirado", INVALID_ACCESS_TOKEN)
-        );
-    }
-
-    public static Stream<Arguments> provideGetFormsByPostIdCases() {
-        return Stream.of(
-                Arguments.of("Publicación con 1 formulario", POST_WITH_FORMS_ID, 1),
-                Arguments.of("Publicación sin formularios asociados", POST_WITHOUT_FORMS_ID, 0)
         );
     }
 

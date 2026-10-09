@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.animal_posts.services.interfaces;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAdoptionFormRequest;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormDetailResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
 import com.nexo.manada_solidaria_backend.auth.components.pre_filters.AnimalPostOwner;
@@ -16,4 +17,6 @@ public interface AdoptionFormService {
     List<AdoptionFormResponse> getFormsByPostId(UUID animalPostId);
 
     List<AdoptionFormResponse> getFormsByUser(UUID userId, FormFilter filter);
+
+    AdoptionFormDetailResponse getFormById(UUID adoptionFormId, User authenticatedUser);
 }
