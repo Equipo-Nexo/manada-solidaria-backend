@@ -317,6 +317,52 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     @Test
+    @DisplayName("GET /users/adoption-forms con parámetro status — Filtra los items pero mantiene los contadores globales")
+    void getFormsByUser_withStatusFilter_filtersListAndKeepsGlobalCounters() throws Exception {
+        adoptionFormRepository.deleteAll();
+
+        User reviewer = admin();
+        User applicant1 = createOtherUser("applicant-1", "app1@mail.com");
+        User applicant2 = createOtherUser("applicant-2", "app2@mail.com");
+
+        AdoptionPost post = saveAdoptionPost("Mascota para revisar", reviewer);
+
+        AdoptionForm pendingForm = new AdoptionForm("Formulario pendiente", new PhoneNumber("353", "111111"), applicant1, post);
+        pendingForm.setRead(false);
+
+        AdoptionForm reviewedForm = new AdoptionForm("Formulario revisado", new PhoneNumber("353", "222222"), applicant2, post);
+        reviewedForm.setRead(true);
+
+        adoptionFormRepository.saveAll(List.of(pendingForm, reviewedForm));
+
+        mockMvc.perform(
+                        get("/users/adoption-forms")
+                                .param("filter", "REVIEWER")
+                                .param("status", "PENDING")
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.counters.total").value(2))
+                .andExpect(jsonPath("$.counters.pending").value(1))
+                .andExpect(jsonPath("$.counters.reviewed").value(1))
+                .andExpect(jsonPath("$.forms", hasSize(1)))
+                .andExpect(jsonPath("$.forms[0].isRead").value(false));
+
+        mockMvc.perform(
+                        get("/users/adoption-forms")
+                                .param("filter", "REVIEWER")
+                                .param("status", "REVIEWED")
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.counters.total").value(2))
+                .andExpect(jsonPath("$.counters.pending").value(1))
+                .andExpect(jsonPath("$.counters.reviewed").value(1))
+                .andExpect(jsonPath("$.forms", hasSize(1)))
+                .andExpect(jsonPath("$.forms[0].isRead").value(true));
+    }
+
+    @Test
     @DisplayName("GET /adoption-forms/{adoptionFormId} — Devuelve todas las preguntas de la BD y setea null en las que no fueron respondidas")
     void getFormById_returnsAllQuestionsAndNullForUnanswered() throws Exception {
         User owner = createOtherUser("owner-unanswered", "owner_unanswered@mail.com");
@@ -335,7 +381,6 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
                 post
         );
 
-        // Solo guardamos respuesta para la pregunta q1
         form.addAnswer(new AdoptionFormDetail("Respuesta 1", form, q1));
 
         AdoptionForm savedForm = adoptionFormRepository.save(form);

@@ -15,6 +15,10 @@ http:
       value: OWNER
       type: query
       disabled: true
+    - name: status
+      value: PENDING
+      type: query
+      disabled: true
   auth: inherit
 
 runtime:
@@ -32,21 +36,21 @@ runtime:
       operator: isNumber
     - expression: res.body.forms
       operator: isArray
-  scripts:
-    - type: tests
-      code: |-
-        test("los contadores coinciden con la suma de estados", function () {
-          const { total, pending, reviewed } = res.body.counters;
-          expect(total).to.equal(pending + reviewed);
-          expect(total).to.equal(res.body.forms.length);
-        });
 
-        test("cada formulario contiene los campos requeridos", function () {
-          const campos = ["id", "animalName", "animalImageUrl", "applicantName", "isRead", "createdAt"];
-          res.body.forms.forEach((form) => {
-            campos.forEach((campo) => expect(form).to.have.property(campo));
-          });
+scripts:
+  - type: tests
+    code: |-
+      test("los contadores coinciden con la suma de estados", function () {
+        const { total, pending, reviewed } = res.body.counters;
+        expect(total).to.equal(pending + reviewed);
+      });
+
+      test("cada formulario contiene los campos requeridos", function () {
+        const campos = ["id", "animalName", "animalImageUrl", "applicantName", "isRead", "createdAt"];
+        res.body.forms.forEach((form) => {
+          campos.forEach((campo) => expect(form).to.have.property(campo));
         });
+      });
 
 settings:
   encodeUrl: true
@@ -57,9 +61,9 @@ settings:
 docs: |-
   Obtiene los formularios de adopción del usuario autenticado junto con los contadores de estado.
 
-  Parámetro `filter` (Query Param obligatorio):
-  - `REVIEWER`: Formularios recibidos en publicaciones donde el usuario es el dueño.
-  - `OWNER`: Formularios que el usuario envió postulándose a publicaciones de otros.
+  Parámetros de Consulta (Query Params):
+  - `filter` (Obligatorio): `REVIEWER` (recibidos como dueño) o `OWNER` (enviados como postulante).
+  - `status` (Opcional): `ALL` (por defecto), `PENDING` (solo no leídos) o `REVIEWED` (solo leídos).
 
   Estructura de respuesta:
   {
@@ -80,5 +84,3 @@ docs: |-
       }
     ]
   }
-
-  Esperado: 200 OK. Sin el parámetro `filter`: 400 Bad Request. Sin token: 401 Unauthorized.

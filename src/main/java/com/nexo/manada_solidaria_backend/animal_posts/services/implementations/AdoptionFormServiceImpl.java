@@ -3,6 +3,7 @@ package com.nexo.manada_solidaria_backend.animal_posts.services.implementations;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAdoptionFormRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.*;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormStatusFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionForm;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionFormDetail;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
@@ -62,14 +63,15 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
 
     @Override
     @Transactional(readOnly = true)
-    public AdoptionFormsWithCountersResponse getFormsByUser(UUID userId, FormFilter filter) {
+    public AdoptionFormsWithCountersResponse getFormsByUser(UUID userId, FormFilter filter, FormStatusFilter status) {
         validateFilter(filter);
 
-        List<AdoptionForm> forms = fetchFormsByFilter(userId, filter);
+        List<AdoptionForm> allRoleForms = fetchFormsByFilter(userId, filter);
+        List<AdoptionForm> filteredForms = filterByStatus(allRoleForms, status);
 
         return AdoptionFormsWithCountersResponse.builder()
-                .counters(buildCounters(forms))
-                .forms(mapToFormItemResponses(forms))
+                .counters(buildCounters(allRoleForms))
+                .forms(mapToFormItemResponses(filteredForms))
                 .build();
     }
 
@@ -133,6 +135,20 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
             case OWNER -> adoptionFormRepository.findAllByApplicantId(userId);
             case REVIEWER -> adoptionFormRepository.findAllByPostOwnerId(userId);
         };
+    }
+
+    private List<AdoptionForm> filterByStatus(List<AdoptionForm> forms, FormStatusFilter status) {
+        if (status == null || status == FormStatusFilter.ALL) {
+            return forms;
+        }
+
+        return forms.stream()
+                .filter(form -> switch (status) {
+                    case PENDING -> !form.isRead();
+                    case REVIEWED -> form.isRead();
+                    case ALL -> true;
+                })
+                .toList();
     }
 
     private AdoptionFormDetail buildFormDetail(CreateAdoptionFormRequest.AnswerFormRequest aReq, AdoptionForm form) {
