@@ -1,12 +1,14 @@
 package com.nexo.manada_solidaria_backend.users.controllers.implementations;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormResponse;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormsWithCountersResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
 import com.nexo.manada_solidaria_backend.notifications.controllers.responses.UserNotificationsResponse;
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationDeliveryService;
 import com.nexo.manada_solidaria_backend.users.controllers.interfaces.UserController;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
+import com.nexo.manada_solidaria_backend.users.controllers.requests.CreateUserLocationRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.*;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -56,12 +58,16 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
+    public void createLocation(CreateUserLocationRequest request, User authenticatedUser) {
+        userService.createLocation(request, authenticatedUser);
+    }
+
+    @Override
     public Set<Rol> updateRoles(UpdateRolesRequest request, User authenticatedUser) {
         return userService.updateRoles(request, authenticatedUser);
     }
 
-    @Override
-    public List<AdoptionFormResponse> getFormsByUser(FormFilter filter, User authenticatedUser) {
+    public AdoptionFormsWithCountersResponse getFormsByUser(FormFilter filter, User authenticatedUser) {
         return userService.getFormsByUser(filter, authenticatedUser);
     }
 }

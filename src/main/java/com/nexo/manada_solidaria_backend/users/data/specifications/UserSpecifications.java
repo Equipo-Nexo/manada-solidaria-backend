@@ -4,6 +4,7 @@ import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.Collection;
 import java.util.UUID;
 
 public final class UserSpecifications {
@@ -45,6 +46,11 @@ public final class UserSpecifications {
     public static Specification<User> allExcept(UUID id) {
         return (root, query, cb) ->
                 cb.notEqual(root.get("id"), id);
+    }
+
+    public static Specification<User> idIn(Collection<UUID> ids) {
+        return (root, query, cb) ->
+                ids.isEmpty() ? cb.disjunction() : root.get("id").in(ids);
     }
 
 }

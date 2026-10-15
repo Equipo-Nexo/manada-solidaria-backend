@@ -85,3 +85,7 @@ docs: |-
       "path": "/error",
       "timestamp": "09/06/2026"
   }
+
+  Notificacion (MS-205): si se crea con "inTransit": false (queda en SEARCHING_ADOPT_AND_TRANSIT) se manda un push y una
+  notificacion de campanita "🏠 Un animal necesita hogar de tránsito" a los usuarios con rol TRANSITIONAL_HOME, menos al autor.
+  Con "inTransit": true no se notifica. La respuesta no cambia (201) y el post se crea aunque falle el envio.

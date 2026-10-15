@@ -81,6 +81,19 @@ public interface AnimalPostRepository extends JpaRepository<AnimalPost, UUID> {
     @EntityGraph(attributePaths = {"animal", "location"})
     List<AnimalPost<?, ?>> findAllByOwnerOrderByCreatedAtDesc(User user);
 
+    @Query("""
+            SELECT DISTINCT p.owner.id FROM LostPost p
+            WHERE p.animal.type = :animalType
+              AND (:animalColor IS NULL OR p.animal.color IS NULL OR p.animal.color = :animalColor)
+              AND EXISTS (SELECT 1 FROM LostPostStatusHistory h
+                          WHERE h.post = p AND h.finishedAt IS NULL AND h.status = :status)
+            """)
+    Set<UUID> findOwnerIdsByAnimalTypeColorAndStatus(
+            @Param("animalType") AnimalType animalType,
+            @Param("animalColor") String animalColor,
+            @Param("status") StatusLostPost status
+    );
+
     @EntityGraph(attributePaths = {"animal", "location", "owner", "owner.profile", "statusHistory"})
     @Query("""
             SELECT p FROM LostPost p
