@@ -3,6 +3,7 @@ package com.nexo.manada_solidaria_backend.animal_posts.controllers.responses;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionForm;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionFormDetail;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.QuestionCategory;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.QuestionForm;
 import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 
@@ -36,20 +37,22 @@ public record AdoptionFormDetailResponse(
             String answer
     ) {}
 
-    public static AdoptionFormDetailResponse from(AdoptionForm form) {
-        Map<QuestionCategory, List<AdoptionFormDetail>> categoryMap = new LinkedHashMap<>();
-
-        for (AdoptionFormDetail detail : form.getAnswers()) {
-            QuestionCategory category = detail.getQuestionForm().getCategory();
-            categoryMap.computeIfAbsent(category, k -> new ArrayList<>()).add(detail);
+    public static AdoptionFormDetailResponse from(AdoptionForm form, List<QuestionCategory> allCategories) {
+        Map<UUID, String> answerMap = new HashMap<>();
+        if (form.getAnswers() != null) {
+            for (AdoptionFormDetail detail : form.getAnswers()) {
+                if (detail.getQuestionForm() != null) {
+                    answerMap.put(detail.getQuestionForm().getId(), detail.getAnswer());
+                }
+            }
         }
 
-        List<CategoryAnswersResponse> categoriesList = categoryMap.entrySet().stream()
+        List<CategoryAnswersResponse> categoriesList = allCategories.stream()
                 .sorted(Comparator.comparing(
-                        entry -> entry.getKey() != null ? entry.getKey().getOrder() : null,
+                        QuestionCategory::getOrder,
                         Comparator.nullsLast(Comparator.naturalOrder())
                 ))
-                .map(AdoptionFormDetailResponse::toCategoryAnswersResponse)
+                .map(category -> toCategoryAnswersResponse(category, answerMap))
                 .toList();
 
         return new AdoptionFormDetailResponse(
@@ -67,26 +70,28 @@ public record AdoptionFormDetailResponse(
         );
     }
 
-    private static CategoryAnswersResponse toCategoryAnswersResponse(Map.Entry<QuestionCategory, List<AdoptionFormDetail>> entry) {
-        QuestionCategory category = entry.getKey();
-
-        List<QuestionAnswerResponse> sortedQuestions = entry.getValue().stream()
+    private static CategoryAnswersResponse toCategoryAnswersResponse(
+            QuestionCategory category,
+            Map<UUID, String> answerMap
+    ) {
+        List<QuestionAnswerResponse> questions = category.getQuestions().stream()
+                .filter(QuestionForm::isActive)
                 .sorted(Comparator.comparing(
-                        detail -> detail.getQuestionForm().getOrder(),
+                        QuestionForm::getOrder,
                         Comparator.nullsLast(Comparator.naturalOrder())
                 ))
-                .map(detail -> new QuestionAnswerResponse(
-                        detail.getQuestionForm().getId(),
-                        detail.getQuestionForm().getTitle(),
-                        detail.getQuestionForm().getIconName(),
-                        detail.getAnswer()
+                .map(q -> new QuestionAnswerResponse(
+                        q.getId(),
+                        q.getTitle(),
+                        q.getIconName(),
+                        answerMap.get(q.getId())
                 ))
                 .toList();
 
         return new CategoryAnswersResponse(
-                category != null ? category.getId() : null,
-                category != null ? category.getName() : "General",
-                sortedQuestions
+                category.getId(),
+                category.getName() != null ? category.getName() : "General",
+                questions
         );
     }
 

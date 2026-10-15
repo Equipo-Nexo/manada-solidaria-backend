@@ -44,6 +44,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -255,6 +256,43 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.phoneNumber.areaCode").value("353"))
                 .andExpect(jsonPath("$.phoneNumber.number").value("4123456"))
                 .andExpect(jsonPath("$.categories").isArray());
+    }
+
+    @Test
+    @DisplayName("GET /adoption-forms/{adoptionFormId} — Devuelve todas las preguntas de la BD y setea null en las que no fueron respondidas")
+    void getFormById_returnsAllQuestionsAndNullForUnanswered() throws Exception {
+        User owner = createOtherUser("owner-unanswered", "owner_unanswered@mail.com");
+        User applicant = createOtherUser("applicant-unanswered", "applicant_unanswered@mail.com");
+
+        AdoptionPost post = saveAdoptionPost("Perro en adopción", owner);
+        QuestionCategory category = saveCategory("Hogar", 1);
+
+        QuestionForm q1 = saveQuestion("Primera pregunta", 1, category);
+        QuestionForm q2 = saveQuestion("Segunda pregunta (no respondida)", 2, category);
+
+        AdoptionForm form = new AdoptionForm(
+                "Solo respondo una pregunta",
+                new PhoneNumber("353", "4123456"),
+                applicant,
+                post
+        );
+
+        // Solo guardamos respuesta para la pregunta q1
+        form.addAnswer(new AdoptionFormDetail("Respuesta 1", form, q1));
+
+        AdoptionForm savedForm = adoptionFormRepository.save(form);
+        String applicantToken = createTokenForUser(applicant);
+
+        mockMvc.perform(
+                        get("/adoption-forms/{adoptionFormId}", savedForm.getId())
+                                .header("Authorization", "Bearer " + applicantToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.categories[0].questions", hasSize(2)))
+                .andExpect(jsonPath("$.categories[0].questions[0].questionTitle").value("Primera pregunta"))
+                .andExpect(jsonPath("$.categories[0].questions[0].answer").value("Respuesta 1"))
+                .andExpect(jsonPath("$.categories[0].questions[1].questionTitle").value("Segunda pregunta (no respondida)"))
+                .andExpect(jsonPath("$.categories[0].questions[1].answer").value(nullValue()));
     }
 
     @Test
@@ -475,7 +513,13 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
                 new ArrayList<>(),
                 UUID.randomUUID()
         );
-        return questionFormRepository.save(q);
+        QuestionForm saved = questionFormRepository.save(q);
+
+        if (category != null && category.getQuestions() != null) {
+            category.getQuestions().add(saved);
+        }
+
+        return saved;
     }
 
     private User createOtherUser(String username, String email) {

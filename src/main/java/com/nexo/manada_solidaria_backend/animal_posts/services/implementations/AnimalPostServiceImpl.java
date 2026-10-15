@@ -118,17 +118,29 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                 .map(post -> HappyCaseResponse.from(post, isRecentlyResolved(post)));
     }
 
-    private static boolean isRecentlyResolved(AnimalPost<?, ?> post) {
-        return post.getCurrentStatus().getCreatedAt().toLocalDate()
-                .isAfter(LocalDate.now().minusDays(RECENT_DAYS));
-    }
-
     @Override
     public List<AnimalPostResponse> getUserAnimalPosts(User user) {
         return animalPostRepository.findAllByOwnerOrderByCreatedAtDesc(user)
                 .stream()
                 .map(AnimalPostResponse::from)
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public AdoptionPost getAdoptionPostOrThrow(UUID adoptionPostId) {
+        return animalPostRepository.findById(adoptionPostId)
+                .filter(post -> post instanceof AdoptionPost)
+                .map(post -> (AdoptionPost) post)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "La publicación de adopción no fue encontrada"
+                ));
+    }
+
+    private static boolean isRecentlyResolved(AnimalPost<?, ?> post) {
+        return post.getCurrentStatus().getCreatedAt().toLocalDate()
+                .isAfter(LocalDate.now().minusDays(RECENT_DAYS));
     }
 
     private AnimalPost getAnimalPostOrThrow(UUID animalPostId) {
