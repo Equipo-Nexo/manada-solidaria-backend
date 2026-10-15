@@ -39,7 +39,7 @@ public record AdoptionFormResponse(
                 form.getId(),
                 form.getAdoptionPost().getId(),
                 form.getApplicant().getId(),
-                buildApplicantFullName(form.getApplicant()),
+                getApplicantName(form.getApplicant()),
                 form.getDescription(),
                 form.getPhoneNumber(),
                 form.isRead(),
@@ -48,15 +48,7 @@ public record AdoptionFormResponse(
         );
     }
 
-    private static String buildApplicantFullName(User user) {
-        if (user == null || user.getProfile() == null) {
-            return null;
-        }
-
-        String name = user.getProfile().getName() != null ? user.getProfile().getName().trim() : "";
-        String lastname = user.getProfile().getLastname() != null ? user.getProfile().getLastname().trim() : "";
-
-        String fullName = (name + " " + lastname).trim();
-        return fullName.isEmpty() ? null : fullName;
+    private static String getApplicantName(User applicant) {
+        return applicant != null ? applicant.getFullNameOrUsername() : null;
     }
 }
