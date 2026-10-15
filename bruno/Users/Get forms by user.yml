@@ -42,7 +42,7 @@ runtime:
         });
 
         test("cada formulario contiene los campos requeridos", function () {
-          const campos = ["id", "isRead", "createdAt"];
+          const campos = ["id", "animalName", "animalImageUrl", "applicantName", "isRead", "createdAt"];
           res.body.forms.forEach((form) => {
             campos.forEach((campo) => expect(form).to.have.property(campo));
           });
@@ -73,6 +73,7 @@ docs: |-
         "id": "c1111111-1111-1111-1111-111111111111",
         "animalName": "Firulais",
         "animalImageUrl": "cf-image-1",
+        "applicantName": "Juan Pérez",
         "description": "Quiero adoptar a Firulais para darle una buena calidad de vida.",
         "isRead": false,
         "createdAt": "2026-10-07T14:30:00"
