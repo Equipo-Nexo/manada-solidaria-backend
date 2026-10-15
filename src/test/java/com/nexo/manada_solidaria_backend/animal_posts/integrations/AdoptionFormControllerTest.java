@@ -103,6 +103,7 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.adoptionPostId").value(post.getId().toString()))
                 .andExpect(jsonPath("$.applicantId").value(authenticatedUser.getId().toString()))
+                .andExpect(jsonPath("$.applicantName").value(authenticatedUser.getFullNameOrUsername()))
                 .andExpect(jsonPath("$.description").value("Quiero adoptar una gatita para que crezca con mi gato."))
                 .andExpect(jsonPath("$.phoneNumber.areaCode").value("353"))
                 .andExpect(jsonPath("$.phoneNumber.number").value("4123456"))
@@ -225,7 +226,7 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
     @DisplayName("GET /adoption-forms/{adoptionFormId} — Obtiene el detalle del formulario para el postulante")
     void getFormById_returnsOk() throws Exception {
         User owner = createOtherUser("owner-get-id", "owner_get_id@mail.com");
-        User applicant = createOtherUser("applicant-get-id", "applicant_get_id@mail.com");
+        User applicant = createOtherUserWithProfile("applicant-get-id", "applicant_get_id@mail.com", "Juan", "Pérez");
 
         AdoptionPost post = saveAdoptionPost("Busco hogar para gata", owner);
         QuestionForm q1 = saveQuestion("¿Alquilás? ¿Te permiten mascotas?", 1, null);
@@ -251,11 +252,68 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.id").value(savedForm.getId().toString()))
                 .andExpect(jsonPath("$.adoptionPostId").value(post.getId().toString()))
                 .andExpect(jsonPath("$.animalName").value("Busco hogar para gata"))
+                .andExpect(jsonPath("$.animalImageUrl").value("cf-img-id"))
                 .andExpect(jsonPath("$.applicantId").value(applicant.getId().toString()))
+                .andExpect(jsonPath("$.applicantName").value("Juan Pérez"))
                 .andExpect(jsonPath("$.description").value("Quiero una gatita para que le haga compañía a mi gato de 2 años para que crezcan juntos."))
                 .andExpect(jsonPath("$.phoneNumber.areaCode").value("353"))
                 .andExpect(jsonPath("$.phoneNumber.number").value("4123456"))
                 .andExpect(jsonPath("$.categories").isArray());
+    }
+
+    @Test
+    @DisplayName("GET /adoption-forms/{adoptionFormId} — Devuelve el username como fallback cuando no tiene nombre y apellido")
+    void getFormById_returnsUsernameFallback_whenProfileNameIsNull() throws Exception {
+        User owner = createOtherUser("owner-fallback", "owner_fallback@mail.com");
+        User applicantWithoutProfileName = createOtherUser("applicant-no-name", "no_name@mail.com");
+
+        AdoptionPost post = saveAdoptionPost("Gato en adopción", owner);
+
+        AdoptionForm form = new AdoptionForm(
+                "Quiero adoptar",
+                new PhoneNumber("353", "4123456"),
+                applicantWithoutProfileName,
+                post
+        );
+        AdoptionForm savedForm = adoptionFormRepository.save(form);
+
+        String applicantToken = createTokenForUser(applicantWithoutProfileName);
+
+        mockMvc.perform(
+                        get("/adoption-forms/{adoptionFormId}", savedForm.getId())
+                                .header("Authorization", "Bearer " + applicantToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.applicantName").value("applicant-no-name"));
+    }
+
+    @Test
+    @DisplayName("GET /users/adoption-forms — Mapea correctamente el animalImageUrl y el applicantName en la lista")
+    void getFormsByUser_mapsAnimalImageUrlAndApplicantName() throws Exception {
+        adoptionFormRepository.deleteAll();
+
+        User reviewer = admin();
+        User applicant = createOtherUserWithProfile("applicant-item-test", "applicant_item@mail.com", "María", "Gómez");
+
+        AdoptionPost post = saveAdoptionPost("Perro en adopción", reviewer);
+
+        AdoptionForm form = new AdoptionForm(
+                "Quiero postularme",
+                new PhoneNumber("353", "4123456"),
+                applicant,
+                post
+        );
+        adoptionFormRepository.save(form);
+
+        mockMvc.perform(
+                        get("/users/adoption-forms")
+                                .param("filter", "REVIEWER")
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.forms[0].animalName").value("Perro en adopción"))
+                .andExpect(jsonPath("$.forms[0].animalImageUrl").value("cf-img-id"))
+                .andExpect(jsonPath("$.forms[0].applicantName").value("María Gómez"));
     }
 
     @Test
@@ -547,6 +605,19 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
                 username,
                 passwordEncoder.encode("password"),
                 new Profile(email, new PhoneNumber("353", "999999"), Set.of(Rol.COMMUNITY))
+        );
+        return userRepository.save(user);
+    }
+
+    private User createOtherUserWithProfile(String username, String email, String name, String lastname) {
+        Profile profile = new Profile(email, new PhoneNumber("353", "999999"), Set.of(Rol.COMMUNITY));
+        profile.setName(name);
+        profile.setLastname(lastname);
+
+        User user = new User(
+                username,
+                passwordEncoder.encode("password"),
+                profile
         );
         return userRepository.save(user);
     }

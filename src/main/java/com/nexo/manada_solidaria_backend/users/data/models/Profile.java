@@ -65,4 +65,20 @@ public class Profile {
         }
         this.roles = updated;
     }
+
+    public String getFullName() {
+        String safeName = hasText(this.name) ? this.name.trim() : "";
+        String safeLastname = hasText(this.lastname) ? this.lastname.trim() : "";
+
+        String fullName = (safeName + " " + safeLastname).trim();
+        return fullName.isEmpty() ? null : fullName;
+    }
+
+    public boolean hasFullName() {
+        return hasText(this.name) || hasText(this.lastname);
+    }
+
+    private static boolean hasText(String str) {
+        return str != null && !str.trim().isEmpty();
+    }
 }
