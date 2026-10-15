@@ -463,6 +463,24 @@ public class MockAnimalPostDataUtils {
         );
     }
 
+    private static Stream<Arguments> provideTransitNotificationCreateCases() {
+        return Stream.of(
+                Arguments.of("Una adopcion que busca transito avisa al hogar de transito", ADOPTION_VALID, "transito", 1),
+                Arguments.of("Un usuario sin el rol de transito no recibe el aviso", ADOPTION_VALID, "comunidad", 0),
+                Arguments.of("El autor no recibe el aviso de su propio post aunque sea transito", ADOPTION_VALID, "admin", 0),
+                Arguments.of("Una adopcion que ya tiene transito no avisa", ADOPTION_IN_TRANSIT, "transito", 0),
+                Arguments.of("Un perdido no avisa", LOST_VALID, "transito", 0)
+        );
+    }
+
+    private static Stream<Arguments> provideTransitNotificationTransitionCases() {
+        return Stream.of(
+                Arguments.of("Una adopcion que pierde el transito avisa", "SEARCHING_ADOPT", "SEARCHING_ADOPT_AND_TRANSIT", 1),
+                Arguments.of("Una adopcion que consigue transito no avisa", "SEARCHING_ADOPT_AND_TRANSIT", "SEARCHING_ADOPT", 0),
+                Arguments.of("Una adopcion que pasa a adoptada no avisa", "SEARCHING_ADOPT_AND_TRANSIT", "ADOPTED", 0)
+        );
+    }
+
     private static Stream<Arguments> provideLostTransitionCases() {
         return Stream.of(
                 Arguments.of("Un LOST con dueno transiciona a SEARCHING", LOST_VALID, "SEARCHING"),
@@ -592,5 +610,42 @@ public class MockAnimalPostDataUtils {
                 new UpdateAnimalPostRequest.AnimalUpdate(AnimalType.CAT, AnimalSize.LARGE, AnimalGender.FEMALE, "negro", AnimalAge.SENIOR),
                 new UpdateLocationRequest("Refugio Nuevo", "Nueva direccion 456", 999, -34.7, -58.7)
         );
+    }
+
+    public static Stream<Arguments> provideSimilarLostPetRecipientCases() {
+        return Stream.of(
+                Arguments.of("Recibe quien busca un perro", LOST_STREET_WITHOUT_PHONE, "busca-perro", 1),
+                Arguments.of("Con dos perros buscados recibe una sola vez", LOST_STREET_WITHOUT_PHONE, "busca-dos-perros", 1),
+                Arguments.of("No recibe quien busca un gato", LOST_STREET_WITHOUT_PHONE, "busca-gato", 0),
+                Arguments.of("No recibe quien ya encontro a su perro", LOST_STREET_WITHOUT_PHONE, "encontro-perro", 0),
+                Arguments.of("No recibe quien publico un perro en la calle", LOST_STREET_WITHOUT_PHONE, "rescata-perro", 0),
+                Arguments.of("No recibe el autor aunque busque un perro", LOST_STREET_WITHOUT_PHONE, "admin", 0),
+                Arguments.of("Una mascota perdida con dueno no notifica", LOST_VALID, "busca-perro", 0)
+        );
+    }
+
+    public static Stream<Arguments> provideSimilarLostPetColorCases() {
+        return Stream.of(
+                Arguments.of("Mismo color recibe", "BLACK", "BLACK", 1),
+                Arguments.of("Otro color no recibe", "BLACK", "BROWN", 0),
+                Arguments.of("Si la mascota buscada no tiene color, recibe", "BLACK", null, 1),
+                Arguments.of("Si el animal en la calle no tiene color, recibe", null, "BROWN", 1),
+                Arguments.of("OTHER con OTHER recibe", "OTHER", "OTHER", 1),
+                Arguments.of("OTHER con un color de la lista no recibe", "OTHER", "BLACK", 0)
+        );
+    }
+
+    public static String streetDogWithColor(String color) {
+        return """
+                {
+                  "type": "LOST",
+                  "name": "Animal en la calle",
+                  "description": "Lo vi deambulando",
+                  "imageId": "cf-image-street",
+                  "hasOwner": false,
+                  "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE", "age": "ADULT", "color": %s },
+                  "location": { "name": "Esquina", "address": "Corrientes", "number": 500, "latitude": -34.6, "longitude": -58.4 }
+                }
+                """.formatted(color == null ? "null" : "\"" + color + "\"");
     }
 }

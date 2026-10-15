@@ -1,14 +1,17 @@
 package com.nexo.manada_solidaria_backend.users.controllers.interfaces;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormResponse;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormsWithCountersResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
 import com.nexo.manada_solidaria_backend.notifications.controllers.responses.UserNotificationsResponse;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
+import com.nexo.manada_solidaria_backend.users.controllers.requests.CreateUserLocationRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.*;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -54,6 +57,13 @@ public interface UserController {
             @AuthenticationPrincipal User authenticatedUser
     );
 
+    @PostMapping("/save-location")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void createLocation(
+            @Valid @RequestBody CreateUserLocationRequest request,
+            @AuthenticationPrincipal User authenticatedUser
+    );
+
     @PatchMapping("/roles")
     Set<Rol> updateRoles(
             @Valid @RequestBody UpdateRolesRequest request,
@@ -61,8 +71,8 @@ public interface UserController {
     );
 
     @GetMapping("/adoption-forms")
-    List<AdoptionFormResponse> getFormsByUser(
-            @RequestParam FormFilter filter,
+    AdoptionFormsWithCountersResponse getFormsByUser(
+            @RequestParam(required = false) FormFilter filter,
             @AuthenticationPrincipal User authenticatedUser
     );
 }

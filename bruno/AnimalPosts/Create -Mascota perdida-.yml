@@ -51,6 +51,9 @@ settings:
   maxRedirects: 5
 
 docs: |-
+  Publicar una mascota perdida (LOST con hasOwner=true) no dispara notificaciones. El aviso a quienes
+  buscan su mascota sale cuando alguien publica un animal en la calle (ver Create "Animal en la calle").
+
   Generated from cURL: curl --location 'http://localhost:8080/animal-post' \
   --header 'Content-Type: application/json' \
   --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI1MWFkZWE2ZC01ZGM1LTQxZmUtYTJhMy0wNTVlZjM2ZmIxZTAiLCJleHAiOjE3ODEwNTU4NDQsImlhdCI6MTc4MTA1MjI0NCwicm9sZXMiOlsiQ09NTVVOSVRZIl19.6XcZETal-dQhxNo6sw0rSUhHQDtfK_0GXtBa8Za9C18' \

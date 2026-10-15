@@ -7,6 +7,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusAdoptionPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusLostPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -79,4 +80,26 @@ public interface AnimalPostRepository extends JpaRepository<AnimalPost, UUID> {
 
     @EntityGraph(attributePaths = {"animal", "location"})
     List<AnimalPost<?, ?>> findAllByOwnerOrderByCreatedAtDesc(User user);
+
+    @Query("""
+            SELECT DISTINCT p.owner.id FROM LostPost p
+            WHERE p.animal.type = :animalType
+              AND (:animalColor IS NULL OR p.animal.color IS NULL OR p.animal.color = :animalColor)
+              AND EXISTS (SELECT 1 FROM LostPostStatusHistory h
+                          WHERE h.post = p AND h.finishedAt IS NULL AND h.status = :status)
+            """)
+    Set<UUID> findOwnerIdsByAnimalTypeColorAndStatus(
+            @Param("animalType") AnimalType animalType,
+            @Param("animalColor") String animalColor,
+            @Param("status") StatusLostPost status
+    );
+
+    @EntityGraph(attributePaths = {"animal", "location", "owner", "owner.profile", "statusHistory"})
+    @Query("""
+            SELECT p FROM LostPost p
+            WHERE EXISTS (SELECT 1 FROM LostPostStatusHistory h
+                          WHERE h.post = p AND h.finishedAt IS NULL AND h.status NOT IN :excludedStatuses)
+            ORDER BY p.createdAt DESC
+            """)
+    List<LostPost> findActiveLostPosts(@Param("excludedStatuses") Set<StatusLostPost> excludedStatuses);
 }
