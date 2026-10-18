@@ -19,9 +19,9 @@ import java.util.UUID;
 public interface AnimalPostService {
     AnimalPostResponse create(CreateAnimalPostRequest request, User owner);
 
-    Page<AnimalPostResponse> getAnimalPosts(GetAnimalPostsRequest request, Pageable pageable);
+    Page<AnimalPostResponse> getAnimalPosts(GetAnimalPostsRequest request, Pageable pageable, User authenticatedUser);
 
-    AnimalPostResponse getAnimalPost(UUID animalPostId);
+    AnimalPostResponse getAnimalPost(UUID animalPostId, User authenticatedUser);
 
     @AnimalPostOwner
     void update(UUID animalPostId, UpdateAnimalPostRequest request, User authenticatedUser);
@@ -32,9 +32,13 @@ public interface AnimalPostService {
     @AnimalPostOwner
     void delete(UUID animalPostId, User authenticatedUser);
 
+    void like(UUID animalPostId, User authenticatedUser);
+
+    void dislike(UUID animalPostId, User authenticatedUser);
+
     Page<HappyCaseResponse> getHappyCases(Pageable pageable);
 
-    List<AnimalPostResponse> getUserAnimalPosts(User user);
+    List<AnimalPostResponse> getUserAnimalPosts(User user, User authenticatedUser);
 
     Set<UUID> getSearchingOwnerIds(AnimalType animalType, String animalColor);
 
