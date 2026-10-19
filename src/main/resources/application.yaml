@@ -39,7 +39,7 @@ server:
         same-site: none
         secure: true
 security:
-  access-token-expiration: 60
+  access-token-expiration: ${ACCESS_TOKEN_EXPIRATION:60}
   refresh-token-expiration: 120
   secret: ${SECURITY_KEY}
   password-recovery:
