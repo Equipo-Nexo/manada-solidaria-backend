@@ -99,7 +99,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserProfileResponse getUserProfile(UUID userId) {
         User user = getUserById(userId);
-        return UserProfileResponse.from(user);
+        return UserProfileResponse.from(user, getMetrics(user));
+    }
+
+    private UserMetricsResponse getMetrics(User user) {
+        return new UserMetricsResponse(
+                animalPostService.countUserAnimalPosts(user) + campaignService.countUserCampaigns(user),
+                animalPostService.countUserHappyCases(user)
+        );
     }
 
     @Override

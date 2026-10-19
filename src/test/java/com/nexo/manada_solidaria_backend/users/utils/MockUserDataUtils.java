@@ -242,6 +242,17 @@ public class MockUserDataUtils {
         );
     }
 
+    private static Stream<Arguments> provideUserMetricsCases() {
+        return Stream.of(
+                Arguments.of("Cuenta animales, campañas y colectas; casos felices solo de animales",
+                        UUID.fromString("22222222-2222-2222-2222-222222222222"), 7, 2),
+                Arguments.of("Cuenta solo las publicaciones del usuario del path",
+                        UUID.fromString("75e89eae-99f1-43e8-900a-c45826ec3153"), 1, 1),
+                Arguments.of("Un usuario sin publicaciones tiene todo en cero",
+                        UUID.fromString("00bfedfe-3ed4-4962-9cfa-4d6540b596c2"), 0, 0)
+        );
+    }
+
     private static Stream<Arguments> provideUnauthorizedTokenCases() {
         return Stream.of(
                 Arguments.of("Sin token", null),
