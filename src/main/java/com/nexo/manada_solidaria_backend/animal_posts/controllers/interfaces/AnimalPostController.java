@@ -40,7 +40,7 @@ public interface AnimalPostController {
     @GetMapping
     Page<AnimalPostResponse> getAnimalPosts(
             @ParameterObject GetAnimalPostsRequest request,
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) @ParameterObject Pageable pageable
+            @PageableDefault(size = 10, sort = "updatedAt", direction = Sort.Direction.DESC) @ParameterObject Pageable pageable
     );
 
     @GetMapping("/happy-cases")
@@ -65,6 +65,13 @@ public interface AnimalPostController {
     AnimalPostResponse transitionStatus(
             @PathVariable UUID animalPostId,
             @Valid @RequestBody TransitionStatusRequest request,
+            @AuthenticationPrincipal User authenticatedUser
+    );
+
+    @PostMapping("/{animalPostId}/repost")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void repost(
+            @PathVariable UUID animalPostId,
             @AuthenticationPrincipal User authenticatedUser
     );
 

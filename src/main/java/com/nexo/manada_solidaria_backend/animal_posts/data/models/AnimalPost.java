@@ -18,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -32,9 +33,9 @@ public abstract class AnimalPost<STATUS extends Enum<STATUS>, HISTORY extends St
     private String sharePostUrl;
     @Embedded
     private PhoneNumber phoneNumber;
-    private LocalDateTime updatedAt = null;
     @Column(updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime updatedAt = createdAt;
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(updatable = false)
     private Location location;
@@ -81,6 +82,13 @@ public abstract class AnimalPost<STATUS extends Enum<STATUS>, HISTORY extends St
         this.location.update(request.location());
     }
 
+    public void repost() {
+        if (isFinished()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "No se puede republicar una publicación finalizada");
+        }
+        this.updatedAt = LocalDateTime.now();
+    }
+
     public abstract HISTORY getCurrentStatus();
     
     public abstract AnimalPostFilter getType();
@@ -105,4 +113,10 @@ public abstract class AnimalPost<STATUS extends Enum<STATUS>, HISTORY extends St
     protected abstract boolean isTransitionAllowed(STATUS current, STATUS target);
 
     protected abstract void addStatus(STATUS status);
+
+    protected abstract Set<STATUS> finalStatuses();
+
+    private boolean isFinished() {
+        return finalStatuses().contains(getCurrentStatus().getStatus());
+    }
 }

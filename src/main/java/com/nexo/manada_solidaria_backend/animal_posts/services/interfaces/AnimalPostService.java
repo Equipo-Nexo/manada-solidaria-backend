@@ -30,6 +30,9 @@ public interface AnimalPostService {
     AnimalPostResponse transitionStatus(UUID animalPostId, TransitionStatusRequest request, User authenticatedUser);
 
     @AnimalPostOwner
+    void repost(UUID animalPostId, User authenticatedUser);
+
+    @AnimalPostOwner
     void delete(UUID animalPostId, User authenticatedUser);
 
     Page<HappyCaseResponse> getHappyCases(Pageable pageable);
