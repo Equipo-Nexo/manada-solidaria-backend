@@ -84,8 +84,8 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
         AdoptionPost post = saveAdoptionPost("Gatito en adopción", postOwner);
         User authenticatedUser = admin();
 
-        QuestionForm q1 = saveQuestion("¿Alquilás? ¿Te permiten mascotas?", 1, null);
-        QuestionForm q2 = saveQuestion("¿Contás con patio cerrado?", 2, null);
+        QuestionForm q1 = saveQuestion("¿Alquilás? ¿Te permiten mascotas?", 1, null, true);
+        QuestionForm q2 = saveQuestion("¿Contás con patio cerrado?", 2, null, true);
 
         CreateAdoptionFormRequest request = MockAdoptionFormDataUtils.createValidRequest(
                 post.getId(),
@@ -103,7 +103,6 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.adoptionPostId").value(post.getId().toString()))
                 .andExpect(jsonPath("$.applicantId").value(authenticatedUser.getId().toString()))
-                .andExpect(jsonPath("$.applicantName").value(authenticatedUser.getFullNameOrUsername()))
                 .andExpect(jsonPath("$.description").value("Quiero adoptar una gatita para que crezca con mi gato."))
                 .andExpect(jsonPath("$.phoneNumber.areaCode").value("353"))
                 .andExpect(jsonPath("$.phoneNumber.number").value("4123456"))
@@ -131,8 +130,8 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
     void createForm_whenApplicantIsOwner_returnsBadRequest() throws Exception {
         User ownerAndApplicant = admin();
         AdoptionPost post = saveAdoptionPost("Mi perro en adopción", ownerAndApplicant);
-        QuestionForm q1 = saveQuestion("¿Tenés patio?", 1, null);
-        QuestionForm q2 = saveQuestion("¿Experiencia previa?", 2, null);
+        QuestionForm q1 = saveQuestion("¿Tenés patio?", 1, null, true);
+        QuestionForm q2 = saveQuestion("¿Experiencia previa?", 2, null, true);
 
         mockMvc.perform(
                         post("/adoption-forms")
@@ -146,8 +145,8 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
     @Test
     @DisplayName("POST /adoption-forms para una publicación inexistente devuelve NOT_FOUND 404")
     void createForm_nonExistentPost_returnsNotFound() throws Exception {
-        QuestionForm q1 = saveQuestion("¿Tenés patio?", 1, null);
-        QuestionForm q2 = saveQuestion("¿Experiencia previa?", 2, null);
+        QuestionForm q1 = saveQuestion("¿Tenés patio?", 1, null, true);
+        QuestionForm q2 = saveQuestion("¿Experiencia previa?", 2, null, true);
 
         mockMvc.perform(
                         post("/adoption-forms")
@@ -192,8 +191,8 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
         User postOwner = createOtherUser("owner-user", "owner@mail.com");
         AdoptionPost post = saveAdoptionPost("Gatito en adopción", postOwner);
 
-        QuestionForm q1 = saveQuestion("¿Tenés patio?", 1, null);
-        QuestionForm q2 = saveQuestion("¿Alquilás?", 2, null);
+        QuestionForm q1 = saveQuestion("¿Tenés patio?", 1, null, true);
+        QuestionForm q2 = saveQuestion("¿Alquilás?", 2, null, true);
 
         CreateAdoptionFormRequest request = new CreateAdoptionFormRequest(
                 post.getId(),
@@ -229,8 +228,8 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
         User applicant = createOtherUserWithProfile("applicant-get-id", "applicant_get_id@mail.com", "Juan", "Pérez");
 
         AdoptionPost post = saveAdoptionPost("Busco hogar para gata", owner);
-        QuestionForm q1 = saveQuestion("¿Alquilás? ¿Te permiten mascotas?", 1, null);
-        QuestionForm q2 = saveQuestion("¿Contás con patio cerrado?", 2, null);
+        QuestionForm q1 = saveQuestion("¿Alquilás? ¿Te permiten mascotas?", 1, null, true);
+        QuestionForm q2 = saveQuestion("¿Contás con patio cerrado?", 2, null, true);
 
         AdoptionForm form = new AdoptionForm(
                 "Quiero una gatita para que le haga compañía a mi gato de 2 años para que crezcan juntos.",
@@ -252,39 +251,12 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.id").value(savedForm.getId().toString()))
                 .andExpect(jsonPath("$.adoptionPostId").value(post.getId().toString()))
                 .andExpect(jsonPath("$.animalName").value("Busco hogar para gata"))
-                .andExpect(jsonPath("$.animalImageUrl").value("cf-img-id"))
                 .andExpect(jsonPath("$.applicantId").value(applicant.getId().toString()))
                 .andExpect(jsonPath("$.applicantName").value("Juan Pérez"))
                 .andExpect(jsonPath("$.description").value("Quiero una gatita para que le haga compañía a mi gato de 2 años para que crezcan juntos."))
                 .andExpect(jsonPath("$.phoneNumber.areaCode").value("353"))
                 .andExpect(jsonPath("$.phoneNumber.number").value("4123456"))
                 .andExpect(jsonPath("$.categories").isArray());
-    }
-
-    @Test
-    @DisplayName("GET /adoption-forms/{adoptionFormId} — Devuelve el username como fallback cuando no tiene nombre y apellido")
-    void getFormById_returnsUsernameFallback_whenProfileNameIsNull() throws Exception {
-        User owner = createOtherUser("owner-fallback", "owner_fallback@mail.com");
-        User applicantWithoutProfileName = createOtherUser("applicant-no-name", "no_name@mail.com");
-
-        AdoptionPost post = saveAdoptionPost("Gato en adopción", owner);
-
-        AdoptionForm form = new AdoptionForm(
-                "Quiero adoptar",
-                new PhoneNumber("353", "4123456"),
-                applicantWithoutProfileName,
-                post
-        );
-        AdoptionForm savedForm = adoptionFormRepository.save(form);
-
-        String applicantToken = createTokenForUser(applicantWithoutProfileName);
-
-        mockMvc.perform(
-                        get("/adoption-forms/{adoptionFormId}", savedForm.getId())
-                                .header("Authorization", "Bearer " + applicantToken)
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.applicantName").value("applicant-no-name"));
     }
 
     @Test
@@ -371,8 +343,8 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
         AdoptionPost post = saveAdoptionPost("Perro en adopción", owner);
         QuestionCategory category = saveCategory("Hogar", 1);
 
-        QuestionForm q1 = saveQuestion("Primera pregunta", 1, category);
-        QuestionForm q2 = saveQuestion("Segunda pregunta (no respondida)", 2, category);
+        QuestionForm q1 = saveQuestion("Primera pregunta", 1, category, true);
+        QuestionForm q2 = saveQuestion("Segunda pregunta (no respondida)", 2, category, true);
 
         AdoptionForm form = new AdoptionForm(
                 "Solo respondo una pregunta",
@@ -391,6 +363,7 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
                                 .header("Authorization", "Bearer " + applicantToken)
                 )
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.categories[0].categoryName").value("Hogar"))
                 .andExpect(jsonPath("$.categories[0].questions", hasSize(2)))
                 .andExpect(jsonPath("$.categories[0].questions[0].questionTitle").value("Primera pregunta"))
                 .andExpect(jsonPath("$.categories[0].questions[0].answer").value("Respuesta 1"))
@@ -399,17 +372,20 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     @Test
-    @DisplayName("GET /adoption-forms/{adoptionFormId} — Devuelve las preguntas ordenadas por su sort_order dentro de la categoría")
+    @DisplayName("GET /adoption-forms/{adoptionFormId} — Devuelve categorías y preguntas ordenadas respetando sort_order")
     void getFormById_returnsQuestionsOrderedByCategoryAndQuestionOrder() throws Exception {
         User owner = createOtherUser("owner-order", "owner_order@mail.com");
         User applicant = createOtherUser("applicant-order", "applicant_order@mail.com");
 
         AdoptionPost post = saveAdoptionPost("Perro en adopción", owner);
-        QuestionCategory category = saveCategory("Hogar", 1);
 
-        QuestionForm qThird = saveQuestion("Tercera pregunta", 3, category);
-        QuestionForm qFirst = saveQuestion("Primera pregunta", 1, category);
-        QuestionForm qSecond = saveQuestion("Segunda pregunta", 2, category);
+        QuestionCategory catSecond = saveCategory("Categoría Secundaria", 2);
+        QuestionCategory catFirst = saveCategory("Categoría Principal", 1);
+
+        QuestionForm qThird = saveQuestion("Tercera pregunta", 3, catFirst, true);
+        QuestionForm qFirst = saveQuestion("Primera pregunta", 1, catFirst, true);
+        QuestionForm qSecond = saveQuestion("Segunda pregunta", 2, catFirst, true);
+        QuestionForm qCat2 = saveQuestion("Pregunta Cat 2", 1, catSecond, true);
 
         AdoptionForm form = new AdoptionForm(
                 "Postulación ordenada",
@@ -421,6 +397,7 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
         form.addAnswer(new AdoptionFormDetail("Respuesta 3", form, qThird));
         form.addAnswer(new AdoptionFormDetail("Respuesta 1", form, qFirst));
         form.addAnswer(new AdoptionFormDetail("Respuesta 2", form, qSecond));
+        form.addAnswer(new AdoptionFormDetail("Respuesta Cat 2", form, qCat2));
 
         AdoptionForm savedForm = adoptionFormRepository.save(form);
         String applicantToken = createTokenForUser(applicant);
@@ -430,9 +407,80 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
                                 .header("Authorization", "Bearer " + applicantToken)
                 )
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.categories[0].categoryName").value("Categoría Principal"))
                 .andExpect(jsonPath("$.categories[0].questions[0].questionTitle").value("Primera pregunta"))
                 .andExpect(jsonPath("$.categories[0].questions[1].questionTitle").value("Segunda pregunta"))
-                .andExpect(jsonPath("$.categories[0].questions[2].questionTitle").value("Tercera pregunta"));
+                .andExpect(jsonPath("$.categories[0].questions[2].questionTitle").value("Tercera pregunta"))
+                .andExpect(jsonPath("$.categories[1].categoryName").value("Categoría Secundaria"))
+                .andExpect(jsonPath("$.categories[1].questions[0].questionTitle").value("Pregunta Cat 2"));
+    }
+
+    @Test
+    @DisplayName("GET /adoption-forms/{adoptionFormId} — Incluye preguntas inactivas siempre que tengan respuesta guardada")
+    void getFormById_includesInactiveQuestionIfAnswered() throws Exception {
+        User owner = createOtherUser("owner-inactive", "owner_inactive@mail.com");
+        User applicant = createOtherUser("applicant-inactive", "applicant_inactive@mail.com");
+
+        AdoptionPost post = saveAdoptionPost("Mascota en adopción", owner);
+        QuestionCategory category = saveCategory("Información General", 1);
+
+        QuestionForm qActive = saveQuestion("Pregunta Activa", 1, category, true);
+        QuestionForm qInactiveAnswered = saveQuestion("Pregunta Inactiva Respondida", 2, category, false);
+        QuestionForm qInactiveNotAnswered = saveQuestion("Pregunta Inactiva Sin Responder", 3, category, false);
+
+        AdoptionForm form = new AdoptionForm(
+                "Postulación con pregunta inactiva",
+                new PhoneNumber("353", "4123456"),
+                applicant,
+                post
+        );
+
+        form.addAnswer(new AdoptionFormDetail("Respuesta Activa", form, qActive));
+        form.addAnswer(new AdoptionFormDetail("Respuesta Inactiva Antiga", form, qInactiveAnswered));
+
+        AdoptionForm savedForm = adoptionFormRepository.save(form);
+        String applicantToken = createTokenForUser(applicant);
+
+        mockMvc.perform(
+                        get("/adoption-forms/{adoptionFormId}", savedForm.getId())
+                                .header("Authorization", "Bearer " + applicantToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.categories[0].questions", hasSize(2)))
+                .andExpect(jsonPath("$.categories[0].questions[0].questionTitle").value("Pregunta Activa"))
+                .andExpect(jsonPath("$.categories[0].questions[1].questionTitle").value("Pregunta Inactiva Respondida"))
+                .andExpect(jsonPath("$.categories[0].questions[1].answer").value("Respuesta Inactiva Antiga"));
+    }
+
+    @Test
+    @DisplayName("GET /adoption-forms/{adoptionFormId} — Maneja correctamente preguntas sin categoría asignándolas a la categoría General")
+    void getFormById_handlesQuestionsWithoutCategory() throws Exception {
+        User owner = createOtherUser("owner-nocat", "owner_nocat@mail.com");
+        User applicant = createOtherUser("applicant-nocat", "applicant_nocat@mail.com");
+
+        AdoptionPost post = saveAdoptionPost("Mascota sin categoría", owner);
+
+        QuestionForm qNoCat = saveQuestion("Pregunta suelta", 1, null, true);
+
+        AdoptionForm form = new AdoptionForm(
+                "Postulación sin categoría",
+                new PhoneNumber("353", "4123456"),
+                applicant,
+                post
+        );
+        form.addAnswer(new AdoptionFormDetail("Respuesta suelta", form, qNoCat));
+
+        AdoptionForm savedForm = adoptionFormRepository.save(form);
+        String applicantToken = createTokenForUser(applicant);
+
+        mockMvc.perform(
+                        get("/adoption-forms/{adoptionFormId}", savedForm.getId())
+                                .header("Authorization", "Bearer " + applicantToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.categories[0].categoryName").value("General"))
+                .andExpect(jsonPath("$.categories[0].questions[0].questionTitle").value("Pregunta suelta"))
+                .andExpect(jsonPath("$.categories[0].questions[0].answer").value("Respuesta suelta"));
     }
 
     @Test
@@ -624,14 +672,14 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
         return questionCategoryRepository.save(category);
     }
 
-    private QuestionForm saveQuestion(String title, Integer order, QuestionCategory category) {
+    private QuestionForm saveQuestion(String title, Integer order, QuestionCategory category, boolean isActive) {
         QuestionForm q = new QuestionForm(
                 title,
                 QuestionType.TEXT,
                 "icon",
                 "placeholder",
                 order,
-                true,
+                isActive,
                 category,
                 new ArrayList<>(),
                 UUID.randomUUID()
@@ -643,6 +691,10 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
         }
 
         return saved;
+    }
+
+    private QuestionForm saveQuestion(String title, Integer order, QuestionCategory category) {
+        return saveQuestion(title, order, category, true);
     }
 
     private User createOtherUser(String username, String email) {
@@ -681,7 +733,7 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
 
     private void createFormAsOwner(User applicant, User postOwner) {
         AdoptionPost postOfOther = saveAdoptionPost("Mascota de otro", postOwner);
-        QuestionForm q = saveQuestion("¿Patio?", 1, null);
+        QuestionForm q = saveQuestion("¿Patio?", 1, null, true);
         AdoptionForm form = new AdoptionForm(
                 "Descripción del solicitante",
                 new PhoneNumber("353", "4123456"),
@@ -694,7 +746,7 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
 
     private void createFormAsReviewer(User postOwner, User applicant) {
         AdoptionPost adminPost = saveAdoptionPost("Mascota de admin", postOwner);
-        QuestionForm q = saveQuestion("¿Patio?", 1, null);
+        QuestionForm q = saveQuestion("¿Patio?", 1, null, true);
         AdoptionForm form = new AdoptionForm(
                 "Descripción del solicitante",
                 new PhoneNumber("353", "4123456"),

@@ -39,21 +39,15 @@ public record AdoptionFormDetailResponse(
 
     public static AdoptionFormDetailResponse from(AdoptionForm form, List<QuestionCategory> allCategories) {
         Map<UUID, String> answerMap = new HashMap<>();
-        if (form.getAnswers() != null) {
-            for (AdoptionFormDetail detail : form.getAnswers()) {
-                if (detail.getQuestionForm() != null) {
-                    answerMap.put(detail.getQuestionForm().getId(), detail.getAnswer());
-                }
-            }
-        }
+        Map<UUID, QuestionForm> answeredQuestionsMap = new HashMap<>();
 
-        List<CategoryAnswersResponse> categoriesList = allCategories.stream()
-                .sorted(Comparator.comparing(
-                        QuestionCategory::getOrder,
-                        Comparator.nullsLast(Comparator.naturalOrder())
-                ))
-                .map(category -> toCategoryAnswersResponse(category, answerMap))
-                .toList();
+        extractAnswersAndQuestions(form, answerMap, answeredQuestionsMap);
+
+        List<CategoryAnswersResponse> categoriesList = new ArrayList<>();
+        categoriesList.addAll(mapRegisteredCategories(allCategories, answerMap));
+
+        mapUncategorizedQuestions(answeredQuestionsMap, answerMap)
+                .ifPresent(categoriesList::add);
 
         return new AdoptionFormDetailResponse(
                 form.getId(),
@@ -61,7 +55,7 @@ public record AdoptionFormDetailResponse(
                 form.getAdoptionPost().getName(),
                 form.getAdoptionPost().getImageUrl(),
                 form.getApplicant().getId(),
-                getApplicantName(form.getApplicant()),
+                buildApplicantFullName(form.getApplicant()),
                 form.getDescription(),
                 form.getPhoneNumber(),
                 form.isRead(),
@@ -70,22 +64,58 @@ public record AdoptionFormDetailResponse(
         );
     }
 
+    private static void extractAnswersAndQuestions(
+            AdoptionForm form,
+            Map<UUID, String> answerMap,
+            Map<UUID, QuestionForm> answeredQuestionsMap
+    ) {
+        if (form.getAnswers() != null) {
+            for (AdoptionFormDetail detail : form.getAnswers()) {
+                QuestionForm q = detail.getQuestionForm();
+                if (q != null) {
+                    answerMap.put(q.getId(), detail.getAnswer());
+                    answeredQuestionsMap.put(q.getId(), q);
+                }
+            }
+        }
+    }
+
+    private static List<CategoryAnswersResponse> mapRegisteredCategories(
+            List<QuestionCategory> allCategories,
+            Map<UUID, String> answerMap
+    ) {
+        return allCategories.stream()
+                .sorted(Comparator.comparing(QuestionCategory::getOrder, Comparator.nullsLast(Comparator.naturalOrder())))
+                .map(category -> toCategoryAnswersResponse(category, answerMap))
+                .filter(categoryResponse -> !categoryResponse.questions().isEmpty())
+                .toList();
+    }
+
+    private static Optional<CategoryAnswersResponse> mapUncategorizedQuestions(
+            Map<UUID, QuestionForm> answeredQuestionsMap,
+            Map<UUID, String> answerMap
+    ) {
+        List<QuestionAnswerResponse> uncategorizedQuestions = answeredQuestionsMap.values().stream()
+                .filter(q -> q.getCategory() == null)
+                .sorted(Comparator.comparing(QuestionForm::getOrder, Comparator.nullsLast(Comparator.naturalOrder())))
+                .map(q -> toQuestionAnswerResponse(q, answerMap))
+                .toList();
+
+        if (uncategorizedQuestions.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new CategoryAnswersResponse(null, "General", uncategorizedQuestions));
+    }
+
     private static CategoryAnswersResponse toCategoryAnswersResponse(
             QuestionCategory category,
             Map<UUID, String> answerMap
     ) {
         List<QuestionAnswerResponse> questions = category.getQuestions().stream()
-                .filter(QuestionForm::isActive)
-                .sorted(Comparator.comparing(
-                        QuestionForm::getOrder,
-                        Comparator.nullsLast(Comparator.naturalOrder())
-                ))
-                .map(q -> new QuestionAnswerResponse(
-                        q.getId(),
-                        q.getTitle(),
-                        q.getIconName(),
-                        answerMap.get(q.getId())
-                ))
+                .filter(q -> q.isActive() || answerMap.containsKey(q.getId()))
+                .sorted(Comparator.comparing(QuestionForm::getOrder, Comparator.nullsLast(Comparator.naturalOrder())))
+                .map(q -> toQuestionAnswerResponse(q, answerMap))
                 .toList();
 
         return new CategoryAnswersResponse(
@@ -95,7 +125,27 @@ public record AdoptionFormDetailResponse(
         );
     }
 
-    private static String getApplicantName(User applicant) {
-        return applicant != null ? applicant.getFullNameOrUsername() : null;
+    private static QuestionAnswerResponse toQuestionAnswerResponse(
+            QuestionForm question,
+            Map<UUID, String> answerMap
+    ) {
+        return new QuestionAnswerResponse(
+                question.getId(),
+                question.getTitle(),
+                question.getIconName(),
+                answerMap.get(question.getId())
+        );
+    }
+
+    private static String buildApplicantFullName(User user) {
+        if (user == null || user.getProfile() == null) {
+            return null;
+        }
+
+        String name = user.getProfile().getName() != null ? user.getProfile().getName().trim() : "";
+        String lastname = user.getProfile().getLastname() != null ? user.getProfile().getLastname().trim() : "";
+
+        String fullName = (name + " " + lastname).trim();
+        return fullName.isEmpty() ? null : fullName;
     }
 }
