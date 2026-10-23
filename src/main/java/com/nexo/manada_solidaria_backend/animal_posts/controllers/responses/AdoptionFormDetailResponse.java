@@ -5,7 +5,6 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionFormDe
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.QuestionCategory;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.QuestionForm;
 import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
-import com.nexo.manada_solidaria_backend.users.data.models.User;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -61,7 +60,7 @@ public record AdoptionFormDetailResponse(
                 form.getAdoptionPost().getName(),
                 form.getAdoptionPost().getImageUrl(),
                 form.getApplicant().getId(),
-                getApplicantName(form.getApplicant()),
+                form.getApplicant().getFullNameOrUsername(),
                 form.getDescription(),
                 form.getPhoneNumber(),
                 form.isRead(),
@@ -93,9 +92,5 @@ public record AdoptionFormDetailResponse(
                 category.getName() != null ? category.getName() : "General",
                 questions
         );
-    }
-
-    private static String getApplicantName(User applicant) {
-        return applicant != null ? applicant.getFullNameOrUsername() : null;
     }
 }

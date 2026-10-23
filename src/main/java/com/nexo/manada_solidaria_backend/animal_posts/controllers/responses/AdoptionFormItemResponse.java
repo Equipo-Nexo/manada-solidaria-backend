@@ -1,7 +1,6 @@
 package com.nexo.manada_solidaria_backend.animal_posts.controllers.responses;
 
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionForm;
-import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,14 +27,10 @@ public class AdoptionFormItemResponse {
                 .id(form.getId())
                 .animalName(form.getAdoptionPost().getName())
                 .animalImageUrl(form.getAdoptionPost().getImageUrl())
-                .applicantName(getApplicantName(form.getApplicant()))
+                .applicantName(form.getApplicant().getFullNameOrUsername())
                 .description(form.getDescription())
                 .isRead(form.isRead())
                 .createdAt(form.getCreatedAt())
                 .build();
-    }
-
-    private static String getApplicantName(User applicant) {
-        return applicant != null ? applicant.getFullNameOrUsername() : null;
     }
 }
