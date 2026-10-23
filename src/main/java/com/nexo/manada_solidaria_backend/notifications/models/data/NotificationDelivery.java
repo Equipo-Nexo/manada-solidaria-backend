@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.notifications.models.data;
 
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationStatus;
+import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -25,6 +26,9 @@ public class NotificationDelivery {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private NotificationChannel channel;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", length = 50)
+    private NotificationType type;
     @OneToMany(
             mappedBy = "notification",
             cascade = CascadeType.ALL,
@@ -35,10 +39,11 @@ public class NotificationDelivery {
     @Id
     private final UUID id = UUID.randomUUID();
 
-    public NotificationDelivery(User recipient, NotificationPayload notification, NotificationChannel channel, NotificationStatus status) {
+    public NotificationDelivery(User recipient, NotificationPayload notification, NotificationChannel channel, NotificationType type, NotificationStatus status) {
         this.recipient = recipient;
         this.payload = notification;
         this.channel = channel;
+        this.type = type;
         this.statusHistory.add(new NotificationStatusHistory(status, this));
     }
 

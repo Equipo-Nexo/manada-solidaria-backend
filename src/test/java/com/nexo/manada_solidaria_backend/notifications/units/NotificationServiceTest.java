@@ -3,6 +3,7 @@ package com.nexo.manada_solidaria_backend.notifications.units;
 import com.nexo.manada_solidaria_backend.common.configs.NotificationConfiguration;
 import com.nexo.manada_solidaria_backend.notifications.components.notifiers.NotificationResolver;
 import com.nexo.manada_solidaria_backend.notifications.models.data.Notification;
+import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationPayload;
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
 import com.nexo.manada_solidaria_backend.notifications.models.repositories.NotificationRepository;
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationService;
@@ -46,6 +47,6 @@ class NotificationServiceTest {
 
         notificationService.notify(type, Collections.emptyMap());
         verify(notificationResolver, atLeastOnce())
-                .notify(any(User.class), any(Notification.class));
+                .notify(any(User.class), any(NotificationPayload.class), NotificationType.PING);
     }
 }

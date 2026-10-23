@@ -8,6 +8,7 @@ import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationC
 import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationDelivery;
 import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationPayload;
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationStatus;
+import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
 import com.nexo.manada_solidaria_backend.notifications.models.repositories.NotificationDeliveryRepository;
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationDeliveryService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -29,11 +30,12 @@ public class NotificationDeliveryServiceImpl implements NotificationDeliveryServ
 
     @Override
     @Transactional
-    public NotificationDelivery createNotificationDelivery(User user, NotificationPayload notification, NotificationChannel channel) {
+    public NotificationDelivery createNotificationDelivery(User user, NotificationPayload notification, NotificationChannel channel, NotificationType type) {
         return this.notificationDeliveryRepository.save(new NotificationDelivery(
                 user,
                 notification,
                 channel,
+                type,
                 NotificationStatus.PENDING
         ));
     }
