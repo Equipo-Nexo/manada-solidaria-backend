@@ -35,4 +35,11 @@ public interface AdoptionFormController {
             @PathVariable("adoptionFormId") UUID adoptionFormId,
             @AuthenticationPrincipal User authenticatedUser
     );
+
+    @PostMapping("/{formId}/read")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void markAsRead(
+            @PathVariable("formId") UUID formId,
+            @AuthenticationPrincipal User authenticatedUser
+    );
 }

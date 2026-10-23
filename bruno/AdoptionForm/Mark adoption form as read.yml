@@ -1,0 +1,22 @@
+info:
+  name: Mark adoption form as read
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{MANADA_SOLIDARIA_HOST}}/adoption-forms/c67cdbc3-d47a-476d-8c4a-5295e45f87ed/read"
+  body:
+    type: none
+  auth: inherit
+
+params:
+  path:
+    adoptionFormId: c67cdbc3-d47a-476d-8c4a-5295e45f87ed
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true
