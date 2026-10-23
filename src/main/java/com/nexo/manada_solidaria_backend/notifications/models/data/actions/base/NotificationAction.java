@@ -21,6 +21,7 @@ import java.util.Map;
 @Getter
 public abstract class NotificationAction {
     private String title;
+    private Byte order;
 
     public NotificationAction(String title) {
         this.title = title;
