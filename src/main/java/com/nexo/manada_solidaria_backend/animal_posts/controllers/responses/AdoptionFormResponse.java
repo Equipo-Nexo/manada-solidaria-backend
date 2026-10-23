@@ -3,7 +3,6 @@ package com.nexo.manada_solidaria_backend.animal_posts.controllers.responses;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionForm;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionFormDetail;
 import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
-import com.nexo.manada_solidaria_backend.users.data.models.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,16 +38,12 @@ public record AdoptionFormResponse(
                 form.getId(),
                 form.getAdoptionPost().getId(),
                 form.getApplicant().getId(),
-                getApplicantName(form.getApplicant()),
+                form.getApplicant().getFullNameOrUsername(),
                 form.getDescription(),
                 form.getPhoneNumber(),
                 form.isRead(),
                 form.getCreatedAt(),
                 form.getAnswers().stream().map(QuestionFormResponse::from).toList()
         );
-    }
-
-    private static String getApplicantName(User applicant) {
-        return applicant != null ? applicant.getFullNameOrUsername() : null;
     }
 }

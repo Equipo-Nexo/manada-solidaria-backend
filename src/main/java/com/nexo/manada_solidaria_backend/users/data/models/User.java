@@ -36,13 +36,12 @@ public class User implements UserDetails {
     }
 
     public String getFullNameOrUsername() {
-        if (hasValidProfileName()) {
-            return this.profile.getFullName();
+        if (this.profile != null) {
+            String fullName = this.profile.getFullName();
+            if (fullName != null) {
+                return fullName;
+            }
         }
         return this.username;
-    }
-
-    private boolean hasValidProfileName() {
-        return this.profile != null && this.profile.hasFullName();
     }
 }

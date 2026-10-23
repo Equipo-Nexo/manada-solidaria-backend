@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.animal_posts.data.repositories;
 
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionForm;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,8 +16,10 @@ public interface AdoptionFormRepository extends JpaRepository<AdoptionForm, UUID
 
     List<AdoptionForm> findAllByAdoptionPostId(UUID adoptionPostId);
 
+    @EntityGraph(attributePaths = {"applicant", "applicant.profile", "adoptionPost"})
     List<AdoptionForm> findAllByApplicantId(UUID applicantId);
 
+    @EntityGraph(attributePaths = {"applicant", "applicant.profile", "adoptionPost"})
     @Query("SELECT f FROM AdoptionForm f WHERE f.adoptionPost.owner.id = :ownerId")
     List<AdoptionForm> findAllByPostOwnerId(@Param("ownerId") UUID ownerId);
 

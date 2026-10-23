@@ -21,4 +21,6 @@ public interface AdoptionFormService {
     AdoptionFormsWithCountersResponse getFormsByUser(UUID userId, FormFilter filter, FormStatusFilter status);
 
     AdoptionFormDetailResponse getFormById(UUID adoptionFormId, User authenticatedUser);
+
+    void markAsRead(UUID formId, User authenticatedUser);
 }

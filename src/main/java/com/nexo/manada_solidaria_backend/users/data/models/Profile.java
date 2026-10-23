@@ -74,10 +74,6 @@ public class Profile {
         return fullName.isEmpty() ? null : fullName;
     }
 
-    public boolean hasFullName() {
-        return hasText(this.name) || hasText(this.lastname);
-    }
-
     private static boolean hasText(String str) {
         return str != null && !str.trim().isEmpty();
     }
