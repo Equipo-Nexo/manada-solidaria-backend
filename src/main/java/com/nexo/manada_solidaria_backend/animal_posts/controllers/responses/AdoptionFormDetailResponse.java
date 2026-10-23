@@ -154,4 +154,5 @@ public record AdoptionFormDetailResponse(
         String fullName = (name + " " + lastname).trim();
         return fullName.isEmpty() ? null : fullName;
     }
+    
 }
