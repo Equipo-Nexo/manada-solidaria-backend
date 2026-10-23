@@ -8,8 +8,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,14 +25,9 @@ public class Notification {
     private String title;
     private String message;
     private String icon;
-    @ElementCollection
-    @CollectionTable(
-            name = "notification_actions",
-            joinColumns = @JoinColumn(name = "notification_id")
-    )
-    @Column(name = "action", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private List<NotificationActionType> actions;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "actions", columnDefinition = "json")
+    private List<NotificationAction> actions = new ArrayList<>();
     @Column(unique = true)
     @Enumerated(EnumType.STRING)
     private NotificationType type;

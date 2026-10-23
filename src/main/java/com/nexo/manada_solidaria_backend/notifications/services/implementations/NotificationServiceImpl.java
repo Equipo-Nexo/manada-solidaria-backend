@@ -31,7 +31,6 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationRecipientFactory notificationRecipientFactory;
     private final List<NotificationResolver> notificationResolvers;
 
-
     @Override
     @Async("notificationExecutor")
     public void notify(NotificationType type, Map<String, Object> params) {
@@ -73,13 +72,15 @@ public class NotificationServiceImpl implements NotificationService {
                 new NotificationPayload(
                         notification.getTitle(),
                         notification.getMessage(),
-                        notification.getIcon()
+                        notification.getIcon(),
+                        notification.getActions()
                 ),
                 params
         );
     }
 
     private NotificationPayload replaceParams(NotificationPayload notification, Map<String, Object> params) {
+        notification.getActions().forEach(action -> action.replaceParams(params));
         params.forEach((key, value) -> {
             String placeholder = "{" + key + "}";
 
@@ -91,10 +92,8 @@ public class NotificationServiceImpl implements NotificationService {
                     notification.getMessage().replace(placeholder, value.toString())
             );
 
-            // TODO: Replace notification actions
-            // notification.setRedirectTo(
-            //         notification.getRedirectTo().replace(placeholder, value.toString())
-            // );
+
+
         });
 
         return notification;

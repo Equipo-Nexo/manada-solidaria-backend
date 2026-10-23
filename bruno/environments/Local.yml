@@ -3,8 +3,8 @@ variables:
   - name: MANADA_SOLIDARIA_HOST
     value: localhost:8080
   - name: access_token
-    value: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNzFlYTlkOS1kMDdlLTQzZWYtYjNhOS0xYjA0MDFhYWZjZmQiLCJleHAiOjE3OTI3MjcyNzksImlhdCI6MTc5MjcyMzY3OSwicm9sZXMiOlsiQ09NTVVOSVRZIl19.e_FBTJN5c4BI2nHMm7_uHlxkf42hLmf4wuUcYpRrkZ8
+    value: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJiZTcxZGE5MS0wNjJiLTQ3ZmYtYjM2My02OGVkNTk0NDgxZGYiLCJleHAiOjE3OTI3MzA5NDUsImlhdCI6MTc5MjcyNzM0NSwicm9sZXMiOlsiQ0FSUklBR0UiLCJSRVNDVUVSIiwiVFJBTlNJVElPTkFMX0hPTUUiXX0.htE9N7owEYP5oUYfOPnE0dFnX8AOMDNtZKsGYAHodxw
   - name: refresh_token
-    value: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzNzFlYTlkOS1kMDdlLTQzZWYtYjNhOS0xYjA0MDFhYWZjZmQiLCJleHAiOjE3OTI3MzA4NzksImlhdCI6MTc5MjcyMzY3OX0.PrCNi1GmLGczJuKBL4lW3vYe7Kvl7Ml8wSsqrOsiqXI
+    value: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJiZTcxZGE5MS0wNjJiLTQ3ZmYtYjM2My02OGVkNTk0NDgxZGYiLCJleHAiOjE3OTI3MzQ1NDUsImlhdCI6MTc5MjcyNzM0NX0.m1pg7cHI7JPjvJWuxYjWESba_bdCQTcCzxNJqMeXfCg
   - name: user_id
-    value: 371ea9d9-d07e-43ef-b3a9-1b0401aafcfd
+    value: be71da91-062b-47ff-b363-68ed594481df
