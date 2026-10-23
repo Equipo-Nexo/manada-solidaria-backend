@@ -12,16 +12,18 @@ public record UserProfileResponse(
         String username,
         ProfileResponse profile,
         Set<Rol> roles,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        UserMetricsResponse metrics
 ) {
 
-    public static UserProfileResponse from(User user) {
+    public static UserProfileResponse from(User user, UserMetricsResponse metrics) {
         return new UserProfileResponse(
                 user.getId(),
                 user.getUsername(),
                 ProfileResponse.from(user.getProfile()),
                 user.getProfile().getRoles(),
-                user.getCreatedAt()
+                user.getCreatedAt(),
+                metrics
         );
     }
 }

@@ -149,6 +149,16 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     }
 
     @Override
+    public long countUserAnimalPosts(User user) {
+        return animalPostRepository.countByOwner(user);
+    }
+
+    @Override
+    public long countUserHappyCases(User user) {
+        return animalPostRepository.countHappyCasesByOwner(user, LostPost.HAPPY_STATUSES, AdoptionPost.HAPPY_STATUSES);
+    }
+
+    @Override
     public Set<UUID> getSearchingOwnerIds(AnimalType animalType, String animalColor) {
         return animalPostRepository.findOwnerIdsByAnimalTypeColorAndStatus(animalType, animalColor, StatusLostPost.SEARCHING);
     }
