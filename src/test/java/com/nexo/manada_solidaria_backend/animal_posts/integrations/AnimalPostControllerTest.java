@@ -5,6 +5,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.Trans
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.*;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.*;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
+import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.ReactionRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.utils.MockAnimalPostDataUtils;
 import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthenticatedIntegrationTest;
@@ -62,6 +63,8 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
 
     @Autowired
     private AnimalPostRepository animalPostRepository;
+    @Autowired
+    private ReactionRepository reactionRepository;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -945,6 +948,88 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     @MethodSource(MOCK_DATA + "provideHappyCasesUnauthorizedCases")
     void happyCases_unauthorized(String testName, String token) throws Exception {
         MockHttpServletRequestBuilder request = get("/animal-posts/happy-cases");
+        if (token != null) {
+            request = request.header("Authorization", "Bearer " + token);
+        }
+
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
+    }
+
+    @DisplayName("POST /animal-posts/{id}/like y /dislike crean o borran la reaccion del usuario del token sin duplicarla")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideReactionActionCases")
+    @Sql({"/sql/animal_posts/get-animal-post.sql", "/sql/animal_posts/reactions.sql"})
+    void reactionActions_persistAuthenticatedUserReaction(
+            String testName,
+            List<String> actions,
+            int expectedReactions,
+            boolean expectedReactedByAdmin
+    ) throws Exception {
+        UUID postId = UUID.fromString("99999999-9999-9999-9999-999999999999");
+
+        for (String action : actions) {
+            mockMvc.perform(
+                            post("/animal-posts/" + postId + "/" + action)
+                                    .header("Authorization", "Bearer " + accessToken)
+                    )
+                    .andExpect(status().isNoContent());
+        }
+
+        User admin = userRepository.findByUsername("admin").orElseThrow();
+        AnimalPost<?, ?> post = animalPostRepository.findById(postId).orElseThrow();
+        assertThat(reactionRepository.count()).isEqualTo(expectedReactions);
+        assertThat(reactionRepository.existsByPostAndOwner(post, admin)).isEqualTo(expectedReactedByAdmin);
+    }
+
+    @Test
+    @DisplayName("PATCH /animal-posts/{id}/status devuelve si el usuario del token le dio like")
+    void transitionStatus_returnsReactedByMe() throws Exception {
+        UUID postId = createOwnedPostReturningId();
+        mockMvc.perform(
+                        post("/animal-posts/" + postId + "/like")
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(
+                        patch("/animal-posts/" + postId + "/status")
+                                .header("Authorization", "Bearer " + accessToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(toJson(new TransitionStatusRequest("FOUND")))
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.reactedByMe").value(true));
+    }
+
+    @DisplayName("GET /animal-posts y /animal-posts/{id} devuelven la cantidad de likes y si el usuario del token le dio like")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideReactionFieldCases")
+    @Sql({"/sql/animal_posts/get-animal-post.sql", "/sql/animal_posts/reactions.sql"})
+    void reactionFields(String testName, String url, String jsonPathExpression, Matcher<?> expected) throws Exception {
+        mockMvc.perform(
+                        get(url).header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(jsonPathExpression, expected));
+    }
+
+    @DisplayName("POST /animal-posts/{id}/like y /dislike de una publicacion inexistente devuelven 404")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideReactionNotFoundCases")
+    void reactionActions_nonExistentPost_returnsNotFound(String testName, String action) throws Exception {
+        mockMvc.perform(
+                        post("/animal-posts/" + UUID.randomUUID() + "/" + action)
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errors", hasItem(containsString("no existe"))));
+    }
+
+    @DisplayName("POST /animal-posts/{id}/like y /dislike sin autenticacion valida devuelven 401")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideReactionUnauthorizedCases")
+    void reactionActions_unauthorized(String testName, String action, String token) throws Exception {
+        MockHttpServletRequestBuilder request = post("/animal-posts/" + UUID.randomUUID() + "/" + action);
         if (token != null) {
             request = request.header("Authorization", "Bearer " + token);
         }

@@ -28,8 +28,8 @@ public class AnimalPostControllerImpl implements AnimalPostController {
     }
 
     @Override
-    public Page<AnimalPostResponse> getAnimalPosts(GetAnimalPostsRequest request, Pageable pageable) {
-        return animalPostService.getAnimalPosts(request, pageable);
+    public Page<AnimalPostResponse> getAnimalPosts(GetAnimalPostsRequest request, Pageable pageable, User authenticatedUser) {
+        return animalPostService.getAnimalPosts(request, pageable, authenticatedUser);
     }
 
     @Override
@@ -38,8 +38,8 @@ public class AnimalPostControllerImpl implements AnimalPostController {
     }
 
     @Override
-    public AnimalPostResponse getAnimalPost(UUID animalPostId) {
-        return animalPostService.getAnimalPost(animalPostId);
+    public AnimalPostResponse getAnimalPost(UUID animalPostId, User authenticatedUser) {
+        return animalPostService.getAnimalPost(animalPostId, authenticatedUser);
     }
 
     @Override
@@ -55,5 +55,15 @@ public class AnimalPostControllerImpl implements AnimalPostController {
     @Override
     public void delete(UUID animalPostId, User authenticatedUser) {
         animalPostService.delete(animalPostId, authenticatedUser);
+    }
+
+    @Override
+    public void like(UUID animalPostId, User authenticatedUser) {
+        animalPostService.like(animalPostId, authenticatedUser);
+    }
+
+    @Override
+    public void dislike(UUID animalPostId, User authenticatedUser) {
+        animalPostService.dislike(animalPostId, authenticatedUser);
     }
 }

@@ -1,0 +1,30 @@
+info:
+  name: Like animal post
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{MANADA_SOLIDARIA_HOST}}/animal-posts/{{animal_post_id}}/like"
+  auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "204"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true
+
+docs: |-
+  Le da like a la publicacion con el usuario del token. Correr antes `Get animal posts` (guarda `animal_post_id`).
+
+  Es idempotente: si el usuario ya le habia dado like, no se duplica y responde igual.
+  Despues, en `GET /animal-posts` la publicacion trae `reactedByMe: true` y `reactionsCount` sumado en 1.
+
+  Esperado: 204 sin body. Publicacion inexistente: 404 ("La publicación no existe"). Sin token o token invalido: 401.
