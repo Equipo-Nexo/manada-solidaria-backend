@@ -5,6 +5,8 @@ import com.nexo.manada_solidaria_backend.users.data.models.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -17,8 +19,9 @@ import java.util.UUID;
 public class NotificationDelivery {
     @ManyToOne(optional = false)
     private User recipient;
-    @ManyToOne(optional = false)
-    private Notification notification;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "payload", columnDefinition = "json")
+    private NotificationPayload payload;
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private NotificationChannel channel;
@@ -28,20 +31,14 @@ public class NotificationDelivery {
             orphanRemoval = true
     )
     private List<NotificationStatusHistory> statusHistory = new ArrayList<>();
-    private String title;
-    private String message;
-    private String redirectTo;
     private final LocalDateTime createdAt = LocalDateTime.now();
     @Id
     private final UUID id = UUID.randomUUID();
 
-    public NotificationDelivery(User recipient, Notification notification, NotificationChannel channel, NotificationStatus status) {
+    public NotificationDelivery(User recipient, NotificationPayload notification, NotificationChannel channel, NotificationStatus status) {
         this.recipient = recipient;
-        this.notification = notification;
+        this.payload = notification;
         this.channel = channel;
-        this.title = notification.getTitle();
-        this.message = notification.getMessage();
-        this.redirectTo = notification.getRedirectTo();
         this.statusHistory.add(new NotificationStatusHistory(status, this));
     }
 

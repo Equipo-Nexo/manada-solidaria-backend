@@ -4,6 +4,7 @@ import com.nexo.manada_solidaria_backend.notifications.components.notifiers.Noti
 import com.nexo.manada_solidaria_backend.notifications.models.data.Notification;
 import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationChannel;
 import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationDelivery;
+import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationPayload;
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationDeliveryService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +19,7 @@ public class InAppNotifier extends NotificationResolver {
     }
 
     @Override
-    public void notify(User user, Notification notification) {
+    public void notify(User user, NotificationPayload notification) {
         NotificationDelivery delivery = createPendingNotificationDelivery(user, notification);
         markNotificationAsSent(delivery);
     }

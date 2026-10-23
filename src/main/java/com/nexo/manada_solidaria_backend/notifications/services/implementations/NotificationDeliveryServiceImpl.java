@@ -1,9 +1,12 @@
 package com.nexo.manada_solidaria_backend.notifications.services.implementations;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nexo.manada_solidaria_backend.notifications.controllers.responses.NotificationResponse;
 import com.nexo.manada_solidaria_backend.notifications.controllers.responses.UserNotificationsResponse;
 import com.nexo.manada_solidaria_backend.notifications.models.data.Notification;
 import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationChannel;
 import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationDelivery;
+import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationPayload;
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationStatus;
 import com.nexo.manada_solidaria_backend.notifications.models.repositories.NotificationDeliveryRepository;
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationDeliveryService;
@@ -22,10 +25,11 @@ import java.util.UUID;
 public class NotificationDeliveryServiceImpl implements NotificationDeliveryService {
 
     private final NotificationDeliveryRepository notificationDeliveryRepository;
+    private final ObjectMapper objectMapper;
 
     @Override
     @Transactional
-    public NotificationDelivery createNotificationDelivery(User user, Notification notification, NotificationChannel channel) {
+    public NotificationDelivery createNotificationDelivery(User user, NotificationPayload notification, NotificationChannel channel) {
         return this.notificationDeliveryRepository.save(new NotificationDelivery(
                 user,
                 notification,
@@ -48,7 +52,14 @@ public class NotificationDeliveryServiceImpl implements NotificationDeliveryServ
 
     @Override
     public UserNotificationsResponse getUserNotifications(UUID userId, User authenticatedUser) {
-        return UserNotificationsResponse.from(findBellNotifications(authenticatedUser));
+        List<NotificationDelivery> deliveries = findBellNotifications(authenticatedUser);
+        return new UserNotificationsResponse(
+                deliveries.stream().anyMatch(delivery -> !delivery.isRead()),
+                deliveries.stream().map(notificationDelivery -> NotificationResponse.from(
+                        notificationDelivery,
+                        objectMapper.convertValue(notificationDelivery.getPayload(), NotificationPayload.class)
+                )).toList()
+        );
     }
 
     @Override

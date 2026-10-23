@@ -4,13 +4,14 @@ import com.nexo.manada_solidaria_backend.notifications.controllers.responses.Use
 import com.nexo.manada_solidaria_backend.notifications.models.data.Notification;
 import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationChannel;
 import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationDelivery;
+import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationPayload;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.UUID;
 
 public interface NotificationDeliveryService {
-    NotificationDelivery createNotificationDelivery(User user, Notification notification, NotificationChannel channel);
+    NotificationDelivery createNotificationDelivery(User user, NotificationPayload notification, NotificationChannel channel);
 
     NotificationDelivery markAsFailed(NotificationDelivery notificationDelivery);
 
