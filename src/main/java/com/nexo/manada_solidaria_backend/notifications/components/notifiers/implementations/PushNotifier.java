@@ -36,7 +36,7 @@ public class PushNotifier extends NotificationResolver {
                         notification.getTitle(),
                         notification.getMessage(),
                         notification.getIcon(),
-                        null
+                        notification.getActions()
                 ));
                 markNotificationAsSent(delivery);
             } catch (Exception e) {

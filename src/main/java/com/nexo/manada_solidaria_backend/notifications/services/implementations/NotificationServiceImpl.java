@@ -91,9 +91,6 @@ public class NotificationServiceImpl implements NotificationService {
             notification.setMessage(
                     notification.getMessage().replace(placeholder, value.toString())
             );
-
-
-
         });
 
         return notification;
