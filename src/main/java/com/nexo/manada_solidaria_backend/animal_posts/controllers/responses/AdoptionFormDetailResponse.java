@@ -38,8 +38,10 @@ public record AdoptionFormDetailResponse(
     ) {}
 
     public static AdoptionFormDetailResponse from(AdoptionForm form, List<QuestionCategory> allCategories) {
-        Map<UUID, String> answerMap = extractAnswersMap(form);
-        Map<UUID, QuestionForm> answeredQuestionsMap = extractAnsweredQuestionsMap(form);
+        Map<UUID, String> answerMap = new HashMap<>();
+        Map<UUID, QuestionForm> answeredQuestionsMap = new HashMap<>();
+
+        extractAnswersAndQuestions(form, answerMap, answeredQuestionsMap);
 
         List<CategoryAnswersResponse> categoriesList = new ArrayList<>();
         categoriesList.addAll(mapRegisteredCategories(allCategories, answerMap));
@@ -53,7 +55,7 @@ public record AdoptionFormDetailResponse(
                 form.getAdoptionPost().getName(),
                 form.getAdoptionPost().getImageUrl(),
                 form.getApplicant().getId(),
-                form.getApplicant().getFullNameOrUsername(),
+                buildApplicantFullName(form.getApplicant()),
                 form.getDescription(),
                 form.getPhoneNumber(),
                 form.isRead(),
@@ -62,28 +64,20 @@ public record AdoptionFormDetailResponse(
         );
     }
 
-    private static Map<UUID, String> extractAnswersMap(AdoptionForm form) {
-        Map<UUID, String> answerMap = new HashMap<>();
+    private static void extractAnswersAndQuestions(
+            AdoptionForm form,
+            Map<UUID, String> answerMap,
+            Map<UUID, QuestionForm> answeredQuestionsMap
+    ) {
         if (form.getAnswers() != null) {
             for (AdoptionFormDetail detail : form.getAnswers()) {
-                if (detail.getQuestionForm() != null) {
-                    answerMap.put(detail.getQuestionForm().getId(), detail.getAnswer());
+                QuestionForm q = detail.getQuestionForm();
+                if (q != null) {
+                    answerMap.put(q.getId(), detail.getAnswer());
+                    answeredQuestionsMap.put(q.getId(), q);
                 }
             }
         }
-        return answerMap;
-    }
-
-    private static Map<UUID, QuestionForm> extractAnsweredQuestionsMap(AdoptionForm form) {
-        Map<UUID, QuestionForm> questionsMap = new HashMap<>();
-        if (form.getAnswers() != null) {
-            for (AdoptionFormDetail detail : form.getAnswers()) {
-                if (detail.getQuestionForm() != null) {
-                    questionsMap.put(detail.getQuestionForm().getId(), detail.getQuestionForm());
-                }
-            }
-        }
-        return questionsMap;
     }
 
     private static List<CategoryAnswersResponse> mapRegisteredCategories(
@@ -154,5 +148,4 @@ public record AdoptionFormDetailResponse(
         String fullName = (name + " " + lastname).trim();
         return fullName.isEmpty() ? null : fullName;
     }
-    
 }
