@@ -53,7 +53,7 @@ public record AdoptionFormDetailResponse(
                 form.getAdoptionPost().getName(),
                 form.getAdoptionPost().getImageUrl(),
                 form.getApplicant().getId(),
-                buildApplicantFullName(form.getApplicant()),
+                form.getApplicant().getFullNameOrUsername(),
                 form.getDescription(),
                 form.getPhoneNumber(),
                 form.isRead(),
@@ -154,4 +154,5 @@ public record AdoptionFormDetailResponse(
         String fullName = (name + " " + lastname).trim();
         return fullName.isEmpty() ? null : fullName;
     }
+    
 }
