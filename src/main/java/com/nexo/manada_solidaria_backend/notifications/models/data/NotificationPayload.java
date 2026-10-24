@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Collections;
 import java.util.List;
 
 @NoArgsConstructor
@@ -16,5 +17,5 @@ public class NotificationPayload {
         private String title;
         private String message;
         private String icon;
-        private List<NotificationAction> actions;
+        private List<NotificationAction> actions = Collections.emptyList();
 }

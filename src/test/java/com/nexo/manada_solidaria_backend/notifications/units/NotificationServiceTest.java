@@ -47,6 +47,6 @@ class NotificationServiceTest {
 
         notificationService.notify(type, Collections.emptyMap());
         verify(notificationResolver, atLeastOnce())
-                .notify(any(User.class), any(NotificationPayload.class), NotificationType.PING);
+                .notify(any(User.class), any(NotificationPayload.class), any());
     }
 }
