@@ -10,6 +10,7 @@ import java.util.List;
  * @param title
  * @param body
  * @param icon
+ * @param actions
  */
 public record PushNotification(
         String title,

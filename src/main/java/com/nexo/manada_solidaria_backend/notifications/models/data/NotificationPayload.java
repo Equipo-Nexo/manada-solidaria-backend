@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 @NoArgsConstructor
@@ -18,4 +19,10 @@ public class NotificationPayload {
         private String message;
         private String icon;
         private List<NotificationAction> actions = Collections.emptyList();
+
+    public List<NotificationAction> getActions() {
+        return this.actions.stream()
+                .sorted(Comparator.comparing(NotificationAction::getOrder, Comparator.nullsLast(Comparator.naturalOrder())))
+                .toList();
+    }
 }

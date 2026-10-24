@@ -47,9 +47,6 @@ public record NotificationResponse(
     private static List<NotificationAction> getActions(NotificationDelivery delivery) {
         return delivery
                 .getPayload()
-                .getActions()
-                .stream()
-                .sorted(Comparator.comparing(NotificationAction::getOrder, Comparator.nullsLast(Comparator.naturalOrder())))
-                .toList();
+                .getActions();
     }
 }

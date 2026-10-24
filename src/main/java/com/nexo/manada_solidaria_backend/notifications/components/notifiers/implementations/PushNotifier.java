@@ -38,9 +38,7 @@ public class PushNotifier extends NotificationResolver {
                         notification.getTitle(),
                         notification.getMessage(),
                         notification.getIcon(),
-                        notification.getActions().stream()
-                                .sorted(Comparator.comparing(NotificationAction::getOrder, Comparator.nullsLast(Comparator.naturalOrder())))
-                                .toList()
+                        notification.getActions()
                 ));
                 markNotificationAsSent(delivery);
             } catch (Exception e) {
