@@ -5,7 +5,6 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionFormDe
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.QuestionCategory;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.QuestionForm;
 import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
-import com.nexo.manada_solidaria_backend.users.data.models.User;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -38,10 +37,8 @@ public record AdoptionFormDetailResponse(
     ) {}
 
     public static AdoptionFormDetailResponse from(AdoptionForm form, List<QuestionCategory> allCategories) {
-        Map<UUID, String> answerMap = new HashMap<>();
-        Map<UUID, QuestionForm> answeredQuestionsMap = new HashMap<>();
-
-        extractAnswersAndQuestions(form, answerMap, answeredQuestionsMap);
+        Map<UUID, String> answerMap = extractAnswersMap(form);
+        Map<UUID, QuestionForm> answeredQuestionsMap = extractAnsweredQuestionsMap(form);
 
         List<CategoryAnswersResponse> categoriesList = new ArrayList<>();
         categoriesList.addAll(mapRegisteredCategories(allCategories, answerMap));
@@ -55,7 +52,7 @@ public record AdoptionFormDetailResponse(
                 form.getAdoptionPost().getName(),
                 form.getAdoptionPost().getImageUrl(),
                 form.getApplicant().getId(),
-                buildApplicantFullName(form.getApplicant()),
+                form.getApplicant().getFullNameOrUsername(),
                 form.getDescription(),
                 form.getPhoneNumber(),
                 form.isRead(),
@@ -64,20 +61,24 @@ public record AdoptionFormDetailResponse(
         );
     }
 
-    private static void extractAnswersAndQuestions(
-            AdoptionForm form,
-            Map<UUID, String> answerMap,
-            Map<UUID, QuestionForm> answeredQuestionsMap
-    ) {
+    private static Map<UUID, String> extractAnswersMap(AdoptionForm form) {
+        Map<UUID, String> answerMap = new HashMap<>();
         if (form.getAnswers() != null) {
             for (AdoptionFormDetail detail : form.getAnswers()) {
-                QuestionForm q = detail.getQuestionForm();
-                if (q != null) {
-                    answerMap.put(q.getId(), detail.getAnswer());
-                    answeredQuestionsMap.put(q.getId(), q);
-                }
+                answerMap.put(detail.getQuestionForm().getId(), detail.getAnswer());
             }
         }
+        return answerMap;
+    }
+
+    private static Map<UUID, QuestionForm> extractAnsweredQuestionsMap(AdoptionForm form) {
+        Map<UUID, QuestionForm> questionsMap = new HashMap<>();
+        if (form.getAnswers() != null) {
+            for (AdoptionFormDetail detail : form.getAnswers()) {
+                questionsMap.put(detail.getQuestionForm().getId(), detail.getQuestionForm());
+            }
+        }
+        return questionsMap;
     }
 
     private static List<CategoryAnswersResponse> mapRegisteredCategories(
@@ -135,17 +136,5 @@ public record AdoptionFormDetailResponse(
                 question.getIconName(),
                 answerMap.get(question.getId())
         );
-    }
-
-    private static String buildApplicantFullName(User user) {
-        if (user == null || user.getProfile() == null) {
-            return null;
-        }
-
-        String name = user.getProfile().getName() != null ? user.getProfile().getName().trim() : "";
-        String lastname = user.getProfile().getLastname() != null ? user.getProfile().getLastname().trim() : "";
-
-        String fullName = (name + " " + lastname).trim();
-        return fullName.isEmpty() ? null : fullName;
     }
 }
