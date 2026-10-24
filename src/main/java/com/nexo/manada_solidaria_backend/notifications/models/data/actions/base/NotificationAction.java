@@ -30,7 +30,28 @@ public abstract class NotificationAction {
     @JsonProperty("type")
     protected abstract NotificationActionType type();
 
+    protected String replacePlaceholders(
+            String text,
+            Map<String, Object> params
+    ) {
+        if (text == null || params == null) {
+            return text;
+        }
+
+        for (Map.Entry<String, Object> entry : params.entrySet()) {
+            if (entry.getValue() != null) {
+                text = text.replace(
+                        "{" + entry.getKey() + "}",
+                        entry.getValue().toString()
+                );
+            }
+        }
+
+        return text;
+    }
+
     public NotificationAction replaceParams(Map<String, Object> params) {
+        this.title = replacePlaceholders(this.title, params);
         return this;
     }
 }

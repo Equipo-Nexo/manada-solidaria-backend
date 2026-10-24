@@ -12,9 +12,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Getter
@@ -27,7 +25,7 @@ public class Notification {
     private String icon;
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "actions", columnDefinition = "json")
-    private List<NotificationAction> actions = new ArrayList<>();
+    private List<NotificationAction> actions;
     @Column(unique = true)
     @Enumerated(EnumType.STRING)
     private NotificationType type;
@@ -40,5 +38,9 @@ public class Notification {
         this.message = message;
         this.icon = icon;
         this.type = type;
+    }
+
+    public List<NotificationAction> getActions() {
+        return actions == null ? Collections.emptyList() : actions;
     }
 }

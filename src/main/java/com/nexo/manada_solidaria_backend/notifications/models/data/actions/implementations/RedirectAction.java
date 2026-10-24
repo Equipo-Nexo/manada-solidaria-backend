@@ -27,12 +27,8 @@ public class RedirectAction extends NotificationAction {
 
     @Override
     public RedirectAction replaceParams(Map<String, Object> params) {
-        try {
-            this.url = getUrl().replace("{postId}", params.get("postId").toString());
-            return this;
-        } catch (Exception e) {
-            log.error("Error replacing parameter in RedirectAction", e);
-            throw new RuntimeException(e);
-        }
+        super.replaceParams(params);
+        this.url = replacePlaceholders(this.url, params);
+        return this;
     }
 }
