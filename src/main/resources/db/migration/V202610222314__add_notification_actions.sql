@@ -1,5 +1,6 @@
 ALTER TABLE notification
-ADD COLUMN actions JSON NULL;
+ADD COLUMN actions JSON NULL
+DROP COLUMN redirect_to;
 
 UPDATE notification
 SET actions = JSON_ARRAY(
