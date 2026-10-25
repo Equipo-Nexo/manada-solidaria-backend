@@ -5,7 +5,6 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionFormDe
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.QuestionCategory;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.QuestionForm;
 import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
-import com.nexo.manada_solidaria_backend.users.data.models.User;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -66,9 +65,7 @@ public record AdoptionFormDetailResponse(
         Map<UUID, String> answerMap = new HashMap<>();
         if (form.getAnswers() != null) {
             for (AdoptionFormDetail detail : form.getAnswers()) {
-                if (detail.getQuestionForm() != null) {
-                    answerMap.put(detail.getQuestionForm().getId(), detail.getAnswer());
-                }
+                answerMap.put(detail.getQuestionForm().getId(), detail.getAnswer());
             }
         }
         return answerMap;
@@ -78,9 +75,7 @@ public record AdoptionFormDetailResponse(
         Map<UUID, QuestionForm> questionsMap = new HashMap<>();
         if (form.getAnswers() != null) {
             for (AdoptionFormDetail detail : form.getAnswers()) {
-                if (detail.getQuestionForm() != null) {
-                    questionsMap.put(detail.getQuestionForm().getId(), detail.getQuestionForm());
-                }
+                questionsMap.put(detail.getQuestionForm().getId(), detail.getQuestionForm());
             }
         }
         return questionsMap;
@@ -142,17 +137,4 @@ public record AdoptionFormDetailResponse(
                 answerMap.get(question.getId())
         );
     }
-
-    private static String buildApplicantFullName(User user) {
-        if (user == null || user.getProfile() == null) {
-            return null;
-        }
-
-        String name = user.getProfile().getName() != null ? user.getProfile().getName().trim() : "";
-        String lastname = user.getProfile().getLastname() != null ? user.getProfile().getLastname().trim() : "";
-
-        String fullName = (name + " " + lastname).trim();
-        return fullName.isEmpty() ? null : fullName;
-    }
-    
 }
