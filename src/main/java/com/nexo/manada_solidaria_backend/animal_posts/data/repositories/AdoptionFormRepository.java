@@ -17,10 +17,11 @@ public interface AdoptionFormRepository extends JpaRepository<AdoptionForm, UUID
     List<AdoptionForm> findAllByAdoptionPostId(UUID adoptionPostId);
 
     @EntityGraph(attributePaths = {"applicant", "applicant.profile", "adoptionPost"})
-    List<AdoptionForm> findAllByApplicantId(UUID applicantId);
+    @Query("SELECT f FROM AdoptionForm f WHERE f.applicant.id = :applicantId ORDER BY f.isRead ASC, f.createdAt DESC")
+    List<AdoptionForm> findAllByApplicantId(@Param("applicantId") UUID applicantId);
 
     @EntityGraph(attributePaths = {"applicant", "applicant.profile", "adoptionPost"})
-    @Query("SELECT f FROM AdoptionForm f WHERE f.adoptionPost.owner.id = :ownerId")
+    @Query("SELECT f FROM AdoptionForm f WHERE f.adoptionPost.owner.id = :ownerId ORDER BY f.isRead ASC, f.createdAt DESC")
     List<AdoptionForm> findAllByPostOwnerId(@Param("ownerId") UUID ownerId);
 
     @Query("""
