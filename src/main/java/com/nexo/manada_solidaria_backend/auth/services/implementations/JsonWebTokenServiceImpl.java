@@ -3,6 +3,7 @@ package com.nexo.manada_solidaria_backend.auth.services.implementations;
 import com.nexo.manada_solidaria_backend.auth.services.interfaces.JsonWebTokenService;
 import com.nexo.manada_solidaria_backend.common.exceptions.custom_exceptions.InvalidJwtException;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -89,6 +90,8 @@ public class JsonWebTokenServiceImpl implements JsonWebTokenService {
                     .getPayload();
         } catch (SignatureException e) {
             throw new InvalidJwtException("Token is not valid");
+        } catch (ExpiredJwtException e) {
+            throw new InvalidJwtException("Token is expired");
         } catch (Exception e) {
             log.error("Error decoding token {}", e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error decoding token");

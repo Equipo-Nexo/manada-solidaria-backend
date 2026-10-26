@@ -3,6 +3,7 @@ package com.nexo.manada_solidaria_backend.auth.components;
 import com.nexo.manada_solidaria_backend.auth.data.BearerTokenAuthentication;
 import com.nexo.manada_solidaria_backend.auth.services.interfaces.JsonWebTokenService;
 import com.nexo.manada_solidaria_backend.common.exceptions.custom_exceptions.InvalidJwtException;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -53,6 +54,9 @@ public class BearerTokenConverter implements AuthenticationConverter {
     private boolean jwtIsInvalid(String authorizationHeader) {
         try {
             return !jsonWebTokenService.isValid(getJwtValue(authorizationHeader));
+        } catch (ExpiredJwtException e) {
+            log.debug("JWT is expired");
+            return true;
         } catch (Exception e) {
             log.error("Error checking if JWT is valid", e);
             return true;

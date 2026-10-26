@@ -6,6 +6,7 @@ import com.nexo.manada_solidaria_backend.auth.services.interfaces.AuthService;
 import com.nexo.manada_solidaria_backend.auth.services.interfaces.JsonWebTokenService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import com.nexo.manada_solidaria_backend.users.services.interfaces.UserService;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -42,18 +43,16 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ResponseEntity<UserSessionResponse> refreshSession(String refreshToken) {
-        if (refreshTokenIsValid(refreshToken)) {
+        try {
             User user = userService.getUserById(
                     UUID.fromString(jsonWebTokenService.getSubject(refreshToken))
             );
             return buildUserSessionResponse(user);
-        } else {
+        } catch (ExpiredJwtException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token is expired");
+        } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token is not valid");
         }
-    }
-
-    private boolean refreshTokenIsValid(String refreshToken) {
-        return jsonWebTokenService.isValid(refreshToken);
     }
 
     private static Map<String, Object> getCustomClaims(User user) {
