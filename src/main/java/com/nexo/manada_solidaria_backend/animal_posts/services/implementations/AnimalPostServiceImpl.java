@@ -88,6 +88,8 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                         request.animalGender(),
                         request.animalAge(),
                         request.animalColor(),
+                        LostPost.HAPPY_STATUSES,
+                        AdoptionPost.HAPPY_STATUSES,
                         pageable
                 )
                 .map(AnimalPostResponse::from);
