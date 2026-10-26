@@ -1,7 +1,7 @@
 package com.nexo.manada_solidaria_backend.auth.services.implementations;
 
 import com.nexo.manada_solidaria_backend.auth.controllers.requests.CreateUserRequest;
-import com.nexo.manada_solidaria_backend.auth.controllers.responses.LoginResponse;
+import com.nexo.manada_solidaria_backend.auth.controllers.responses.UserSessionResponse;
 import com.nexo.manada_solidaria_backend.auth.services.interfaces.AuthService;
 import com.nexo.manada_solidaria_backend.auth.services.interfaces.JsonWebTokenService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -30,9 +30,9 @@ public class AuthServiceImpl implements AuthService {
     private final UserService userService;
 
     @Override
-    public ResponseEntity<LoginResponse> login(String username) {
+    public ResponseEntity<UserSessionResponse> login(String username) {
         User user = userService.loadUserByUsername(username);
-        return buildLoginResponse(user);
+        return buildUserSessionResponse(user);
     }
 
     @Override
@@ -41,12 +41,12 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseEntity<LoginResponse> refreshSession(String refreshToken) {
+    public ResponseEntity<UserSessionResponse> refreshSession(String refreshToken) {
         if (refreshTokenIsValid(refreshToken)) {
             User user = userService.getUserById(
                     UUID.fromString(jsonWebTokenService.getSubject(refreshToken))
             );
-            return buildLoginResponse(user);
+            return buildUserSessionResponse(user);
         } else {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token is not valid");
         }
@@ -64,7 +64,7 @@ public class AuthServiceImpl implements AuthService {
         return user.getId().toString();
     }
 
-    private ResponseEntity<LoginResponse> buildLoginResponse(User user) {
+    private ResponseEntity<UserSessionResponse> buildUserSessionResponse(User user) {
         ResponseCookie cookie = ResponseCookie.from("refreshToken", getRefreshToken(user))
                 .httpOnly(true)
                 .path("/auth")
@@ -72,10 +72,14 @@ public class AuthServiceImpl implements AuthService {
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body(new LoginResponse(
+                .body(new UserSessionResponse(
                         user.getId(),
-                        jsonWebTokenService.getAccessToken(getUserId(user), getCustomClaims(user))
+                        getAccessToken(user)
                 ));
+    }
+
+    private String getAccessToken(User user) {
+        return jsonWebTokenService.getAccessToken(getUserId(user), getCustomClaims(user));
     }
 
     private String getRefreshToken(User user) {

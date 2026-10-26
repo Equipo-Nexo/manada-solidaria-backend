@@ -2,7 +2,7 @@ package com.nexo.manada_solidaria_backend.auth.controllers.implementations;
 
 import com.nexo.manada_solidaria_backend.auth.controllers.interfaces.AuthController;
 import com.nexo.manada_solidaria_backend.auth.controllers.requests.CreateUserRequest;
-import com.nexo.manada_solidaria_backend.auth.controllers.responses.LoginResponse;
+import com.nexo.manada_solidaria_backend.auth.controllers.responses.UserSessionResponse;
 import com.nexo.manada_solidaria_backend.auth.services.interfaces.AuthService;
 import com.nexo.manada_solidaria_backend.auth.utils.BasicAuthUtils;
 import lombok.AllArgsConstructor;
@@ -16,7 +16,7 @@ public class AuthControllerImpl implements AuthController {
     private final AuthService authService;
 
     @Override
-    public ResponseEntity<LoginResponse> login(String credentials) {
+    public ResponseEntity<UserSessionResponse> login(String credentials) {
         return authService.login(
                 BasicAuthUtils.extractUsername(credentials)
         );
@@ -28,7 +28,7 @@ public class AuthControllerImpl implements AuthController {
     }
 
     @Override
-    public ResponseEntity<LoginResponse> refreshSession(String refreshToken) {
+    public ResponseEntity<UserSessionResponse> refreshSession(String refreshToken) {
         return authService.refreshSession(refreshToken);
     }
 }

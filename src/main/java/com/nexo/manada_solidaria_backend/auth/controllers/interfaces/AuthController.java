@@ -1,7 +1,7 @@
 package com.nexo.manada_solidaria_backend.auth.controllers.interfaces;
 
 import com.nexo.manada_solidaria_backend.auth.controllers.requests.CreateUserRequest;
-import com.nexo.manada_solidaria_backend.auth.controllers.responses.LoginResponse;
+import com.nexo.manada_solidaria_backend.auth.controllers.responses.UserSessionResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -27,20 +27,20 @@ public interface AuthController {
             @ApiResponse(responseCode = "200", description = "The user has logged in correctly",
                     content = {@Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = LoginResponse.class)
+                            schema = @Schema(implementation = UserSessionResponse.class)
                     )}
             ),
             @ApiResponse(responseCode = "401", description = "Credentials are wrong")
     })
     @PostMapping("/login")
-    ResponseEntity<LoginResponse> login(@RequestHeader("Authorization") String credentials);
+    ResponseEntity<UserSessionResponse> login(@RequestHeader("Authorization") String credentials);
 
     @PostMapping("/signup")
     @ResponseStatus(value = CREATED)
     void signup(@RequestBody @Valid CreateUserRequest createUserRequest);
 
     @PostMapping("/refresh")
-    ResponseEntity<LoginResponse> refreshSession(
+    ResponseEntity<UserSessionResponse> refreshSession(
             @CookieValue("refreshToken") String refreshToken
     );
 

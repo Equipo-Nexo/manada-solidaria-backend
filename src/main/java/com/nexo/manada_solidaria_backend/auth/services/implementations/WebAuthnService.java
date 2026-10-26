@@ -1,7 +1,7 @@
 package com.nexo.manada_solidaria_backend.auth.services.implementations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nexo.manada_solidaria_backend.auth.controllers.responses.LoginResponse;
+import com.nexo.manada_solidaria_backend.auth.controllers.responses.UserSessionResponse;
 import com.nexo.manada_solidaria_backend.auth.services.interfaces.AuthService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,7 +28,7 @@ public class WebAuthnService implements AuthenticationSuccessHandler {
             Authentication authentication
     ) throws IOException, ServletException {
         String username = authentication.getName();
-        ResponseEntity<LoginResponse> loginResponse = authService.login(username);
+        ResponseEntity<UserSessionResponse> loginResponse = authService.login(username);
 
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
