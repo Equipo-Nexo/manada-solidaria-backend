@@ -382,6 +382,25 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.totalElements").value(expectedCount));
     }
 
+    @DisplayName("GET /animal-posts sin status excluye las publicaciones en estado final")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideFinalStatusExclusionCases")
+    void withoutStatus_excludesFinalStatuses(
+            String testName,
+            AnimalPostFilter postType,
+            String status,
+            int expectedTotal
+    ) throws Exception {
+        seedPostInStatus(postType, status);
+
+        mockMvc.perform(
+                        get("/animal-posts")
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(expectedTotal));
+    }
+
     @Test
     @DisplayName("GET /animal-posts?status=SEARCHING devuelve solo perdidos en ese estado")
     void filterByStatus_returnsOnlyMatchingStatusAndSubtype() throws Exception {

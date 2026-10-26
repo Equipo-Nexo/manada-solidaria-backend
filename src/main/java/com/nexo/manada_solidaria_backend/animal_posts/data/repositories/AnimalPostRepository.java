@@ -29,7 +29,11 @@ public interface AnimalPostRepository extends JpaRepository<AnimalPost, UUID> {
                 OR (:type = 'LOST' AND TYPE(p) = LostPost AND TREAT(p AS LostPost).hasOwner = true)
                 OR (:type = 'IN_STREET' AND TYPE(p) = LostPost AND TREAT(p AS LostPost).hasOwner = false)
                 OR (:type = 'ADOPTION' AND TYPE(p) = AdoptionPost))
-            AND (:status IS NULL
+            AND ((:status IS NULL
+                    AND NOT EXISTS (SELECT 1 FROM LostPostStatusHistory h
+                                    WHERE h.post.id = p.id AND h.finishedAt IS NULL AND h.status IN :happyLostStatuses)
+                    AND NOT EXISTS (SELECT 1 FROM AdoptionPostStatusHistory h
+                                    WHERE h.post.id = p.id AND h.finishedAt IS NULL AND h.status IN :happyAdoptionStatuses))
                 OR EXISTS (SELECT 1 FROM LostPostStatusHistory h
                            WHERE h.post.id = p.id AND h.finishedAt IS NULL AND cast(h.status as string) = :status)
                 OR EXISTS (SELECT 1 FROM AdoptionPostStatusHistory h
@@ -48,6 +52,8 @@ public interface AnimalPostRepository extends JpaRepository<AnimalPost, UUID> {
             @Param("animalGender") AnimalGender animalGender,
             @Param("animalAge") AnimalAge animalAge,
             @Param("animalColor") String animalColor,
+            @Param("happyLostStatuses") Set<StatusLostPost> happyLostStatuses,
+            @Param("happyAdoptionStatuses") Set<StatusAdoptionPost> happyAdoptionStatuses,
             Pageable pageable
     );
 
