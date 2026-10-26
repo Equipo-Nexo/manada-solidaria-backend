@@ -10,12 +10,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import static org.springframework.http.HttpStatus.CREATED;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 @Tag(name = "Authentication")
 @RequestMapping("/auth")
@@ -35,10 +33,15 @@ public interface AuthController {
             @ApiResponse(responseCode = "401", description = "Credentials are wrong")
     })
     @PostMapping("/login")
-    LoginResponse login(@RequestHeader("Authorization") String credentials);
+    ResponseEntity<LoginResponse> login(@RequestHeader("Authorization") String credentials);
 
     @PostMapping("/signup")
     @ResponseStatus(value = CREATED)
     void signup(@RequestBody @Valid CreateUserRequest createUserRequest);
+
+    @PostMapping("/refresh")
+    ResponseEntity<LoginResponse> refreshSession(
+            @CookieValue("refreshToken") String refreshToken
+    );
 
 }

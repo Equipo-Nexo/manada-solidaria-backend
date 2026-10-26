@@ -15,7 +15,7 @@ import org.springframework.util.StringUtils;
 @Slf4j
 public class BearerTokenConverter implements AuthenticationConverter {
     private final JsonWebTokenService jsonWebTokenService;
-    private final String BEARER_PREFIX = "Bearer ";
+    public static final String BEARER_PREFIX = "Bearer ";
 
     public BearerTokenConverter(JsonWebTokenService jsonWebTokenService) {
         this.jsonWebTokenService = jsonWebTokenService;
