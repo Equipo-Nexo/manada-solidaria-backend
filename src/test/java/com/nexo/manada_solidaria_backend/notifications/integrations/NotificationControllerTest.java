@@ -3,6 +3,9 @@ package com.nexo.manada_solidaria_backend.notifications.integrations;
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthenticatedIntegrationTest;
 import com.nexo.manada_solidaria_backend.notifications.models.data.Notification;
 import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationChannel;
+import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationPayload;
+import com.nexo.manada_solidaria_backend.notifications.models.data.actions.base.NotificationAction;
+import com.nexo.manada_solidaria_backend.notifications.models.data.actions.implementations.RedirectAction;
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationStatus;
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
 import com.nexo.manada_solidaria_backend.notifications.models.repositories.NotificationDeliveryRepository;
@@ -18,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.util.List;
 import java.util.UUID;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.FORBIDDEN_MESSAGE;
@@ -151,15 +155,16 @@ class NotificationControllerTest extends BaseAuthenticatedIntegrationTest {
     @DisplayName("Al crear la entrega se guarda el texto ya resuelto, no la plantilla")
     void creatingADeliverySnapshotsTheResolvedContent() throws Exception {
         Notification template = notificationRepository.save(
-                new Notification("Traslado", "{pet} necesita transporte", null, "/animal-posts/{postId}", NotificationType.NEW_CARRIAGE_REQUEST)
+                new Notification("Traslado", "{pet} necesita transporte", null, NotificationType.NEW_CARRIAGE_REQUEST)
         );
+
         template.setMessage("Firulais necesita transporte");
-        template.setRedirectTo("/animal-posts/99");
 
         notificationDeliveryService.createNotificationDelivery(
                 userRepository.findByUsername("admin").orElseThrow(),
-                template,
-                NotificationChannel.IN_APP
+                new NotificationPayload("Traslado", "Firulais necesita transporte", null, List.of(new RedirectAction("/animal-posts/99"))),
+                NotificationChannel.IN_APP,
+                NotificationType.NEW_CARRIAGE_REQUEST
         );
 
         getNotificationsOf(ADMIN_ID)
