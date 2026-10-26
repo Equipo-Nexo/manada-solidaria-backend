@@ -4,7 +4,9 @@ import com.nexo.manada_solidaria_backend.notifications.clients.WebPushClient;
 import com.nexo.manada_solidaria_backend.notifications.components.notifiers.implementations.PushNotifier;
 import com.nexo.manada_solidaria_backend.notifications.models.data.Notification;
 import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationChannel;
+import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationPayload;
 import com.nexo.manada_solidaria_backend.notifications.models.data.PushSubscription;
+import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
 import com.nexo.manada_solidaria_backend.notifications.models.repositories.PushSuscriptionRepository;
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationDeliveryService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -59,16 +61,16 @@ class PushNotifierTest {
     @DisplayName("Should send push notification successfully - mark as sent")
     void send_push() throws Exception {
         User user = new User();
-        Notification notification = new Notification();
+        NotificationPayload notification = new NotificationPayload();
         List<PushSubscription> userSubscriptions = List.of(new PushSubscription());
 
         when(pushSuscriptionRepository.findAllByUser(user)).thenReturn(userSubscriptions);
-        when(notificationDeliveryService.createNotificationDelivery(user, notification, NotificationChannel.PUSH)).thenReturn(null);
+        when(notificationDeliveryService.createNotificationDelivery(user, notification, NotificationChannel.PUSH, NotificationType.PING)).thenReturn(null);
         when(webPushClient.send(any(), any())).thenReturn(response);
         when(response.getStatusLine()).thenReturn(statusLine);
         when(statusLine.getStatusCode()).thenReturn(201);
 
-        pushNotifier.notify(user, notification);
+        pushNotifier.notify(user, notification, NotificationType.PING);
 
         verify(notificationDeliveryService, times(1)).markAsSent(any());
     }
@@ -78,16 +80,16 @@ class PushNotifierTest {
     @DisplayName("Should mark notification as failed when sending push notification fails")
     void sendPushWithError() throws Exception {
         User user = new User();
-        Notification notification = new Notification();
+        NotificationPayload notification = new NotificationPayload();
         List<PushSubscription> userSubscriptions = List.of(new PushSubscription());
 
         when(pushSuscriptionRepository.findAllByUser(user)).thenReturn(userSubscriptions);
-        when(notificationDeliveryService.createNotificationDelivery(user, notification, NotificationChannel.PUSH)).thenReturn(null);
+        when(notificationDeliveryService.createNotificationDelivery(user, notification, NotificationChannel.PUSH, NotificationType.PING)).thenReturn(null);
         when(webPushClient.send(any(), any())).thenReturn(response);
         when(response.getStatusLine()).thenReturn(statusLine);
         when(statusLine.getStatusCode()).thenReturn(404);
 
-        pushNotifier.notify(user, notification);
+        pushNotifier.notify(user, notification, NotificationType.PING);
 
         verify(notificationDeliveryService, times(1)).markAsFailed(any());
     }

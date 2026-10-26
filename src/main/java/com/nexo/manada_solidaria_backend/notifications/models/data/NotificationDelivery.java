@@ -1,10 +1,13 @@
 package com.nexo.manada_solidaria_backend.notifications.models.data;
 
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationStatus;
+import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -17,31 +20,30 @@ import java.util.UUID;
 public class NotificationDelivery {
     @ManyToOne(optional = false)
     private User recipient;
-    @ManyToOne(optional = false)
-    private Notification notification;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "payload", columnDefinition = "json")
+    private NotificationPayload payload;
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private NotificationChannel channel;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", length = 50)
+    private NotificationType type;
     @OneToMany(
             mappedBy = "notification",
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
     private List<NotificationStatusHistory> statusHistory = new ArrayList<>();
-    private String title;
-    private String message;
-    private String redirectTo;
     private final LocalDateTime createdAt = LocalDateTime.now();
     @Id
     private final UUID id = UUID.randomUUID();
 
-    public NotificationDelivery(User recipient, Notification notification, NotificationChannel channel, NotificationStatus status) {
+    public NotificationDelivery(User recipient, NotificationPayload notification, NotificationChannel channel, NotificationType type, NotificationStatus status) {
         this.recipient = recipient;
-        this.notification = notification;
+        this.payload = notification;
         this.channel = channel;
-        this.title = notification.getTitle();
-        this.message = notification.getMessage();
-        this.redirectTo = notification.getRedirectTo();
+        this.type = type;
         this.statusHistory.add(new NotificationStatusHistory(status, this));
     }
 

@@ -26,7 +26,19 @@ http:
       value: SEARCHING_ADOPT
       type: query
       disabled: true
+    - name: status
+      value: ADOPTED
+      type: query
+      disabled: true
   auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.body.content
+      operator: isArray
 
 settings:
   encodeUrl: true
@@ -34,3 +46,14 @@ settings:
   followRedirects: true
   maxRedirects: 5
   forwardAuthorizationHeader: true
+
+docs: |-
+  Listado paginado de publicaciones (home). Filtros opcionales: `type`, `status`, `animalType`,
+  `animalSize`, `animalGender`, `animalAge`, `animalColor`, mas `page` / `size` / `sort`.
+
+  Sin `status` NO vienen las publicaciones en estado final (`FOUND`, `RESCUED`, `ADOPTED`):
+  esas se listan en `GET /animal-posts/happy-cases`. Para traerlas igual, pedir el estado
+  explicito (ej.: prender `status=ADOPTED`).
+
+  Esperado: 200 con `content` (array de publicaciones) y `totalElements`.
+  Filtro con un valor invalido (`type`, `animalType`, etc.): 400. Sin token o token invalido: 401.
