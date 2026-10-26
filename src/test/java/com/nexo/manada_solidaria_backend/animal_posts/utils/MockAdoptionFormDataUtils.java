@@ -1,10 +1,15 @@
 package com.nexo.manada_solidaria_backend.animal_posts.utils;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAdoptionFormRequest;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionForm;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
+import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
+import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.junit.jupiter.params.provider.Arguments;
 import org.springframework.http.HttpStatus;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -69,6 +74,22 @@ public class MockAdoptionFormDataUtils {
                 new PhoneNumberRequest("353", "4123456"),
                 List.of(new CreateAdoptionFormRequest.AnswerFormRequest(null, "Respuesta sin id de pregunta"))
         );
+    }
+
+    public static List<AdoptionForm> createOrderedFormsForTest(AdoptionPost post, User applicant, LocalDateTime baseTime) {
+        AdoptionForm form1Read = new AdoptionForm("Formulario Leído Antiguo", new PhoneNumber("353", "111111"), applicant, post);
+        form1Read.setRead(true);
+        form1Read.setCreatedAt(baseTime.minusHours(1));
+
+        AdoptionForm form2PendingOld = new AdoptionForm("Formulario Pendiente Antiguo", new PhoneNumber("353", "222222"), applicant, post);
+        form2PendingOld.setRead(false);
+        form2PendingOld.setCreatedAt(baseTime.minusHours(2));
+
+        AdoptionForm form3PendingRecent = new AdoptionForm("Formulario Pendiente Reciente", new PhoneNumber("353", "333333"), applicant, post);
+        form3PendingRecent.setRead(false);
+        form3PendingRecent.setCreatedAt(baseTime);
+
+        return List.of(form1Read, form2PendingOld, form3PendingRecent);
     }
 
     public static Stream<Arguments> provideCreateFormValidationCases() {

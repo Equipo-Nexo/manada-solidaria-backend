@@ -34,6 +34,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -286,6 +287,37 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.forms[0].animalName").value("Perro en adopción"))
                 .andExpect(jsonPath("$.forms[0].animalImageUrl").value("cf-img-id"))
                 .andExpect(jsonPath("$.forms[0].applicantName").value("María Gómez"));
+    }
+
+    @Test
+    @DisplayName("GET /users/adoption-forms — Ordena primero los pendientes (isRead=false) y luego por fecha más reciente")
+    void getFormsByUser_returnsFormsOrderedByReadStatusAndCreatedAtDesc() throws Exception {
+        adoptionFormRepository.deleteAll();
+
+        User reviewer = admin();
+        User applicant = createOtherUser("applicant-order-test", "apporder@mail.com");
+        AdoptionPost post = saveAdoptionPost("Mascota para evaluar orden", reviewer);
+
+        List<AdoptionForm> mockForms = MockAdoptionFormDataUtils.createOrderedFormsForTest(post, applicant, LocalDateTime.now());
+        adoptionFormRepository.saveAll(mockForms);
+
+        AdoptionForm form1Read = mockForms.get(0);
+        AdoptionForm form2PendingOld = mockForms.get(1);
+        AdoptionForm form3PendingRecent = mockForms.get(2);
+
+        mockMvc.perform(
+                        get("/users/adoption-forms")
+                                .param("filter", "REVIEWER")
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.forms", hasSize(3)))
+                .andExpect(jsonPath("$.forms[0].id").value(form3PendingRecent.getId().toString()))
+                .andExpect(jsonPath("$.forms[0].isRead").value(false))
+                .andExpect(jsonPath("$.forms[1].id").value(form2PendingOld.getId().toString()))
+                .andExpect(jsonPath("$.forms[1].isRead").value(false))
+                .andExpect(jsonPath("$.forms[2].id").value(form1Read.getId().toString()))
+                .andExpect(jsonPath("$.forms[2].isRead").value(true));
     }
 
     @Test
@@ -679,7 +711,6 @@ class AdoptionFormControllerTest extends BaseAuthenticatedIntegrationTest {
         );
         AdoptionForm savedForm = adoptionFormRepository.save(form);
 
-        // El usuario autenticado (admin) NO es el dueño de la publicación (owner)
         mockMvc.perform(
                         post("/adoption-forms/{adoptionFormId}/read", savedForm.getId())
                                 .header("Authorization", "Bearer " + accessToken)
