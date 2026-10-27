@@ -659,4 +659,49 @@ public class MockAnimalPostDataUtils {
                 }
                 """.formatted(color == null ? "null" : "\"" + color + "\"");
     }
+
+    private static Stream<Arguments> provideReactionActionCases() {
+        return Stream.of(
+                Arguments.of("like crea la reaccion del usuario del token", List.of("like"), 4, true),
+                Arguments.of("like dos veces no duplica la reaccion", List.of("like", "like"), 4, true),
+                Arguments.of("dislike borra solo la reaccion del usuario del token", List.of("like", "dislike"), 3, false),
+                Arguments.of("dislike sin like previo no falla ni borra la de otro", List.of("dislike"), 3, false)
+        );
+    }
+
+    private static Stream<Arguments> provideReactionFieldCases() {
+        String list = "/animal-posts";
+        String likedByBoth = "55555555-5555-5555-5555-555555555555";
+        String likedByOther = "99999999-9999-9999-9999-999999999999";
+        String withoutLikes = "77777777-7777-7777-7777-777777777777";
+        return Stream.of(
+                Arguments.of("La lista cuenta los likes de cada publicacion", list,
+                        "$.content[?(@.id == '" + likedByBoth + "')].reactionsCount", contains(2)),
+                Arguments.of("La lista cuenta 0 en una publicacion sin likes", list,
+                        "$.content[?(@.id == '" + withoutLikes + "')].reactionsCount", contains(0)),
+                Arguments.of("La lista marca las que likeo el usuario", list,
+                        "$.content[?(@.id == '" + likedByBoth + "')].reactedByMe", contains(true)),
+                Arguments.of("La lista no marca las que likeo otro", list,
+                        "$.content[?(@.id == '" + likedByOther + "')].reactedByMe", contains(false)),
+                Arguments.of("El detalle cuenta los likes", list + "/" + likedByBoth, "$.reactionsCount", is(2)),
+                Arguments.of("El detalle marca si el usuario le dio like", list + "/" + likedByBoth, "$.reactedByMe", is(true)),
+                Arguments.of("El detalle no marca el like de otro", list + "/" + likedByOther, "$.reactedByMe", is(false))
+        );
+    }
+
+    private static Stream<Arguments> provideReactionNotFoundCases() {
+        return Stream.of(
+                Arguments.of("like de una publicacion inexistente", "like"),
+                Arguments.of("dislike de una publicacion inexistente", "dislike")
+        );
+    }
+
+    private static Stream<Arguments> provideReactionUnauthorizedCases() {
+        return Stream.of(
+                Arguments.of("like sin token", "like", null),
+                Arguments.of("like con token invalido", "like", INVALID_ACCESS_TOKEN),
+                Arguments.of("dislike sin token", "dislike", null),
+                Arguments.of("dislike con token invalido", "dislike", INVALID_ACCESS_TOKEN)
+        );
+    }
 }

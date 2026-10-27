@@ -33,6 +33,12 @@ http:
   auth: inherit
 
 runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.body.content && res.body.content.length > 0) {
+          bru.setEnvVar("animal_post_id", res.body.content[0].id);
+        }
   assertions:
     - expression: res.status
       operator: eq
@@ -54,6 +60,15 @@ docs: |-
   Sin `status` NO vienen las publicaciones en estado final (`FOUND`, `RESCUED`, `ADOPTED`):
   esas se listan en `GET /animal-posts/happy-cases`. Para traerlas igual, pedir el estado
   explicito (ej.: prender `status=ADOPTED`).
+
+  Guarda el id de la primera publicacion en `animal_post_id` para usarlo en Like / Dislike.
+
+  Cada publicacion trae, ademas de lo de siempre (MS-259):
+  - `reactionsCount`: cantidad de likes de la publicacion (numero, `0` si no tiene).
+  - `reactedByMe`: `true` si el usuario del token le dio like.
+
+  Los dos campos vienen igual en `GET /animal-posts/{id}`, en la respuesta de `PATCH /animal-posts/{id}/status`
+  y en los posts de animales de `GET /users/{userId}` y `GET /users/posts`.
 
   Esperado: 200 con `content` (array de publicaciones) y `totalElements`.
   Filtro con un valor invalido (`type`, `animalType`, etc.): 400. Sin token o token invalido: 401.
