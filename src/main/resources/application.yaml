@@ -40,7 +40,7 @@ server:
         secure: true
 security:
   access-token-expiration: ${ACCESS_TOKEN_EXPIRATION:60}
-  refresh-token-expiration: ${REFRESH_TOKEN_EXPIRATION:120}
+  refresh-token-expiration: ${REFRESH_TOKEN_EXPIRATION:1440}
   secret: ${SECURITY_KEY}
   password-recovery:
     code-expiration: 10

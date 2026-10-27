@@ -41,7 +41,7 @@ public interface AuthController {
 
     @PostMapping("/refresh")
     ResponseEntity<UserSessionResponse> refreshSession(
-            @CookieValue("refreshToken") String refreshToken
+            @CookieValue(value = "refreshToken", required = false) String refreshToken
     );
 
 }

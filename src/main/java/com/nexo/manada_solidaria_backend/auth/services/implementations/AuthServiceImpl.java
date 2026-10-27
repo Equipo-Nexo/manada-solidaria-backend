@@ -8,7 +8,9 @@ import com.nexo.manada_solidaria_backend.users.data.models.User;
 import com.nexo.manada_solidaria_backend.users.services.interfaces.UserService;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -16,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
@@ -23,12 +26,22 @@ import java.util.UUID;
 import static com.nexo.manada_solidaria_backend.auth.utils.SecurityConstants.ROLES_CLAIM_NAME;
 
 @Service
-@AllArgsConstructor
 @Slf4j
 public class AuthServiceImpl implements AuthService {
 
     private final JsonWebTokenService jsonWebTokenService;
     private final UserService userService;
+    private long refreshTokenExpiration;
+
+    public AuthServiceImpl(
+            JsonWebTokenService jsonWebTokenService,
+            UserService userService,
+            @Value("${security.refresh-token-expiration}") long refreshTokenExpiration
+    ) {
+        this.jsonWebTokenService = jsonWebTokenService;
+        this.userService = userService;
+        this.refreshTokenExpiration = refreshTokenExpiration;
+    }
 
     @Override
     public ResponseEntity<UserSessionResponse> login(String username) {
@@ -43,16 +56,10 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ResponseEntity<UserSessionResponse> refreshSession(String refreshToken) {
-        try {
-            User user = userService.getUserById(
-                    UUID.fromString(jsonWebTokenService.getSubject(refreshToken))
-            );
-            return buildUserSessionResponse(user);
-        } catch (ExpiredJwtException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token is expired");
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token is not valid");
-        }
+        User user = userService.getUserById(
+                UUID.fromString(jsonWebTokenService.getSubject(refreshToken, JsonWebTokenServiceImpl.TokenType.REFRESH))
+        );
+        return buildUserSessionResponse(user);
     }
 
     private static Map<String, Object> getCustomClaims(User user) {
@@ -67,6 +74,7 @@ public class AuthServiceImpl implements AuthService {
         ResponseCookie cookie = ResponseCookie.from("refreshToken", getRefreshToken(user))
                 .httpOnly(true)
                 .path("/auth")
+                .maxAge(Duration.ofMinutes(refreshTokenExpiration))
                 .build();
 
         return ResponseEntity.ok()

@@ -33,13 +33,19 @@ public class JsonWebTokenServiceImpl implements JsonWebTokenService {
     @Value("${security.secret}")
     private String secret;
 
+    public enum TokenType {
+        ACCESS,
+        REFRESH
+    }
+
 
     @Override
     public String getAccessToken(String subject, Map<String, Object> claims) {
         return buildJwt(
                 subject,
                 Instant.now().plus(accessTokenExpiration, ChronoUnit.MINUTES),
-                claims
+                claims,
+                TokenType.ACCESS
         );
     }
 
@@ -48,22 +54,23 @@ public class JsonWebTokenServiceImpl implements JsonWebTokenService {
         return buildJwt(
                 subject,
                 Instant.now().plus(refreshTokenExpiration, ChronoUnit.MINUTES),
-                claims
+                claims,
+                TokenType.REFRESH
         );
     }
 
     @Override
-    public String getSubject(String token) {
-        return getClaims(token).getSubject();
+    public String getSubject(String token, TokenType type) {
+        return getClaims(token, type).getSubject();
     }
 
     @Override
-    public boolean isValid(String token) {
-        Date expiration = getClaims(token).getExpiration();
+    public boolean isValid(String token, TokenType type) {
+        Date expiration = getClaims(token, type).getExpiration();
         return new Date().before(expiration);
     }
 
-    private String buildJwt(String subject, Instant expiration, Map<String, Object> claims) {
+    private String buildJwt(String subject, Instant expiration, Map<String, Object> claims, TokenType type) {
         return Jwts
                 .builder()
                 .subject(subject)
@@ -71,6 +78,7 @@ public class JsonWebTokenServiceImpl implements JsonWebTokenService {
                 .expiration(Date.from(expiration))
                 .issuedAt(new Date())
                 .claims(claims)
+                .claim("token_type", type)
                 .compact();
     }
 
@@ -80,11 +88,12 @@ public class JsonWebTokenServiceImpl implements JsonWebTokenService {
         );
     }
 
-    private Claims getClaims(String jwt) {
+    private Claims getClaims(String jwt, TokenType type) {
         try {
             return Jwts
                     .parser()
                     .verifyWith(getSecretKey())
+                    .require("token_type", type.name())
                     .build()
                     .parseSignedClaims(jwt)
                     .getPayload();
@@ -94,7 +103,7 @@ public class JsonWebTokenServiceImpl implements JsonWebTokenService {
             throw new InvalidJwtException("Token is expired");
         } catch (Exception e) {
             log.error("Error decoding token {}", e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error decoding token");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Error decoding token");
         }
     }
 }

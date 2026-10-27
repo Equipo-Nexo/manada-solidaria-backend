@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.auth.integrations;
 
 import com.nexo.manada_solidaria_backend.auth.controllers.requests.CreateUserRequest;
+import com.nexo.manada_solidaria_backend.auth.services.implementations.JsonWebTokenServiceImpl;
 import com.nexo.manada_solidaria_backend.auth.services.interfaces.JsonWebTokenService;
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseIntegrationTest;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
@@ -124,7 +125,7 @@ class AuthControllerTest extends BaseIntegrationTest {
                         );
                     } else {
                         jsonPath("$.status").value(HttpStatus.UNAUTHORIZED.value()).match(result);
-                        jsonPath("$.errors[0]").value("Refresh token is not valid").match(result);
+                        jsonPath("$.errors[0]").value("Token is expired").match(result);
                         jsonPath("$.path").value("/auth/refresh").match(result);
                     }
                 });
@@ -137,6 +138,7 @@ class AuthControllerTest extends BaseIntegrationTest {
                 .issuedAt(Date.from(issuedAt))
                 .expiration(Date.from(issuedAt.plus(1, ChronoUnit.MINUTES)))
                 .signWith(Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret)))
+                .claim("token_type", JsonWebTokenServiceImpl.TokenType.REFRESH)
                 .compact();
     }
 
