@@ -535,10 +535,10 @@ public class MockAnimalPostDataUtils {
 
     private static Stream<Arguments> provideFilterCases() {
         return Stream.of(
-                Arguments.of("Sin filtros devuelve todos los posts", null, null, 5),
+                Arguments.of("Sin filtros devuelve todos los posts menos los de estado final", null, null, 4),
                 Arguments.of("type=LOST devuelve solo los perdidos con dueno", "LOST", null, 2),
                 Arguments.of("type=IN_STREET devuelve solo los que estan en la calle", "IN_STREET", null, 1),
-                Arguments.of("type=ADOPTION devuelve solo las adopciones", "ADOPTION", null, 2),
+                Arguments.of("type=ADOPTION devuelve solo las adopciones que no estan adoptadas", "ADOPTION", null, 1),
                 Arguments.of("status=CREATED devuelve solo los posts en ese estado", null, "CREATED", 1),
                 Arguments.of("status=SEARCHING devuelve los perdidos con dueno en busqueda", null, "SEARCHING", 1),
                 Arguments.of("status=TO_RESCUE devuelve los de la calle", null, "TO_RESCUE", 1),
@@ -550,6 +550,17 @@ public class MockAnimalPostDataUtils {
                 Arguments.of("type=LOST y status=ADOPTED no devuelve resultados", "LOST", "ADOPTED", 0),
                 Arguments.of("type=LOST y status=SEARCHING excluye a los de la calle", "LOST", "SEARCHING", 1),
                 Arguments.of("type=IN_STREET y status=TO_RESCUE devuelve al de la calle", "IN_STREET", "TO_RESCUE", 1)
+        );
+    }
+
+    private static Stream<Arguments> provideFinalStatusExclusionCases() {
+        return Stream.of(
+                Arguments.of("Sin status no trae a un perdido encontrado", AnimalPostFilter.LOST, "FOUND", 0),
+                Arguments.of("Sin status no trae a uno de la calle rescatado", AnimalPostFilter.IN_STREET, "RESCUED", 0),
+                Arguments.of("Sin status no trae a una adopcion adoptada", AnimalPostFilter.ADOPTION, "ADOPTED", 0),
+                Arguments.of("Sin status trae a un perdido en busqueda", AnimalPostFilter.LOST, "SEARCHING", 1),
+                Arguments.of("Sin status trae a uno de la calle para rescatar", AnimalPostFilter.IN_STREET, "TO_RESCUE", 1),
+                Arguments.of("Sin status trae a una adopcion en busqueda", AnimalPostFilter.ADOPTION, "SEARCHING_ADOPT", 1)
         );
     }
 

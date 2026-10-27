@@ -26,6 +26,10 @@ http:
       value: SEARCHING_ADOPT
       type: query
       disabled: true
+    - name: status
+      value: ADOPTED
+      type: query
+      disabled: true
   auth: inherit
 
 runtime:
@@ -50,6 +54,13 @@ settings:
   forwardAuthorizationHeader: true
 
 docs: |-
+  Listado paginado de publicaciones (home). Filtros opcionales: `type`, `status`, `animalType`,
+  `animalSize`, `animalGender`, `animalAge`, `animalColor`, mas `page` / `size` / `sort`.
+
+  Sin `status` NO vienen las publicaciones en estado final (`FOUND`, `RESCUED`, `ADOPTED`):
+  esas se listan en `GET /animal-posts/happy-cases`. Para traerlas igual, pedir el estado
+  explicito (ej.: prender `status=ADOPTED`).
+
   Guarda el id de la primera publicacion en `animal_post_id` para usarlo en Like / Dislike.
 
   Cada publicacion trae, ademas de lo de siempre (MS-259):
@@ -59,4 +70,5 @@ docs: |-
   Los dos campos vienen igual en `GET /animal-posts/{id}`, en la respuesta de `PATCH /animal-posts/{id}/status`
   y en los posts de animales de `GET /users/{userId}` y `GET /users/posts`.
 
-  Esperado: 200. Sin token o token invalido: 401.
+  Esperado: 200 con `content` (array de publicaciones) y `totalElements`.
+  Filtro con un valor invalido (`type`, `animalType`, etc.): 400. Sin token o token invalido: 401.
