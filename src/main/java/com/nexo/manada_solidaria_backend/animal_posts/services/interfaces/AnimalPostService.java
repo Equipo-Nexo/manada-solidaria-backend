@@ -6,27 +6,44 @@ import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.Trans
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AnimalPostResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.HappyCaseResponse;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
+import com.nexo.manada_solidaria_backend.auth.components.pre_filters.AnimalPostOwner;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public interface AnimalPostService {
     AnimalPostResponse create(CreateAnimalPostRequest request, User owner);
 
-    Page<AnimalPostResponse> getAnimalPosts(GetAnimalPostsRequest request, Pageable pageable);
+    Page<AnimalPostResponse> getAnimalPosts(GetAnimalPostsRequest request, Pageable pageable, User authenticatedUser);
 
-    AnimalPostResponse getAnimalPost(UUID animalPostId);
+    AnimalPostResponse getAnimalPost(UUID animalPostId, User authenticatedUser);
 
+    @AnimalPostOwner
     void update(UUID animalPostId, UpdateAnimalPostRequest request, User authenticatedUser);
 
+    @AnimalPostOwner
     AnimalPostResponse transitionStatus(UUID animalPostId, TransitionStatusRequest request, User authenticatedUser);
 
+    @AnimalPostOwner
     void delete(UUID animalPostId, User authenticatedUser);
+
+    void like(UUID animalPostId, User authenticatedUser);
+
+    void dislike(UUID animalPostId, User authenticatedUser);
 
     Page<HappyCaseResponse> getHappyCases(Pageable pageable);
 
-    List<AnimalPostResponse> getUserAnimalPosts(User user);
+    List<AnimalPostResponse> getUserAnimalPosts(User user, User authenticatedUser);
+
+    Set<UUID> getSearchingOwnerIds(AnimalType animalType, String animalColor);
+
+    List<AnimalPostResponse> getActiveLostPosts();
+
+    AdoptionPost getAdoptionPostOrThrow(UUID adoptionPostId);
 }

@@ -1,8 +1,16 @@
 package com.nexo.manada_solidaria_backend.animal_posts.utils;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalAge;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalGender;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalSize;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
+import com.nexo.manada_solidaria_backend.locations.controllers.requests.UpdateLocationRequest;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import org.junit.jupiter.params.provider.Arguments;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
@@ -455,6 +463,24 @@ public class MockAnimalPostDataUtils {
         );
     }
 
+    private static Stream<Arguments> provideTransitNotificationCreateCases() {
+        return Stream.of(
+                Arguments.of("Una adopcion que busca transito avisa al hogar de transito", ADOPTION_VALID, "transito", 1),
+                Arguments.of("Un usuario sin el rol de transito no recibe el aviso", ADOPTION_VALID, "comunidad", 0),
+                Arguments.of("El autor no recibe el aviso de su propio post aunque sea transito", ADOPTION_VALID, "admin", 0),
+                Arguments.of("Una adopcion que ya tiene transito no avisa", ADOPTION_IN_TRANSIT, "transito", 0),
+                Arguments.of("Un perdido no avisa", LOST_VALID, "transito", 0)
+        );
+    }
+
+    private static Stream<Arguments> provideTransitNotificationTransitionCases() {
+        return Stream.of(
+                Arguments.of("Una adopcion que pierde el transito avisa", "SEARCHING_ADOPT", "SEARCHING_ADOPT_AND_TRANSIT", 1),
+                Arguments.of("Una adopcion que consigue transito no avisa", "SEARCHING_ADOPT_AND_TRANSIT", "SEARCHING_ADOPT", 0),
+                Arguments.of("Una adopcion que pasa a adoptada no avisa", "SEARCHING_ADOPT_AND_TRANSIT", "ADOPTED", 0)
+        );
+    }
+
     private static Stream<Arguments> provideLostTransitionCases() {
         return Stream.of(
                 Arguments.of("Un LOST con dueno transiciona a SEARCHING", LOST_VALID, "SEARCHING"),
@@ -509,10 +535,10 @@ public class MockAnimalPostDataUtils {
 
     private static Stream<Arguments> provideFilterCases() {
         return Stream.of(
-                Arguments.of("Sin filtros devuelve todos los posts", null, null, 5),
+                Arguments.of("Sin filtros devuelve todos los posts menos los de estado final", null, null, 4),
                 Arguments.of("type=LOST devuelve solo los perdidos con dueno", "LOST", null, 2),
                 Arguments.of("type=IN_STREET devuelve solo los que estan en la calle", "IN_STREET", null, 1),
-                Arguments.of("type=ADOPTION devuelve solo las adopciones", "ADOPTION", null, 2),
+                Arguments.of("type=ADOPTION devuelve solo las adopciones que no estan adoptadas", "ADOPTION", null, 1),
                 Arguments.of("status=CREATED devuelve solo los posts en ese estado", null, "CREATED", 1),
                 Arguments.of("status=SEARCHING devuelve los perdidos con dueno en busqueda", null, "SEARCHING", 1),
                 Arguments.of("status=TO_RESCUE devuelve los de la calle", null, "TO_RESCUE", 1),
@@ -524,6 +550,17 @@ public class MockAnimalPostDataUtils {
                 Arguments.of("type=LOST y status=ADOPTED no devuelve resultados", "LOST", "ADOPTED", 0),
                 Arguments.of("type=LOST y status=SEARCHING excluye a los de la calle", "LOST", "SEARCHING", 1),
                 Arguments.of("type=IN_STREET y status=TO_RESCUE devuelve al de la calle", "IN_STREET", "TO_RESCUE", 1)
+        );
+    }
+
+    private static Stream<Arguments> provideFinalStatusExclusionCases() {
+        return Stream.of(
+                Arguments.of("Sin status no trae a un perdido encontrado", AnimalPostFilter.LOST, "FOUND", 0),
+                Arguments.of("Sin status no trae a uno de la calle rescatado", AnimalPostFilter.IN_STREET, "RESCUED", 0),
+                Arguments.of("Sin status no trae a una adopcion adoptada", AnimalPostFilter.ADOPTION, "ADOPTED", 0),
+                Arguments.of("Sin status trae a un perdido en busqueda", AnimalPostFilter.LOST, "SEARCHING", 1),
+                Arguments.of("Sin status trae a uno de la calle para rescatar", AnimalPostFilter.IN_STREET, "TO_RESCUE", 1),
+                Arguments.of("Sin status trae a una adopcion en busqueda", AnimalPostFilter.ADOPTION, "SEARCHING_ADOPT", 1)
         );
     }
 
@@ -566,4 +603,105 @@ public class MockAnimalPostDataUtils {
         );
     }
 
+    public static Stream<Arguments> provideNonOwnerRequests() {
+        return Stream.of(
+                Arguments.of("PUT /animal-posts/{id}", HttpMethod.PUT, "", buildUpdateRequest()),
+                Arguments.of("PATCH /animal-posts/{id}/status", HttpMethod.PATCH, "/status", new TransitionStatusRequest("FOUND")),
+                Arguments.of("DELETE /animal-posts/{id}", HttpMethod.DELETE, "", null)
+        );
+    }
+
+    private static UpdateAnimalPostRequest buildUpdateRequest() {
+        return new UpdateAnimalPostRequest(
+                "Titulo actualizado",
+                "Descripcion actualizada",
+                "cf-image-put",
+                null,
+                null,
+                new UpdateAnimalPostRequest.AnimalUpdate(AnimalType.CAT, AnimalSize.LARGE, AnimalGender.FEMALE, "negro", AnimalAge.SENIOR),
+                new UpdateLocationRequest("Refugio Nuevo", "Nueva direccion 456", 999, -34.7, -58.7)
+        );
+    }
+
+    public static Stream<Arguments> provideSimilarLostPetRecipientCases() {
+        return Stream.of(
+                Arguments.of("Recibe quien busca un perro", LOST_STREET_WITHOUT_PHONE, "busca-perro", 1),
+                Arguments.of("Con dos perros buscados recibe una sola vez", LOST_STREET_WITHOUT_PHONE, "busca-dos-perros", 1),
+                Arguments.of("No recibe quien busca un gato", LOST_STREET_WITHOUT_PHONE, "busca-gato", 0),
+                Arguments.of("No recibe quien ya encontro a su perro", LOST_STREET_WITHOUT_PHONE, "encontro-perro", 0),
+                Arguments.of("No recibe quien publico un perro en la calle", LOST_STREET_WITHOUT_PHONE, "rescata-perro", 0),
+                Arguments.of("No recibe el autor aunque busque un perro", LOST_STREET_WITHOUT_PHONE, "admin", 0),
+                Arguments.of("Una mascota perdida con dueno no notifica", LOST_VALID, "busca-perro", 0)
+        );
+    }
+
+    public static Stream<Arguments> provideSimilarLostPetColorCases() {
+        return Stream.of(
+                Arguments.of("Mismo color recibe", "BLACK", "BLACK", 1),
+                Arguments.of("Otro color no recibe", "BLACK", "BROWN", 0),
+                Arguments.of("Si la mascota buscada no tiene color, recibe", "BLACK", null, 1),
+                Arguments.of("Si el animal en la calle no tiene color, recibe", null, "BROWN", 1),
+                Arguments.of("OTHER con OTHER recibe", "OTHER", "OTHER", 1),
+                Arguments.of("OTHER con un color de la lista no recibe", "OTHER", "BLACK", 0)
+        );
+    }
+
+    public static String streetDogWithColor(String color) {
+        return """
+                {
+                  "type": "LOST",
+                  "name": "Animal en la calle",
+                  "description": "Lo vi deambulando",
+                  "imageId": "cf-image-street",
+                  "hasOwner": false,
+                  "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE", "age": "ADULT", "color": %s },
+                  "location": { "name": "Esquina", "address": "Corrientes", "number": 500, "latitude": -34.6, "longitude": -58.4 }
+                }
+                """.formatted(color == null ? "null" : "\"" + color + "\"");
+    }
+
+    private static Stream<Arguments> provideReactionActionCases() {
+        return Stream.of(
+                Arguments.of("like crea la reaccion del usuario del token", List.of("like"), 4, true),
+                Arguments.of("like dos veces no duplica la reaccion", List.of("like", "like"), 4, true),
+                Arguments.of("dislike borra solo la reaccion del usuario del token", List.of("like", "dislike"), 3, false),
+                Arguments.of("dislike sin like previo no falla ni borra la de otro", List.of("dislike"), 3, false)
+        );
+    }
+
+    private static Stream<Arguments> provideReactionFieldCases() {
+        String list = "/animal-posts";
+        String likedByBoth = "55555555-5555-5555-5555-555555555555";
+        String likedByOther = "99999999-9999-9999-9999-999999999999";
+        String withoutLikes = "77777777-7777-7777-7777-777777777777";
+        return Stream.of(
+                Arguments.of("La lista cuenta los likes de cada publicacion", list,
+                        "$.content[?(@.id == '" + likedByBoth + "')].reactionsCount", contains(2)),
+                Arguments.of("La lista cuenta 0 en una publicacion sin likes", list,
+                        "$.content[?(@.id == '" + withoutLikes + "')].reactionsCount", contains(0)),
+                Arguments.of("La lista marca las que likeo el usuario", list,
+                        "$.content[?(@.id == '" + likedByBoth + "')].reactedByMe", contains(true)),
+                Arguments.of("La lista no marca las que likeo otro", list,
+                        "$.content[?(@.id == '" + likedByOther + "')].reactedByMe", contains(false)),
+                Arguments.of("El detalle cuenta los likes", list + "/" + likedByBoth, "$.reactionsCount", is(2)),
+                Arguments.of("El detalle marca si el usuario le dio like", list + "/" + likedByBoth, "$.reactedByMe", is(true)),
+                Arguments.of("El detalle no marca el like de otro", list + "/" + likedByOther, "$.reactedByMe", is(false))
+        );
+    }
+
+    private static Stream<Arguments> provideReactionNotFoundCases() {
+        return Stream.of(
+                Arguments.of("like de una publicacion inexistente", "like"),
+                Arguments.of("dislike de una publicacion inexistente", "dislike")
+        );
+    }
+
+    private static Stream<Arguments> provideReactionUnauthorizedCases() {
+        return Stream.of(
+                Arguments.of("like sin token", "like", null),
+                Arguments.of("like con token invalido", "like", INVALID_ACCESS_TOKEN),
+                Arguments.of("dislike sin token", "dislike", null),
+                Arguments.of("dislike con token invalido", "dislike", INVALID_ACCESS_TOKEN)
+        );
+    }
 }

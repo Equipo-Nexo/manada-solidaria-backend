@@ -1,7 +1,9 @@
 package com.nexo.manada_solidaria_backend.users.services.implementations;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormResponse;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormsWithCountersResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormStatusFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AdoptionFormService;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
 import com.nexo.manada_solidaria_backend.auth.controllers.requests.CreateUserRequest;
@@ -9,15 +11,19 @@ import com.nexo.manada_solidaria_backend.campaigns.services.interfaces.CampaignS
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
+import com.nexo.manada_solidaria_backend.users.controllers.requests.CreateUserLocationRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.*;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.Profile;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
+import com.nexo.manada_solidaria_backend.users.data.models.UserLocation;
+import com.nexo.manada_solidaria_backend.users.data.repositories.UserLocationRepository;
 import com.nexo.manada_solidaria_backend.users.data.repositories.UserRepository;
 import com.nexo.manada_solidaria_backend.users.services.interfaces.UserService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -37,7 +43,11 @@ import static org.springframework.http.HttpStatus.*;
 @Slf4j
 public class UserServiceImpl implements UserService {
 
+    private static final int USUAL_LOCATION_WINDOW = 50;
+    private static final int ZONE_DECIMALS = 1;
+
     private final UserRepository userRepository;
+    private final UserLocationRepository userLocationRepository;
     private final CampaignService campaignService;
     private final AnimalPostService animalPostService;
     private final PasswordEncoder passwordEncoder;
@@ -82,9 +92,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserDetailResponse getUser(UUID userId) {
+    public UserDetailResponse getUser(UUID userId, String type, User authenticatedUser) {
         User user = getUserById(userId);
-        return UserDetailResponse.from(user, getUserPosts(user, null));
+        return UserDetailResponse.from(user, getUserPosts(user, type, authenticatedUser));
     }
 
     @Override
@@ -112,8 +122,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserPostResponse> getUserPosts(User user, String type) {
-        return (requireAllPosts(type) ? getAllUserPosts(user) : getUserPostsByType(user, type))
+    public List<UserPostResponse> getUserPosts(User user, String type, User authenticatedUser) {
+        return (requireAllPosts(type) ? getAllUserPosts(user, authenticatedUser) : getUserPostsByType(user, type, authenticatedUser))
                 .toList();
     }
 
@@ -123,6 +133,18 @@ public class UserServiceImpl implements UserService {
         userRepository.save(authenticatedUser);
         log.info("Profile updated: user={}", authenticatedUser.getId());
         return ProfileResponse.from(authenticatedUser.getProfile());
+    }
+
+    @Override
+    public void createLocation(CreateUserLocationRequest request, User authenticatedUser) {
+        userLocationRepository.save(new UserLocation(authenticatedUser, request.latitude(), request.longitude()));
+        log.info("Location saved: user={}", authenticatedUser.getId());
+    }
+
+    @Override
+    public Optional<UsualLocationResponse> getUsualLocation(User user) {
+        return userLocationRepository.findMostFrequentZone(user, USUAL_LOCATION_WINDOW, ZONE_DECIMALS, Limit.of(1))
+                .map(zone -> new UsualLocationResponse(zone.getLatitude(), zone.getLongitude()));
     }
 
     @Override
@@ -146,31 +168,31 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AdoptionFormResponse> getFormsByUser(FormFilter filter, User authenticatedUser) {
-        return adoptionFormService.getFormsByUser(authenticatedUser.getId(), filter);
+    public AdoptionFormsWithCountersResponse getFormsByUser(FormFilter filter, FormStatusFilter status, User authenticatedUser) {
+        return adoptionFormService.getFormsByUser(authenticatedUser.getId(), filter, status);
     }
 
     private static boolean requireAllPosts(String type) {
         return type == null || type.isBlank();
     }
 
-    private Stream<UserPostResponse> getAllUserPosts(User user) {
-        return Stream.of(getUserAnimalPosts(user), getUserCampaigns(user), getUserFundraisingCampaigns(user))
+    private Stream<UserPostResponse> getAllUserPosts(User user, User authenticatedUser) {
+        return Stream.of(getUserAnimalPosts(user, authenticatedUser), getUserCampaigns(user), getUserFundraisingCampaigns(user))
                 .flatMap(Function.identity())
                 .sorted(Comparator.comparing(UserPostResponse::getCreatedAt).reversed());
     }
 
-    private Stream<UserPostResponse> getUserPostsByType(User user, String type) {
+    private Stream<UserPostResponse> getUserPostsByType(User user, String type, User authenticatedUser) {
         return switch (type) {
             case UserPostResponse.CAMPAIGN -> getUserCampaigns(user);
-            case UserPostResponse.ANIMAL -> getUserAnimalPosts(user);
+            case UserPostResponse.ANIMAL -> getUserAnimalPosts(user, authenticatedUser);
             case UserPostResponse.FUNDRAISING -> getUserFundraisingCampaigns(user);
             default -> throw new ResponseStatusException(BAD_REQUEST, "requested type is not supported");
         };
     }
 
-    private Stream<UserPostResponse> getUserAnimalPosts(User user) {
-        return animalPostService.getUserAnimalPosts(user)
+    private Stream<UserPostResponse> getUserAnimalPosts(User user, User authenticatedUser) {
+        return animalPostService.getUserAnimalPosts(user, authenticatedUser)
                 .stream()
                 .map(AnimalUserPostResponse::new);
     }

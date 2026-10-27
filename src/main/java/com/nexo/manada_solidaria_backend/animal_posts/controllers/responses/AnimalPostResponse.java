@@ -31,10 +31,12 @@ public record AnimalPostResponse(
         UUID ownerId,
         PhoneNumberResponse phoneNumber,
         OwnerResponse owner,
-        BigDecimal reward
+        BigDecimal reward,
+        long reactionsCount,
+        boolean reactedByMe
 ) {
 
-    public static AnimalPostResponse from(AnimalPost post) {
+    public static AnimalPostResponse from(AnimalPost post, boolean reactedByMe) {
         return new AnimalPostResponse(
                 post.getId(),
                 post.getType(),
@@ -50,7 +52,9 @@ public record AnimalPostResponse(
                         .orElse(null),
                 PhoneNumberResponse.from(post.getPhoneNumber()),
                 OwnerResponse.from(post.getOwner()),
-                post instanceof LostPost lost ? lost.getReward() : null
+                post instanceof LostPost lost ? lost.getReward() : null,
+                post.getReactionsCount(),
+                reactedByMe
         );
     }
 

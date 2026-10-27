@@ -1,0 +1,16 @@
+info:
+  name: Get adoption form questions
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{MANADA_SOLIDARIA_HOST}}/questions"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

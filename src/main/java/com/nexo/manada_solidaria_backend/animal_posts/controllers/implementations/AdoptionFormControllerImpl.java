@@ -2,6 +2,7 @@ package com.nexo.manada_solidaria_backend.animal_posts.controllers.implementatio
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.interfaces.AdoptionFormController;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAdoptionFormRequest;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormDetailResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AdoptionFormService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -24,6 +25,16 @@ public class AdoptionFormControllerImpl implements AdoptionFormController {
 
     @Override
     public List<AdoptionFormResponse> getFormsByPostId(UUID postId, User authenticatedUser) {
-        return adoptionFormService.getFormsByPostId(postId, authenticatedUser);
+        return adoptionFormService.getFormsByPostId(postId);
+    }
+
+    @Override
+    public AdoptionFormDetailResponse getFormById(UUID adoptionFormId, User authenticatedUser) {
+        return adoptionFormService.getFormById(adoptionFormId, authenticatedUser);
+    }
+
+    @Override
+    public void markAsRead(UUID formId, User authenticatedUser) {
+        adoptionFormService.markAsRead(formId, authenticatedUser);
     }
 }

@@ -3,8 +3,8 @@ package com.nexo.manada_solidaria_backend.vets.utils;
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import com.nexo.manada_solidaria_backend.locations.controllers.requests.LocationRequest;
 import com.nexo.manada_solidaria_backend.locations.controllers.requests.UpdateLocationRequest;
-import com.nexo.manada_solidaria_backend.vets.controllers.requests.CreateVetInformationRequest.ScheduleRequest;
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.CreateVetInformationRequest;
+import com.nexo.manada_solidaria_backend.vets.controllers.requests.CreateVetInformationRequest.ScheduleRequest;
 import com.nexo.manada_solidaria_backend.vets.controllers.requests.UpdateVetInformationRequest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.springframework.util.LinkedMultiValueMap;
@@ -16,8 +16,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 
 public class MockVetInformationDataUtils {
 
@@ -343,7 +342,11 @@ public class MockVetInformationDataUtils {
                 Arguments.of("Devuelve el phone enviado", CREATE_VET_VALID, "$.phoneNumber.number", is("567890")),
                 Arguments.of("Devuelve el email enviado", CREATE_VET_VALID, "$.email", is("contacto@sanroque.com")),
                 Arguments.of("Devuelve la ciudad de la ubicación", CREATE_VET_VALID, "$.location.city", is("Córdoba")),
-                Arguments.of("Devuelve la cantidad correcta de días de atención", CREATE_VET_VALID, "$.calendar.length()", is(2))
+                Arguments.of("Devuelve la cantidad correcta de días de atención", CREATE_VET_VALID, "$.calendar.length()", is(2)),
+                Arguments.of("Devuelve el nombre de la ubicación", CREATE_VET_VALID, "$.location.name", is("Sede Central")),
+                Arguments.of("Devuelve la cantidad correcta de días de atención", CREATE_VET_VALID, "$.calendar.length()", is(2)),
+                Arguments.of("Devuelve isOpen calculado según hora actual", CREATE_VET_VALID, "$.isOpen", is(false)),
+                Arguments.of("Devuelve distanceInKm en null al crear sin coordenadas de usuario", CREATE_VET_VALID, "$.distanceInKm", nullValue())
         );
     }
 
@@ -410,6 +413,31 @@ public class MockVetInformationDataUtils {
                         "Devuelve dos días de atención",
                         "$.calendar.length()",
                         is(2)
+                ),
+                Arguments.of(
+                        "Devuelve isOpen false (miércoles 10:00 sin turno)",
+                        "$.isOpen",
+                        is(false)),
+                Arguments.of(
+                        "Devuelve distanceInKm en null sin coordenadas",
+                        "$.distanceInKm",
+                        nullValue())
+        );
+    }
+
+    public static Stream<Arguments> provideDistanceCalculationCases() {
+        return Stream.of(
+                Arguments.of(
+                        "Calcula distanceInKm exacta cuando se envían coordenadas de usuario",
+                        -32.4075,
+                        -63.2402,
+                        is(0.0)
+                ),
+                Arguments.of(
+                        "Retorna distanceInKm en null cuando no se envían coordenadas de usuario",
+                        null,
+                        null,
+                        nullValue()
                 )
         );
     }
@@ -536,7 +564,16 @@ public class MockVetInformationDataUtils {
                         UPDATE_VET_VALID,
                         "$.calendar.length()",
                         is(2)
-                )
+                ),
+                Arguments.of(
+                        "Devuelve isOpen recalculado tras actualizar horario",
+                        UPDATE_VET_VALID, "$.isOpen",
+                        is(false)),
+                Arguments.of(
+                        "Devuelve distanceInKm en null al actualizar sin coordenadas",
+                        UPDATE_VET_VALID,
+                        "$.distanceInKm",
+                        nullValue())
         );
     }
 

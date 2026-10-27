@@ -21,6 +21,9 @@ import java.util.UUID;
 @Table(name = "adoption_forms")
 public class AdoptionForm {
 
+    @Column(length = 1000)
+    private String description;
+
     @Embedded
     private PhoneNumber phoneNumber;
 
@@ -54,7 +57,8 @@ public class AdoptionForm {
     @Id
     private UUID id = UUID.randomUUID();
 
-    public AdoptionForm(PhoneNumber phoneNumber, User applicant, AdoptionPost adoptionPost) {
+    public AdoptionForm(String description, PhoneNumber phoneNumber, User applicant, AdoptionPost adoptionPost) {
+        this.description = description;
         this.phoneNumber = phoneNumber;
         this.applicant = applicant;
         this.adoptionPost = adoptionPost;

@@ -11,18 +11,19 @@ http:
     data: |-
       {
         "adoptionPostId": "eda9874f-72b5-46b0-8138-bddce72d3360",
+        "description": "Quiero una gatita para que le haga compañía a mi gato de 2 años para que crezcan juntos.",
         "phoneNumber": {
           "areaCode": "353",
           "number": "4014524"
         },
-        "questions": [
+        "answers": [
           {
-            "questionFormId": "f1111111-1111-1111-1111-111111111111",
-            "answer": "Alquilo y sí me permiten mascotas."
+            "questionId": "a1000000-0000-4000-a000-000000000001",
+            "answer": "Casa"
           },
           {
-            "questionFormId": "f2222222-2222-2222-2222-222222222222",
-            "answer": "Sí, siempre se contempla a la mascota en cualquier mudanza."
+            "questionId": "a1000000-0000-4000-a000-000000000002",
+            "answer": "No"
           }
         ]
       }
@@ -33,4 +34,4 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
-  forwardAuthorizationHeader: false
+  forwardAuthorizationHeader: true

@@ -1,0 +1,46 @@
+info:
+  name: Create location
+  type: http
+  seq: 7
+
+http:
+  method: POST
+  url: "{{MANADA_SOLIDARIA_HOST}}/users/save-location"
+  body:
+    type: json
+    data: |-
+      {
+          "latitude": -34.6037,
+          "longitude": -58.3816
+      }
+  auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "204"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+docs: |-
+  Agrega la ubicacion actual del usuario logueado (el del token) a su historial.
+  No pisa las anteriores: cada llamada guarda un registro nuevo con la fecha y hora.
+
+  Body:
+  - `latitude`: obligatoria, entre -90 y 90 (los bordes valen)
+  - `longitude`: obligatoria, entre -180 y 180 (los bordes valen)
+
+  Respuesta: 204.
+
+  Errores:
+  - 400 si falta alguna coordenada o esta fuera de rango. Ej.:
+    { "status": 400, "errors": ["La latitud debe estar entre -90 y 90"], "path": "/users/save-location" }
+  - 400 si el body esta mal formado (ej.: "latitude": "abc")
+  - 401 sin token o con token invalido
+
+  La ubicacion NO se devuelve en ningun otro endpoint (ni en el detalle ni en el perfil del usuario).

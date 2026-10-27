@@ -7,6 +7,7 @@ import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 @Configuration
 public class AsyncConfiguration {
@@ -29,6 +30,18 @@ public class AsyncConfiguration {
     @Bean("notificationExecutor")
     @Profile("test")
     public Executor testNotificationExecutor() {
+        return new SyncTaskExecutor();
+    }
+
+    @Bean(name = "mapExecutor", destroyMethod = "close")
+    @Profile("!test")
+    public Executor mapExecutor() {
+        return Executors.newVirtualThreadPerTaskExecutor();
+    }
+
+    @Bean("mapExecutor")
+    @Profile("test")
+    public Executor testMapExecutor() {
         return new SyncTaskExecutor();
     }
 }

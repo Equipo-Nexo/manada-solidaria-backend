@@ -1,12 +1,15 @@
 package com.nexo.manada_solidaria_backend.users.controllers.implementations;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormResponse;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormsWithCountersResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormStatusFilter;
 import com.nexo.manada_solidaria_backend.notifications.controllers.responses.UserNotificationsResponse;
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationDeliveryService;
 import com.nexo.manada_solidaria_backend.users.controllers.interfaces.UserController;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
+import com.nexo.manada_solidaria_backend.users.controllers.requests.CreateUserLocationRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.*;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -26,8 +29,8 @@ public class UserControllerImpl implements UserController {
     private final NotificationDeliveryService notificationDeliveryService;
 
     @Override
-    public UserDetailResponse getUser(UUID userId) {
-        return userService.getUser(userId);
+    public UserDetailResponse getUser(UUID userId, String type, User authenticatedUser) {
+        return userService.getUser(userId, type, authenticatedUser);
     }
 
     @Override
@@ -42,7 +45,7 @@ public class UserControllerImpl implements UserController {
 
     @Override
     public List<UserPostResponse> getUserPosts(User user, String type) {
-        return userService.getUserPosts(user, type);
+        return userService.getUserPosts(user, type, user);
     }
 
     @Override
@@ -56,12 +59,17 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
+    public void createLocation(CreateUserLocationRequest request, User authenticatedUser) {
+        userService.createLocation(request, authenticatedUser);
+    }
+
+    @Override
     public Set<Rol> updateRoles(UpdateRolesRequest request, User authenticatedUser) {
         return userService.updateRoles(request, authenticatedUser);
     }
 
     @Override
-    public List<AdoptionFormResponse> getFormsByUser(FormFilter filter, User authenticatedUser) {
-        return userService.getFormsByUser(filter, authenticatedUser);
+    public AdoptionFormsWithCountersResponse getFormsByUser(FormFilter filter, FormStatusFilter status, User authenticatedUser) {
+        return userService.getFormsByUser(filter, status, authenticatedUser);
     }
 }

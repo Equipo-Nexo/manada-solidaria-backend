@@ -15,6 +15,8 @@ public class AnimalUserPostResponse extends UserPostResponse {
     private final AnimalResponse animal;
     private final OwnerResponse owner;
     private final BigDecimal reward;
+    private final long reactionsCount;
+    private final boolean reactedByMe;
 
     public AnimalUserPostResponse(AnimalPostResponse animalPostResponse) {
         super(
@@ -33,5 +35,7 @@ public class AnimalUserPostResponse extends UserPostResponse {
         this.animal = animalPostResponse.animal();
         this.owner = animalPostResponse.owner();
         this.reward = animalPostResponse.reward();
+        this.reactionsCount = animalPostResponse.reactionsCount();
+        this.reactedByMe = animalPostResponse.reactedByMe();
     }
 }

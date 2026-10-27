@@ -6,6 +6,8 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import java.util.TimeZone;
+
 @SpringBootApplication
 @ConfigurationPropertiesScan
 @EnableScheduling
@@ -13,7 +15,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class ManadaSolidariaBackendApplication {
 
     public static void main(String[] args) {
+        TimeZone.setDefault(TimeZone.getTimeZone("America/Argentina/Buenos_Aires"));
         SpringApplication.run(ManadaSolidariaBackendApplication.class, args);
     }
-
 }

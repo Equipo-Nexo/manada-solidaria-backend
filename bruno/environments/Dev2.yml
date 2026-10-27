@@ -1,0 +1,10 @@
+name: Dev2
+variables:
+  - name: MANADA_SOLIDARIA_HOST
+    value: https://dev2-backend.manadasolidaria.com
+  - name: access_token
+    value: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJiZTcxZGE5MS0wNjJiLTQ3ZmYtYjM2My02OGVkNTk0NDgxZGYiLCJleHAiOjE3OTI3Mjc2NjQsImlhdCI6MTc5MjcyNDA2NCwicm9sZXMiOlsiUkVTQ1VFUiIsIlRSQU5TSVRJT05BTF9IT01FIiwiQ0FSUklBR0UiXX0.HueStKpsXTX3zCaSGJljoqu37WKFhsloHLuUFlYuAR6zZlMJ1BXgSa1fMgoVzHAZ
+  - name: refresh_token
+    value: eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJiZTcxZGE5MS0wNjJiLTQ3ZmYtYjM2My02OGVkNTk0NDgxZGYiLCJleHAiOjE3OTI3MzEyNjQsImlhdCI6MTc5MjcyNDA2NH0.Z7_16AH-PifKUL916szXxgG09xPGVXvaLo1wTVJP0bWwq9rj_ELq_yQPPzldGf_j
+  - name: user_id
+    value: be71da91-062b-47ff-b363-68ed594481df

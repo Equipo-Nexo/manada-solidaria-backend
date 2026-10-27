@@ -15,7 +15,7 @@ http:
       value: "-63.254534"
       type: query
       disabled: true
-    - name: search
+    - name: query
       value: bel
       type: query
       disabled: true

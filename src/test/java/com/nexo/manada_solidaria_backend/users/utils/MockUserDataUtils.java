@@ -1,25 +1,19 @@
 package com.nexo.manada_solidaria_backend.users.utils;
 
+import com.nexo.manada_solidaria_backend.users.controllers.requests.CreateUserLocationRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.EditableRol;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import org.junit.jupiter.params.provider.Arguments;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.everyItem;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
 
 public class MockUserDataUtils {
 
@@ -193,6 +187,30 @@ public class MockUserDataUtils {
         );
     }
 
+    private static Stream<Arguments> provideUserDetailTypeCases() {
+        return Stream.of(
+                Arguments.of("Sin type trae todas las publicaciones", false, null, "$.posts[*].postType",
+                        contains("animal", "fundraising", "campaign", "campaign")),
+                Arguments.of("type=animal trae solo animales", false, "animal", "$.posts[*].postType", contains("animal")),
+                Arguments.of("type=campaign trae solo campañas", false, "campaign", "$.posts[*].postType",
+                        contains("campaign", "campaign")),
+                Arguments.of("type=fundraising trae solo colectas", false, "fundraising", "$.posts[*].postType",
+                        contains("fundraising")),
+                Arguments.of("Con filtro el perfil viene igual", false, "animal", "$.username", is("admin")),
+                Arguments.of("Filtra las publicaciones del usuario del path, no las del token", true, "animal", "$.posts",
+                        hasSize(0))
+        );
+    }
+
+    private static Stream<Arguments> provideUnsupportedTypeCases() {
+        return Stream.of(
+                Arguments.of("Detalle de usuario con un tipo inexistente", "/users/%s", "perro"),
+                Arguments.of("Detalle de usuario con el tipo en mayusculas", "/users/%s", "ANIMAL"),
+                Arguments.of("Mis publicaciones con un tipo inexistente", "/users/posts", "perro"),
+                Arguments.of("Mis publicaciones con el tipo en mayusculas", "/users/posts", "ANIMAL")
+        );
+    }
+
     private static Stream<Arguments> provideUserResolutionCases() {
         return Stream.of(
                 Arguments.of("Pedir el usuario autenticado devuelve ese usuario", false, "admin"),
@@ -218,6 +236,26 @@ public class MockUserDataUtils {
         return Stream.of(
                 Arguments.of("Sin token", null),
                 Arguments.of("Con token invalido", INVALID_ACCESS_TOKEN)
+        );
+    }
+
+    private static Stream<Arguments> provideCreateLocationValidCases() {
+        return Stream.of(
+                Arguments.of("Guarda una ubicacion de Buenos Aires", new CreateUserLocationRequest(-34.6037, -58.3816)),
+                Arguments.of("Acepta los maximos (90, 180)", new CreateUserLocationRequest(90.0, 180.0)),
+                Arguments.of("Acepta los minimos (-90, -180)", new CreateUserLocationRequest(-90.0, -180.0)),
+                Arguments.of("Acepta el cero (0, 0)", new CreateUserLocationRequest(0.0, 0.0))
+        );
+    }
+
+    private static Stream<Arguments> provideCreateLocationInvalidCases() {
+        return Stream.of(
+                Arguments.of("Sin latitud", new CreateUserLocationRequest(null, -58.3816), "La latitud es obligatoria"),
+                Arguments.of("Sin longitud", new CreateUserLocationRequest(-34.6037, null), "La longitud es obligatoria"),
+                Arguments.of("Latitud mayor a 90", new CreateUserLocationRequest(90.0001, 0.0), "La latitud debe estar entre -90 y 90"),
+                Arguments.of("Latitud menor a -90", new CreateUserLocationRequest(-90.0001, 0.0), "La latitud debe estar entre -90 y 90"),
+                Arguments.of("Longitud mayor a 180", new CreateUserLocationRequest(0.0, 180.0001), "La longitud debe estar entre -180 y 180"),
+                Arguments.of("Longitud menor a -180", new CreateUserLocationRequest(0.0, -180.0001), "La longitud debe estar entre -180 y 180")
         );
     }
 
@@ -265,6 +303,50 @@ public class MockUserDataUtils {
         return Stream.of(
                 Arguments.of("VET no es auto-asignable", ROLES_WITH_VET),
                 Arguments.of("COMMUNITY no es auto-asignable, lo deriva el back", ROLES_WITH_COMMUNITY)
+        );
+    }
+
+    private static final double[] VILLA_MARIA = {-32.41, -63.24};
+    private static final double[] CORDOBA = {-31.42, -64.19};
+
+    private static Stream<Arguments> provideUsualLocationCases() {
+        return Stream.of(
+                Arguments.of("Si viajo una vez, gana la ciudad donde mas se conecta",
+                        concat(times(3, VILLA_MARIA), times(1, CORDOBA)), VILLA_MARIA[0], VILLA_MARIA[1]),
+                Arguments.of("Solo cuentan las ultimas 50: si se mudo, gana la ciudad nueva",
+                        concat(times(40, VILLA_MARIA), times(30, CORDOBA)), CORDOBA[0], CORDOBA[1]),
+                Arguments.of("Con empate gana la zona mas reciente",
+                        concat(times(1, VILLA_MARIA), times(1, CORDOBA)), CORDOBA[0], CORDOBA[1]),
+                Arguments.of("Dentro de la misma ciudad devuelve el promedio de sus puntos",
+                        List.of(new double[]{-32.40, -63.24}, new double[]{-32.42, -63.22}), -32.41, -63.23)
+        );
+    }
+
+    private static List<double[]> times(int count, double[] point) {
+        return Collections.nCopies(count, point);
+    }
+
+    private static List<double[]> concat(List<double[]> older, List<double[]> newer) {
+        List<double[]> points = new ArrayList<>(older);
+        points.addAll(newer);
+        return points;
+    }
+
+    private static Stream<Arguments> provideUserPostReactionCases() {
+        String adminDetail = "/users/22222222-2222-2222-2222-222222222222";
+        String animalPostInDetail = "$.posts[?(@.id == '77777777-7777-7777-7777-777777777777')]";
+        String animalPostInOwnPosts = "$[?(@.id == '77777777-7777-7777-7777-777777777777')]";
+        return Stream.of(
+                Arguments.of("GET /users/{userId} cuenta los likes del post", "admin", adminDetail,
+                        animalPostInDetail + ".reactionsCount", contains(1)),
+                Arguments.of("GET /users/{userId} no marca el like de otro usuario", "admin", adminDetail,
+                        animalPostInDetail + ".reactedByMe", contains(false)),
+                Arguments.of("GET /users/{userId} marca el like de quien mira el perfil, aunque no sea el dueño", "NOTADMIN", adminDetail,
+                        animalPostInDetail + ".reactedByMe", contains(true)),
+                Arguments.of("GET /users/posts cuenta los likes del post", "admin", "/users/posts",
+                        animalPostInOwnPosts + ".reactionsCount", contains(1)),
+                Arguments.of("GET /users/posts no marca el like de otro usuario", "admin", "/users/posts",
+                        animalPostInOwnPosts + ".reactedByMe", contains(false))
         );
     }
 }

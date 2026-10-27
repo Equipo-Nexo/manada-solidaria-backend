@@ -90,7 +90,7 @@ public class CampaignServiceImpl implements CampaignService {
     @Override
     @Transactional
     public void update(UUID campaignId, UpdateCampaignRequest request, User authenticatedUser) {
-        Campaign<?, ?> campaign = getOwnedCampaignOrThrow(campaignId, authenticatedUser);
+        Campaign<?, ?> campaign = getCampaignOrThrowException(campaignId);
 
         validateCampaignType(campaign, request.type());
         campaign.update(request);
@@ -102,12 +102,7 @@ public class CampaignServiceImpl implements CampaignService {
     @Override
     @Transactional
     public void delete(UUID campaignId, User authenticatedUser) {
-        Campaign<?, ?> campaign = campaignRepository.findById(campaignId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "La campaña no existe"));
-
-        if (!campaign.getOwner().getId().equals(authenticatedUser.getId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo el dueño puede eliminar la campaña");
-        }
+        Campaign<?, ?> campaign = getCampaignOrThrowException(campaignId);
 
         if (campaign.isFinished()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "No se puede eliminar una campaña finalizada");
@@ -142,7 +137,7 @@ public class CampaignServiceImpl implements CampaignService {
     @Override
     @Transactional
     public CampaignResponse transitionStatus(UUID campaignId, TransitionCampaignStatusRequest request, User authenticatedUser) {
-        Campaign<?, ?> campaign = getOwnedCampaignOrThrow(campaignId, authenticatedUser);
+        Campaign<?, ?> campaign = getCampaignOrThrowException(campaignId);
         String previousStatus = campaign.getCurrentStatus().getStatus().name();
         campaign.transitionTo(request.status());
 
@@ -182,13 +177,6 @@ public class CampaignServiceImpl implements CampaignService {
         return campaigns.map(CampaignResponse::from);
     }
 
-    private Campaign<?, ?> getOwnedCampaignOrThrow(UUID campaignId, User authenticatedUser) {
-        Campaign<?, ?> campaign = getCampaignOrThrowException(campaignId);
-
-        validateOwner(campaign, authenticatedUser);
-        return campaign;
-    }
-
     private Campaign<?, ?> getCampaignOrThrowException(UUID campaignId) {
         return campaignRepository.findById(campaignId)
                 .orElseThrow(() ->
@@ -197,15 +185,6 @@ public class CampaignServiceImpl implements CampaignService {
                                 "La campaña no existe"
                         )
                 );
-    }
-
-    private void validateOwner(Campaign<?, ?> campaign, User authenticatedUser) {
-        if (!campaign.getOwner().getId().equals(authenticatedUser.getId())) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "Solo el dueño puede editar la campaña"
-            );
-        }
     }
 
     private void validateCampaignType(Campaign<?, ?> campaign, CampaignType requestType) {

@@ -1,10 +1,15 @@
 package com.nexo.manada_solidaria_backend.animal_posts.utils;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAdoptionFormRequest;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionForm;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
+import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
+import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.junit.jupiter.params.provider.Arguments;
 import org.springframework.http.HttpStatus;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -14,19 +19,19 @@ import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.I
 
 public class MockAdoptionFormDataUtils {
 
+    public static final UUID FORM_ID = UUID.fromString("c1111111-1111-1111-1111-111111111111");
     public static final UUID POST_WITH_FORMS_ID = UUID.fromString("99999999-9999-9999-9999-999999999999");
     public static final UUID POST_WITHOUT_FORMS_ID = UUID.fromString("55555555-5555-5555-5555-555555555555");
     public static final UUID NON_EXISTENT_POST_ID = UUID.fromString("00000000-0000-0000-0000-000000000000");
-    public static final UUID USER_APPLICANT_ID = UUID.fromString("a1111111-1111-1111-1111-111111111111");
-    public static final UUID USER_OTHER_ID = UUID.fromString("b2222222-2222-2222-2222-222222222222");
 
     public static CreateAdoptionFormRequest createValidRequest(UUID postId, UUID questionId1, UUID questionId2) {
         return new CreateAdoptionFormRequest(
                 postId,
+                "Quiero adoptar una gatita para que crezca con mi gato.",
                 new PhoneNumberRequest("353", "4123456"),
                 List.of(
-                        new CreateAdoptionFormRequest.QuestionFormRequest(questionId1, "Alquilo y sí me permiten."),
-                        new CreateAdoptionFormRequest.QuestionFormRequest(questionId2, "Sí, totalmente cerrado.")
+                        new CreateAdoptionFormRequest.AnswerFormRequest(questionId1, "Alquilo y sí me permiten."),
+                        new CreateAdoptionFormRequest.AnswerFormRequest(questionId2, "Sí, totalmente cerrado.")
                 )
         );
     }
@@ -38,22 +43,25 @@ public class MockAdoptionFormDataUtils {
     public static CreateAdoptionFormRequest createWithoutPostId() {
         return new CreateAdoptionFormRequest(
                 null,
+                "Quiero adoptar una mascota.",
                 new PhoneNumberRequest("353", "4123456"),
-                List.of(new CreateAdoptionFormRequest.QuestionFormRequest(UUID.randomUUID(), "Sí."))
+                List.of(new CreateAdoptionFormRequest.AnswerFormRequest(UUID.randomUUID(), "Sí."))
         );
     }
 
     public static CreateAdoptionFormRequest createWithoutPhone(UUID postId) {
         return new CreateAdoptionFormRequest(
                 postId,
+                "Quiero adoptar una mascota.",
                 null,
-                List.of(new CreateAdoptionFormRequest.QuestionFormRequest(UUID.randomUUID(), "Sí."))
+                List.of(new CreateAdoptionFormRequest.AnswerFormRequest(UUID.randomUUID(), "Sí."))
         );
     }
 
     public static CreateAdoptionFormRequest createWithoutQuestions(UUID postId) {
         return new CreateAdoptionFormRequest(
                 postId,
+                "Quiero adoptar una mascota.",
                 new PhoneNumberRequest("353", "4123456"),
                 Collections.emptyList()
         );
@@ -62,9 +70,26 @@ public class MockAdoptionFormDataUtils {
     public static CreateAdoptionFormRequest createWithoutQuestionFormId(UUID postId) {
         return new CreateAdoptionFormRequest(
                 postId,
+                "Quiero adoptar una mascota.",
                 new PhoneNumberRequest("353", "4123456"),
-                List.of(new CreateAdoptionFormRequest.QuestionFormRequest(null, "Respuesta sin id de pregunta"))
+                List.of(new CreateAdoptionFormRequest.AnswerFormRequest(null, "Respuesta sin id de pregunta"))
         );
+    }
+
+    public static List<AdoptionForm> createOrderedFormsForTest(AdoptionPost post, User applicant, LocalDateTime baseTime) {
+        AdoptionForm form1Read = new AdoptionForm("Formulario Leído Antiguo", new PhoneNumber("353", "111111"), applicant, post);
+        form1Read.setRead(true);
+        form1Read.setCreatedAt(baseTime.minusHours(1));
+
+        AdoptionForm form2PendingOld = new AdoptionForm("Formulario Pendiente Antiguo", new PhoneNumber("353", "222222"), applicant, post);
+        form2PendingOld.setRead(false);
+        form2PendingOld.setCreatedAt(baseTime.minusHours(2));
+
+        AdoptionForm form3PendingRecent = new AdoptionForm("Formulario Pendiente Reciente", new PhoneNumber("353", "333333"), applicant, post);
+        form3PendingRecent.setRead(false);
+        form3PendingRecent.setCreatedAt(baseTime);
+
+        return List.of(form1Read, form2PendingOld, form3PendingRecent);
     }
 
     public static Stream<Arguments> provideCreateFormValidationCases() {
@@ -84,13 +109,6 @@ public class MockAdoptionFormDataUtils {
         );
     }
 
-    public static Stream<Arguments> provideGetFormsByPostIdCases() {
-        return Stream.of(
-                Arguments.of("Publicación con 1 formulario", POST_WITH_FORMS_ID, 1),
-                Arguments.of("Publicación sin formularios asociados", POST_WITHOUT_FORMS_ID, 0)
-        );
-    }
-
     public static Stream<Arguments> provideGetFormsByPostIdErrorCases() {
         return Stream.of(
                 Arguments.of("Publicación inexistente devuelve NOT_FOUND", NON_EXISTENT_POST_ID, HttpStatus.NOT_FOUND)
@@ -106,8 +124,8 @@ public class MockAdoptionFormDataUtils {
 
     public static Stream<Arguments> provideGetFormsByUserFilterCases() {
         return Stream.of(
-                Arguments.of("Filtro OWNER retorna formularios completados por el usuario", "OWNER", 1),
-                Arguments.of("Filtro REVIEWER retorna formularios a revisar de sus publicaciones", "REVIEWER", 0)
+                Arguments.of("Filtro OWNER retorna formularios completados por el usuario", "OWNER", 1, 1, 0),
+                Arguments.of("Filtro REVIEWER retorna formularios a revisar de sus publicaciones", "REVIEWER", 0, 0, 0)
         );
     }
 
