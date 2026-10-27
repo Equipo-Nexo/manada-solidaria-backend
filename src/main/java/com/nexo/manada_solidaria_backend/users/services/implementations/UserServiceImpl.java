@@ -3,6 +3,7 @@ package com.nexo.manada_solidaria_backend.users.services.implementations;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormsWithCountersResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormStatusFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AdoptionFormService;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
 import com.nexo.manada_solidaria_backend.auth.controllers.requests.CreateUserRequest;
@@ -167,8 +168,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public AdoptionFormsWithCountersResponse getFormsByUser(FormFilter filter, User authenticatedUser) {
-        return adoptionFormService.getFormsByUser(authenticatedUser.getId(), filter);
+    public AdoptionFormsWithCountersResponse getFormsByUser(FormFilter filter, FormStatusFilter status, User authenticatedUser) {
+        return adoptionFormService.getFormsByUser(authenticatedUser.getId(), filter, status);
     }
 
     private static boolean requireAllPosts(String type) {

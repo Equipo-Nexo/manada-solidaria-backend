@@ -4,6 +4,7 @@ import com.nexo.manada_solidaria_backend.notifications.components.notifiers.Noti
 import com.nexo.manada_solidaria_backend.notifications.components.recipients.NotificationRecipientFactory;
 import com.nexo.manada_solidaria_backend.notifications.components.recipients.data.NotificationContext;
 import com.nexo.manada_solidaria_backend.notifications.models.data.Notification;
+import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationPayload;
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
 import com.nexo.manada_solidaria_backend.notifications.models.repositories.NotificationRepository;
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationService;
@@ -30,7 +31,6 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationRecipientFactory notificationRecipientFactory;
     private final List<NotificationResolver> notificationResolvers;
 
-
     @Override
     @Async("notificationExecutor")
     public void notify(NotificationType type, Map<String, Object> params) {
@@ -49,7 +49,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .findByType(type)
                 .orElseThrow(() -> new ResponseStatusException(INTERNAL_SERVER_ERROR, "Notification not found for type: " + type));
 
-        this.replaceParams(notification, params);
+        NotificationPayload notificationPayload = this.buildNotificationPayload(notification, params);
 
         Set<User> recipients = notificationRecipientFactory
                 .resolve(type)
@@ -62,12 +62,25 @@ public class NotificationServiceImpl implements NotificationService {
 
         senders.forEach(sender ->
                 recipients.forEach(user ->
-                        sender.notify(user, notification)
+                        sender.notify(user, notificationPayload, notification.getType())
                 )
         );
     }
 
-    private void replaceParams(Notification notification, Map<String, Object> params) {
+    private NotificationPayload buildNotificationPayload(Notification notification, Map<String, Object> params) {
+        return replaceParams(
+                new NotificationPayload(
+                        notification.getTitle(),
+                        notification.getMessage(),
+                        notification.getIcon(),
+                        notification.getActions()
+                ),
+                params
+        );
+    }
+
+    private NotificationPayload replaceParams(NotificationPayload notification, Map<String, Object> params) {
+        notification.getActions().forEach(action -> action.replaceParams(params));
         params.forEach((key, value) -> {
             String placeholder = "{" + key + "}";
 
@@ -78,10 +91,8 @@ public class NotificationServiceImpl implements NotificationService {
             notification.setMessage(
                     notification.getMessage().replace(placeholder, value.toString())
             );
-
-            notification.setRedirectTo(
-                    notification.getRedirectTo().replace(placeholder, value.toString())
-            );
         });
+
+        return notification;
     }
 }
