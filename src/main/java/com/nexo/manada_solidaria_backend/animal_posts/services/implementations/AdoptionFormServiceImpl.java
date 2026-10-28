@@ -3,14 +3,16 @@ package com.nexo.manada_solidaria_backend.animal_posts.services.implementations;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAdoptionFormRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.*;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormStatusFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionForm;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionFormDetail;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.QuestionCategory;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.QuestionForm;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AdoptionFormRepository;
-import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
-import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.QuestionFormRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AdoptionFormService;
+import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
+import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.QuestionService;
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
@@ -29,13 +31,13 @@ import java.util.UUID;
 public class AdoptionFormServiceImpl implements AdoptionFormService {
 
     private final AdoptionFormRepository adoptionFormRepository;
-    private final AnimalPostRepository animalPostRepository;
-    private final QuestionFormRepository questionFormRepository;
+    private final AnimalPostService animalPostService;
+    private final QuestionService questionService;
 
     @Override
     @Transactional
     public AdoptionFormResponse createForm(CreateAdoptionFormRequest request, User applicant) {
-        AdoptionPost post = getAdoptionPostOrThrow(request.adoptionPostId());
+        AdoptionPost post = animalPostService.getAdoptionPostOrThrow(request.adoptionPostId());
 
         validateNotOwner(post, applicant);
         validateNotAlreadyApplied(post, applicant);
@@ -52,7 +54,7 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
     @Override
     @Transactional(readOnly = true)
     public List<AdoptionFormResponse> getFormsByPostId(UUID animalPostId) {
-        AdoptionPost post = getAdoptionPostOrThrow(animalPostId);
+        AdoptionPost post = animalPostService.getAdoptionPostOrThrow(animalPostId);
 
         List<AdoptionForm> forms = adoptionFormRepository.findAllByAdoptionPostId(post.getId());
 
@@ -61,14 +63,15 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
 
     @Override
     @Transactional(readOnly = true)
-    public AdoptionFormsWithCountersResponse getFormsByUser(UUID userId, FormFilter filter) {
+    public AdoptionFormsWithCountersResponse getFormsByUser(UUID userId, FormFilter filter, FormStatusFilter status) {
         validateFilter(filter);
 
-        List<AdoptionForm> forms = fetchFormsByFilter(userId, filter);
+        List<AdoptionForm> allRoleForms = fetchFormsByFilter(userId, filter);
+        List<AdoptionForm> filteredForms = filterByStatus(allRoleForms, status);
 
         return AdoptionFormsWithCountersResponse.builder()
-                .counters(buildCounters(forms))
-                .forms(mapToFormItemResponses(forms))
+                .counters(buildCounters(allRoleForms))
+                .forms(mapToFormItemResponses(filteredForms))
                 .build();
     }
 
@@ -79,7 +82,23 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
 
         validateCanAccessForm(form, authenticatedUser);
 
-        return AdoptionFormDetailResponse.from(form);
+        List<QuestionCategory> allCategories = questionService.getAllCategoriesWithActiveQuestions();
+
+        return AdoptionFormDetailResponse.from(form, allCategories);
+    }
+
+    @Override
+    @Transactional
+    public void markAsRead(UUID formId, User reviewer) {
+        AdoptionForm form = getAdoptionFormOrThrow(formId);
+
+        validateIsReviewer(form, reviewer);
+
+        if (!form.isRead()) {
+            form.setRead(true);
+            adoptionFormRepository.save(form);
+            log.info("Adoption form marked as read: id={} by reviewer={}", formId, reviewer.getId());
+        }
     }
 
     private void validateNotOwner(AdoptionPost post, User applicant) {
@@ -102,16 +121,6 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
         request.answers().forEach(aReq -> form.addAnswer(buildFormDetail(aReq, form)));
 
         return form;
-    }
-
-    private AdoptionPost getAdoptionPostOrThrow(UUID adoptionPostId) {
-        return animalPostRepository.findById(adoptionPostId)
-                .filter(post -> post instanceof AdoptionPost)
-                .map(post -> (AdoptionPost) post)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "La publicación de adopción no fue encontrada"
-                ));
     }
 
     private void validateNotAlreadyApplied(AdoptionPost post, User applicant) {
@@ -142,18 +151,27 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
         };
     }
 
-    private AdoptionFormDetail buildFormDetail(CreateAdoptionFormRequest.AnswerFormRequest aReq, AdoptionForm form) {
-        QuestionForm questionForm = questionFormRepository.findById(aReq.questionId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Pregunta no encontrada: " + aReq.questionId()
-                ));
+    private List<AdoptionForm> filterByStatus(List<AdoptionForm> forms, FormStatusFilter status) {
+        if (status == null || status == FormStatusFilter.ALL) {
+            return forms;
+        }
 
+        return forms.stream()
+                .filter(form -> switch (status) {
+                    case PENDING -> !form.isRead();
+                    case REVIEWED -> form.isRead();
+                    case ALL -> true;
+                })
+                .toList();
+    }
+
+    private AdoptionFormDetail buildFormDetail(CreateAdoptionFormRequest.AnswerFormRequest aReq, AdoptionForm form) {
+        QuestionForm questionForm = questionService.getQuestionByIdOrThrow(aReq.questionId());
         return new AdoptionFormDetail(aReq.answer(), form, questionForm);
     }
 
     private AdoptionForm getAdoptionFormOrThrow(UUID adoptionFormId) {
-        return adoptionFormRepository.findById(adoptionFormId)
+        return adoptionFormRepository.findByIdWithDetailsOrdered(adoptionFormId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "El formulario de adopción no fue encontrado"
@@ -197,5 +215,16 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
         return forms.stream()
                 .map(AdoptionFormItemResponse::from)
                 .toList();
+    }
+
+    private void validateIsReviewer(AdoptionForm form, User reviewer) {
+        boolean isPostOwner = form.getAdoptionPost().getOwner().getId().equals(reviewer.getId());
+
+        if (!isPostOwner) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "No tienes permisos para revisar este formulario de adopción"
+            );
+        }
     }
 }

@@ -3,6 +3,8 @@ package com.nexo.manada_solidaria_backend.notifications.components.notifiers.imp
 import com.nexo.manada_solidaria_backend.notifications.clients.WebPushClient;
 import com.nexo.manada_solidaria_backend.notifications.components.notifiers.NotificationResolver;
 import com.nexo.manada_solidaria_backend.notifications.models.data.*;
+import com.nexo.manada_solidaria_backend.notifications.models.data.actions.base.NotificationAction;
+import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
 import com.nexo.manada_solidaria_backend.notifications.models.repositories.PushSuscriptionRepository;
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationDeliveryService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -10,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpResponse;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
 
 @Slf4j
@@ -25,17 +28,17 @@ public class PushNotifier extends NotificationResolver {
     }
 
     @Override
-    public void notify(User user, Notification notification) {
+    public void notify(User user, NotificationPayload notification, NotificationType type) {
         log.info("Sending notification to user {}", user.getId());
         List<PushSubscription> subscriptions = pushSuscriptionRepository.findAllByUser(user);
         subscriptions.forEach(subscription -> {
-            NotificationDelivery delivery = createPendingNotificationDelivery(user, notification);
+            NotificationDelivery delivery = createPendingNotificationDelivery(user, notification, type);
             try {
                 send(subscription, new PushNotification(
                         notification.getTitle(),
                         notification.getMessage(),
                         notification.getIcon(),
-                        notification.getRedirectTo()
+                        notification.getActions()
                 ));
                 markNotificationAsSent(delivery);
             } catch (Exception e) {

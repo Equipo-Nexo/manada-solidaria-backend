@@ -3,4 +3,7 @@ info:
   type: folder
   seq: 4
 
-auth: inherit
+request:
+  auth:
+    type: bearer
+    token: "{{access_token}}"

@@ -308,6 +308,33 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath(jsonPathExpression, expected));
     }
 
+    @DisplayName("Los posts de animales del usuario traen la cantidad de likes y si le dio like quien hace la request")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideUserPostReactionCases")
+    @Sql(
+            scripts = "/sql/users/create-animal-posts.sql",
+            statements = "INSERT INTO reaction (id, created_at, type, owner_id, post_id) VALUES ("
+                    + "'eb4d8a41-7134-4d1a-a428-275a51c97711', CURRENT_TIMESTAMP, 0, "
+                    + "'22222222-2222-2222-2222-222222222223', '77777777-7777-7777-7777-777777777777')",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    void userPosts_haveReactionData(
+            String testName,
+            String viewerUsername,
+            String path,
+            String jsonPathExpression,
+            Matcher<?> expected
+    ) throws Exception {
+        String loginBody = mockMvc.perform(
+                post("/auth/login").header("Authorization", getCredentials(viewerUsername, "admin"))
+        ).andReturn().getResponse().getContentAsString();
+        String viewerToken = mapper.readTree(loginBody).get("accessToken").asText();
+
+        mockMvc.perform(get(path).header("Authorization", "Bearer " + viewerToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(jsonPathExpression, expected));
+    }
+
     @DisplayName("GET /users/{userId} trae en cada post todos los datos de la home, con los nombres de siempre")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource(MOCK_DATA + "provideHomeCardCases")

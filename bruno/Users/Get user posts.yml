@@ -59,7 +59,8 @@ docs: |-
 
   Y ademas los datos de la card de la home, con los mismos nombres que en la home:
   - Todos: `type`, `location`, `phoneNumber`, `ownerId`, `createdAt`
-  - Animal: `animal`, `owner`, `reward`
+  - Animal: `animal`, `owner`, `reward`, `reactionsCount` (cantidad de likes) y `reactedByMe`
+    (`true` si el usuario del token le dio like; en `GET /users/{userId}` es quien mira el perfil, no el dueño)
   - Campaña y colecta: `accountAlias`, `amountToBeCollected`, `amountCollected`,
     `campaignEndDate`, `items`, `newsStartDateTime`, `newsEndDateTime`
 
@@ -93,7 +94,9 @@ docs: |-
     "createdAt": "2026-09-30T11:35:25.166562",
     "animal": { "id": "...", "type": "DOG", "size": "SMALL", "gender": "MALE", "color": null, "age": "PUPPY" },
     "owner": { "username": "admin", "roles": ["COMMUNITY"], "profileImageURL": null },
-    "reward": null
+    "reward": null,
+    "reactionsCount": 3,
+    "reactedByMe": true
   }
 
   Ejemplo de colecta:

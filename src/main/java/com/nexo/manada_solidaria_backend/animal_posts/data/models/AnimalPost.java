@@ -12,6 +12,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Formula;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -57,6 +58,8 @@ public abstract class AnimalPost<STATUS extends Enum<STATUS>, HISTORY extends St
             orphanRemoval = true
     )
     private List<Reaction> reactions = new ArrayList<>();
+    @Formula("(SELECT COUNT(*) FROM reaction r WHERE r.post_id = id)")
+    private long reactionsCount;
     @Id
     private UUID id = UUID.randomUUID();
 

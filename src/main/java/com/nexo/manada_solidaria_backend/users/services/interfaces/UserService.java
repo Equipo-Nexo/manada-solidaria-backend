@@ -3,6 +3,7 @@ package com.nexo.manada_solidaria_backend.users.services.interfaces;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormsWithCountersResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormStatusFilter;
 import com.nexo.manada_solidaria_backend.auth.controllers.requests.CreateUserRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
@@ -31,13 +32,13 @@ public interface UserService extends UserDetailsService {
 
     void updatePassword(User user, String rawPassword);
 
-    UserDetailResponse getUser(UUID userId, String type);
+    UserDetailResponse getUser(UUID userId, String type, User authenticatedUser);
 
     UserProfileResponse getUserProfile(UUID userId);
 
     List<UserResponse> getUsers(String username, Rol role);
 
-    List<UserPostResponse> getUserPosts(User user, String type);
+    List<UserPostResponse> getUserPosts(User user, String type, User authenticatedUser);
 
     ProfileResponse updateProfile(UpdateProfileRequest request, User authenticatedUser);
 
@@ -51,5 +52,5 @@ public interface UserService extends UserDetailsService {
 
     List<User> getUserBySpecifications(Specification<User> userSpecification);
 
-    AdoptionFormsWithCountersResponse getFormsByUser(FormFilter filter, User authenticatedUser);
+    AdoptionFormsWithCountersResponse getFormsByUser(FormFilter filter, FormStatusFilter status, User authenticatedUser);
 }

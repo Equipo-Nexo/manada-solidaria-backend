@@ -547,10 +547,10 @@ public class MockAnimalPostDataUtils {
 
     private static Stream<Arguments> provideFilterCases() {
         return Stream.of(
-                Arguments.of("Sin filtros devuelve todos los posts", null, null, 5),
+                Arguments.of("Sin filtros devuelve todos los posts menos los de estado final", null, null, 4),
                 Arguments.of("type=LOST devuelve solo los perdidos con dueno", "LOST", null, 2),
                 Arguments.of("type=IN_STREET devuelve solo los que estan en la calle", "IN_STREET", null, 1),
-                Arguments.of("type=ADOPTION devuelve solo las adopciones", "ADOPTION", null, 2),
+                Arguments.of("type=ADOPTION devuelve solo las adopciones que no estan adoptadas", "ADOPTION", null, 1),
                 Arguments.of("status=CREATED devuelve solo los posts en ese estado", null, "CREATED", 1),
                 Arguments.of("status=SEARCHING devuelve los perdidos con dueno en busqueda", null, "SEARCHING", 1),
                 Arguments.of("status=TO_RESCUE devuelve los de la calle", null, "TO_RESCUE", 1),
@@ -562,6 +562,17 @@ public class MockAnimalPostDataUtils {
                 Arguments.of("type=LOST y status=ADOPTED no devuelve resultados", "LOST", "ADOPTED", 0),
                 Arguments.of("type=LOST y status=SEARCHING excluye a los de la calle", "LOST", "SEARCHING", 1),
                 Arguments.of("type=IN_STREET y status=TO_RESCUE devuelve al de la calle", "IN_STREET", "TO_RESCUE", 1)
+        );
+    }
+
+    private static Stream<Arguments> provideFinalStatusExclusionCases() {
+        return Stream.of(
+                Arguments.of("Sin status no trae a un perdido encontrado", AnimalPostFilter.LOST, "FOUND", 0),
+                Arguments.of("Sin status no trae a uno de la calle rescatado", AnimalPostFilter.IN_STREET, "RESCUED", 0),
+                Arguments.of("Sin status no trae a una adopcion adoptada", AnimalPostFilter.ADOPTION, "ADOPTED", 0),
+                Arguments.of("Sin status trae a un perdido en busqueda", AnimalPostFilter.LOST, "SEARCHING", 1),
+                Arguments.of("Sin status trae a uno de la calle para rescatar", AnimalPostFilter.IN_STREET, "TO_RESCUE", 1),
+                Arguments.of("Sin status trae a una adopcion en busqueda", AnimalPostFilter.ADOPTION, "SEARCHING_ADOPT", 1)
         );
     }
 
@@ -660,5 +671,50 @@ public class MockAnimalPostDataUtils {
                   "location": { "name": "Esquina", "address": "Corrientes", "number": 500, "latitude": -34.6, "longitude": -58.4 }
                 }
                 """.formatted(color == null ? "null" : "\"" + color + "\"");
+    }
+
+    private static Stream<Arguments> provideReactionActionCases() {
+        return Stream.of(
+                Arguments.of("like crea la reaccion del usuario del token", List.of("like"), 4, true),
+                Arguments.of("like dos veces no duplica la reaccion", List.of("like", "like"), 4, true),
+                Arguments.of("dislike borra solo la reaccion del usuario del token", List.of("like", "dislike"), 3, false),
+                Arguments.of("dislike sin like previo no falla ni borra la de otro", List.of("dislike"), 3, false)
+        );
+    }
+
+    private static Stream<Arguments> provideReactionFieldCases() {
+        String list = "/animal-posts";
+        String likedByBoth = "55555555-5555-5555-5555-555555555555";
+        String likedByOther = "99999999-9999-9999-9999-999999999999";
+        String withoutLikes = "77777777-7777-7777-7777-777777777777";
+        return Stream.of(
+                Arguments.of("La lista cuenta los likes de cada publicacion", list,
+                        "$.content[?(@.id == '" + likedByBoth + "')].reactionsCount", contains(2)),
+                Arguments.of("La lista cuenta 0 en una publicacion sin likes", list,
+                        "$.content[?(@.id == '" + withoutLikes + "')].reactionsCount", contains(0)),
+                Arguments.of("La lista marca las que likeo el usuario", list,
+                        "$.content[?(@.id == '" + likedByBoth + "')].reactedByMe", contains(true)),
+                Arguments.of("La lista no marca las que likeo otro", list,
+                        "$.content[?(@.id == '" + likedByOther + "')].reactedByMe", contains(false)),
+                Arguments.of("El detalle cuenta los likes", list + "/" + likedByBoth, "$.reactionsCount", is(2)),
+                Arguments.of("El detalle marca si el usuario le dio like", list + "/" + likedByBoth, "$.reactedByMe", is(true)),
+                Arguments.of("El detalle no marca el like de otro", list + "/" + likedByOther, "$.reactedByMe", is(false))
+        );
+    }
+
+    private static Stream<Arguments> provideReactionNotFoundCases() {
+        return Stream.of(
+                Arguments.of("like de una publicacion inexistente", "like"),
+                Arguments.of("dislike de una publicacion inexistente", "dislike")
+        );
+    }
+
+    private static Stream<Arguments> provideReactionUnauthorizedCases() {
+        return Stream.of(
+                Arguments.of("like sin token", "like", null),
+                Arguments.of("like con token invalido", "like", INVALID_ACCESS_TOKEN),
+                Arguments.of("dislike sin token", "dislike", null),
+                Arguments.of("dislike con token invalido", "dislike", INVALID_ACCESS_TOKEN)
+        );
     }
 }

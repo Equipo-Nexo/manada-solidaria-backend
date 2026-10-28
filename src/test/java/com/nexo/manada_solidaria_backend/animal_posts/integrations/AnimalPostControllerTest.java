@@ -5,15 +5,13 @@ import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.Trans
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.*;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.*;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
+import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.ReactionRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.utils.MockAnimalPostDataUtils;
 import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthenticatedIntegrationTest;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.notifications.clients.WebPushClient;
-import com.nexo.manada_solidaria_backend.notifications.models.data.Notification;
-import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationChannel;
-import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationDelivery;
-import com.nexo.manada_solidaria_backend.notifications.models.data.PushSubscription;
+import com.nexo.manada_solidaria_backend.notifications.models.data.*;
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationStatus;
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
 import com.nexo.manada_solidaria_backend.notifications.models.repositories.NotificationDeliveryRepository;
@@ -64,6 +62,8 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     @Autowired
     private AnimalPostRepository animalPostRepository;
     @Autowired
+    private ReactionRepository reactionRepository;
+    @Autowired
     private UserRepository userRepository;
     @Autowired
     private NotificationRepository notificationRepository;
@@ -99,8 +99,8 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         String postId = mapper.readTree(response).get("id").asText();
 
         NotificationDelivery delivery = similarLostPetDeliveriesOf("busca-perro").getFirst();
-        assertThat(delivery.getMessage()).isEqualTo("Vieron un animal en Corrientes 500, Esquina. Revisá si puede ser tu mascota perdida.");
-        assertThat(delivery.getRedirectTo()).isEqualTo("/animal/detalle/" + postId);
+        NotificationPayload payload = delivery.getPayload();
+        assertThat(payload.getMessage()).isEqualTo("Vieron un animal en Corrientes 500, Esquina. Revisá si puede ser tu mascota perdida.");
         assertThat(delivery.getStatusHistory().getLast().getStatus()).isEqualTo(NotificationStatus.SENT);
     }
 
@@ -384,6 +384,25 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         mockMvc.perform(request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(expectedCount));
+    }
+
+    @DisplayName("GET /animal-posts sin status excluye las publicaciones en estado final")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideFinalStatusExclusionCases")
+    void withoutStatus_excludesFinalStatuses(
+            String testName,
+            AnimalPostFilter postType,
+            String status,
+            int expectedTotal
+    ) throws Exception {
+        seedPostInStatus(postType, status);
+
+        mockMvc.perform(
+                        get("/animal-posts")
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(expectedTotal));
     }
 
     @Test
@@ -905,9 +924,9 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         String postId = mapper.readTree(response).get("id").asText();
 
         NotificationDelivery delivery = transitDeliveriesOf("transito").getFirst();
-        assertThat(delivery.getTitle()).isEqualTo("🏠 Un animal necesita hogar de tránsito");
-        assertThat(delivery.getMessage()).isEqualTo("Hay un animal buscando tránsito. ¿Podés recibirlo?");
-        assertThat(delivery.getRedirectTo()).isEqualTo("/animal/detalle/" + postId);
+        NotificationPayload payload = delivery.getPayload();
+        assertThat(payload.getTitle()).isEqualTo("🏠 Un animal necesita hogar de tránsito");
+        assertThat(payload.getMessage()).isEqualTo("Hay un animal buscando tránsito. ¿Podés recibirlo?");
         assertThat(delivery.getStatusHistory().getLast().getStatus()).isEqualTo(NotificationStatus.SENT);
     }
 
@@ -916,7 +935,6 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 "🏠 Un animal necesita hogar de tránsito",
                 "Hay un animal buscando tránsito. ¿Podés recibirlo?",
                 null,
-                "/animal/detalle/{postId}",
                 NotificationType.IN_ADOPTION_AND_TRANSIT_PET
         ));
         saveUserWithRole("transito", Rol.TRANSITIONAL_HOME);
@@ -932,7 +950,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         User recipient = userRepository.findByUsername(username).orElseThrow();
         return notificationDeliveryRepository.findAllByRecipientAndChannelOrderByCreatedAtDesc(recipient, NotificationChannel.IN_APP)
                 .stream()
-                .filter(delivery -> delivery.getNotification().getType() == NotificationType.IN_ADOPTION_AND_TRANSIT_PET)
+                .filter(delivery -> delivery.getType() == NotificationType.IN_ADOPTION_AND_TRANSIT_PET)
                 .toList();
     }
 
@@ -1023,6 +1041,88 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         mockMvc.perform(request).andExpect(status().isUnauthorized());
     }
 
+    @DisplayName("POST /animal-posts/{id}/like y /dislike crean o borran la reaccion del usuario del token sin duplicarla")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideReactionActionCases")
+    @Sql({"/sql/animal_posts/get-animal-post.sql", "/sql/animal_posts/reactions.sql"})
+    void reactionActions_persistAuthenticatedUserReaction(
+            String testName,
+            List<String> actions,
+            int expectedReactions,
+            boolean expectedReactedByAdmin
+    ) throws Exception {
+        UUID postId = UUID.fromString("99999999-9999-9999-9999-999999999999");
+
+        for (String action : actions) {
+            mockMvc.perform(
+                            post("/animal-posts/" + postId + "/" + action)
+                                    .header("Authorization", "Bearer " + accessToken)
+                    )
+                    .andExpect(status().isNoContent());
+        }
+
+        User admin = userRepository.findByUsername("admin").orElseThrow();
+        AnimalPost<?, ?> post = animalPostRepository.findById(postId).orElseThrow();
+        assertThat(reactionRepository.count()).isEqualTo(expectedReactions);
+        assertThat(reactionRepository.existsByPostAndOwner(post, admin)).isEqualTo(expectedReactedByAdmin);
+    }
+
+    @Test
+    @DisplayName("PATCH /animal-posts/{id}/status devuelve si el usuario del token le dio like")
+    void transitionStatus_returnsReactedByMe() throws Exception {
+        UUID postId = createOwnedPostReturningId();
+        mockMvc.perform(
+                        post("/animal-posts/" + postId + "/like")
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(
+                        patch("/animal-posts/" + postId + "/status")
+                                .header("Authorization", "Bearer " + accessToken)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(toJson(new TransitionStatusRequest("FOUND")))
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.reactedByMe").value(true));
+    }
+
+    @DisplayName("GET /animal-posts y /animal-posts/{id} devuelven la cantidad de likes y si el usuario del token le dio like")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideReactionFieldCases")
+    @Sql({"/sql/animal_posts/get-animal-post.sql", "/sql/animal_posts/reactions.sql"})
+    void reactionFields(String testName, String url, String jsonPathExpression, Matcher<?> expected) throws Exception {
+        mockMvc.perform(
+                        get(url).header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(jsonPathExpression, expected));
+    }
+
+    @DisplayName("POST /animal-posts/{id}/like y /dislike de una publicacion inexistente devuelven 404")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideReactionNotFoundCases")
+    void reactionActions_nonExistentPost_returnsNotFound(String testName, String action) throws Exception {
+        mockMvc.perform(
+                        post("/animal-posts/" + UUID.randomUUID() + "/" + action)
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errors", hasItem(containsString("no existe"))));
+    }
+
+    @DisplayName("POST /animal-posts/{id}/like y /dislike sin autenticacion valida devuelven 401")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideReactionUnauthorizedCases")
+    void reactionActions_unauthorized(String testName, String action, String token) throws Exception {
+        MockHttpServletRequestBuilder request = post("/animal-posts/" + UUID.randomUUID() + "/" + action);
+        if (token != null) {
+            request = request.header("Authorization", "Bearer " + token);
+        }
+
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
+    }
+
     private ResultActions getHappyCases() throws Exception {
         return mockMvc.perform(
                 get("/animal-posts/happy-cases")
@@ -1100,7 +1200,6 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 "🚨 Vieron un animal en la calle",
                 "Vieron un animal en {location}. Revisá si puede ser tu mascota perdida.",
                 null,
-                "/animal/detalle/{postId}",
                 NotificationType.SIMILAR_ANIMAL_RECENTLY_LOST
         ));
         saveLostPostOf(subscribedUser("busca-perro"), AnimalType.DOG, StatusLostPost.SEARCHING, true);
@@ -1160,7 +1259,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         User recipient = userRepository.findByUsername(username).orElseThrow();
         return notificationDeliveryRepository.findAllByRecipientAndChannelOrderByCreatedAtDesc(recipient, channel)
                 .stream()
-                .filter(delivery -> delivery.getNotification().getType() == NotificationType.SIMILAR_ANIMAL_RECENTLY_LOST)
+                .filter(delivery -> delivery.getType() == NotificationType.SIMILAR_ANIMAL_RECENTLY_LOST)
                 .toList();
     }
 

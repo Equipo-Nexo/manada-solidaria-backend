@@ -3,6 +3,7 @@ package com.nexo.manada_solidaria_backend.users.controllers.implementations;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormsWithCountersResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormStatusFilter;
 import com.nexo.manada_solidaria_backend.notifications.controllers.responses.UserNotificationsResponse;
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationDeliveryService;
 import com.nexo.manada_solidaria_backend.users.controllers.interfaces.UserController;
@@ -28,8 +29,8 @@ public class UserControllerImpl implements UserController {
     private final NotificationDeliveryService notificationDeliveryService;
 
     @Override
-    public UserDetailResponse getUser(UUID userId, String type) {
-        return userService.getUser(userId, type);
+    public UserDetailResponse getUser(UUID userId, String type, User authenticatedUser) {
+        return userService.getUser(userId, type, authenticatedUser);
     }
 
     @Override
@@ -44,7 +45,7 @@ public class UserControllerImpl implements UserController {
 
     @Override
     public List<UserPostResponse> getUserPosts(User user, String type) {
-        return userService.getUserPosts(user, type);
+        return userService.getUserPosts(user, type, user);
     }
 
     @Override
@@ -67,7 +68,8 @@ public class UserControllerImpl implements UserController {
         return userService.updateRoles(request, authenticatedUser);
     }
 
-    public AdoptionFormsWithCountersResponse getFormsByUser(FormFilter filter, User authenticatedUser) {
-        return userService.getFormsByUser(filter, authenticatedUser);
+    @Override
+    public AdoptionFormsWithCountersResponse getFormsByUser(FormFilter filter, FormStatusFilter status, User authenticatedUser) {
+        return userService.getFormsByUser(filter, status, authenticatedUser);
     }
 }

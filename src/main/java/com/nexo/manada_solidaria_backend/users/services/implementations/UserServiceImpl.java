@@ -3,6 +3,7 @@ package com.nexo.manada_solidaria_backend.users.services.implementations;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormsWithCountersResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormStatusFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AdoptionFormService;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
 import com.nexo.manada_solidaria_backend.auth.controllers.requests.CreateUserRequest;
@@ -91,9 +92,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserDetailResponse getUser(UUID userId, String type) {
+    public UserDetailResponse getUser(UUID userId, String type, User authenticatedUser) {
         User user = getUserById(userId);
-        return UserDetailResponse.from(user, getUserPosts(user, type));
+        return UserDetailResponse.from(user, getUserPosts(user, type, authenticatedUser));
     }
 
     @Override
@@ -121,8 +122,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserPostResponse> getUserPosts(User user, String type) {
-        return (requireAllPosts(type) ? getAllUserPosts(user) : getUserPostsByType(user, type))
+    public List<UserPostResponse> getUserPosts(User user, String type, User authenticatedUser) {
+        return (requireAllPosts(type) ? getAllUserPosts(user, authenticatedUser) : getUserPostsByType(user, type, authenticatedUser))
                 .toList();
     }
 
@@ -167,31 +168,31 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public AdoptionFormsWithCountersResponse getFormsByUser(FormFilter filter, User authenticatedUser) {
-        return adoptionFormService.getFormsByUser(authenticatedUser.getId(), filter);
+    public AdoptionFormsWithCountersResponse getFormsByUser(FormFilter filter, FormStatusFilter status, User authenticatedUser) {
+        return adoptionFormService.getFormsByUser(authenticatedUser.getId(), filter, status);
     }
 
     private static boolean requireAllPosts(String type) {
         return type == null || type.isBlank();
     }
 
-    private Stream<UserPostResponse> getAllUserPosts(User user) {
-        return Stream.of(getUserAnimalPosts(user), getUserCampaigns(user), getUserFundraisingCampaigns(user))
+    private Stream<UserPostResponse> getAllUserPosts(User user, User authenticatedUser) {
+        return Stream.of(getUserAnimalPosts(user, authenticatedUser), getUserCampaigns(user), getUserFundraisingCampaigns(user))
                 .flatMap(Function.identity())
                 .sorted(Comparator.comparing(UserPostResponse::getCreatedAt).reversed());
     }
 
-    private Stream<UserPostResponse> getUserPostsByType(User user, String type) {
+    private Stream<UserPostResponse> getUserPostsByType(User user, String type, User authenticatedUser) {
         return switch (type) {
             case UserPostResponse.CAMPAIGN -> getUserCampaigns(user);
-            case UserPostResponse.ANIMAL -> getUserAnimalPosts(user);
+            case UserPostResponse.ANIMAL -> getUserAnimalPosts(user, authenticatedUser);
             case UserPostResponse.FUNDRAISING -> getUserFundraisingCampaigns(user);
             default -> throw new ResponseStatusException(BAD_REQUEST, "requested type is not supported");
         };
     }
 
-    private Stream<UserPostResponse> getUserAnimalPosts(User user) {
-        return animalPostService.getUserAnimalPosts(user)
+    private Stream<UserPostResponse> getUserAnimalPosts(User user, User authenticatedUser) {
+        return animalPostService.getUserAnimalPosts(user, authenticatedUser)
                 .stream()
                 .map(AnimalUserPostResponse::new);
     }
