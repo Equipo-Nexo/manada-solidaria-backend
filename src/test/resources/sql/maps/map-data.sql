@@ -6,7 +6,8 @@ VALUES ('ee000000-0000-0000-0000-0000000000a1', 'negro', 'ADULT', 'MALE', 'MEDIU
        ('ee000000-0000-0000-0000-0000000000a3', 'negro', 'ADULT', 'MALE', 'MEDIUM', 'DOG'),
        ('ee000000-0000-0000-0000-0000000000a4', 'negro', 'ADULT', 'MALE', 'MEDIUM', 'DOG'),
        ('ee000000-0000-0000-0000-0000000000a5', 'negro', 'ADULT', 'MALE', 'MEDIUM', 'DOG'),
-       ('ee000000-0000-0000-0000-0000000000a6', 'negro', 'ADULT', 'MALE', 'MEDIUM', 'DOG');
+       ('ee000000-0000-0000-0000-0000000000a6', 'negro', 'ADULT', 'MALE', 'MEDIUM', 'DOG'),
+       ('ee000000-0000-0000-0000-0000000000a7', 'negro', 'ADULT', 'MALE', 'MEDIUM', 'DOG');
 
 -- Ubicaciones: completa, solo nombre, sin datos
 INSERT INTO location (id, name, address, number, latitude, longitude)
@@ -35,6 +36,18 @@ VALUES ('ee000000-0000-0000-0000-0000000000d2', 'ee000000-0000-0000-0000-0000000
         TIMESTAMP '2026-09-10 09:00:00', TIMESTAMP '2026-09-15 09:00:00'),
        ('ee000000-0000-0000-0000-0000000000d3', 'ee000000-0000-0000-0000-0000000000c2', 'FOUND',
         TIMESTAMP '2026-09-15 09:00:00', NULL);
+
+-- LOST expirado por inactividad: NO va al mapa
+INSERT INTO animal_post (id, name, description, image_url, animal_id, location_id, owner_id, created_at)
+VALUES ('ee000000-0000-0000-0000-0000000000c7', 'Bobby', 'Nadie lo actualizo', '/fotoBobby',
+        'ee000000-0000-0000-0000-0000000000a7', 'ee000000-0000-0000-0000-0000000000b1',
+        '22222222-2222-2222-2222-222222222222', TIMESTAMP '2026-05-01 09:00:00');
+INSERT INTO lost_post (id, has_owner, reward) VALUES ('ee000000-0000-0000-0000-0000000000c7', true, NULL);
+INSERT INTO lost_post_status_history (id, lost_post_id, status, created_at, finished_at)
+VALUES ('ee000000-0000-0000-0000-0000000000d8', 'ee000000-0000-0000-0000-0000000000c7', 'SEARCHING',
+        TIMESTAMP '2026-05-01 09:00:00', TIMESTAMP '2026-08-29 00:00:00'),
+       ('ee000000-0000-0000-0000-0000000000d9', 'ee000000-0000-0000-0000-0000000000c7', 'EXPIRATED',
+        TIMESTAMP '2026-08-29 00:00:00', NULL);
 
 -- IN_STREET activo, publicado ayer
 INSERT INTO animal_post (id, name, description, image_url, animal_id, location_id, owner_id, created_at)

@@ -30,6 +30,10 @@ http:
       value: ADOPTED
       type: query
       disabled: true
+    - name: status
+      value: EXPIRATED
+      type: query
+      disabled: true
   auth: inherit
 
 runtime:
@@ -60,6 +64,10 @@ docs: |-
   Sin `status` NO vienen las publicaciones en estado final (`FOUND`, `RESCUED`, `ADOPTED`):
   esas se listan en `GET /animal-posts/happy-cases`. Para traerlas igual, pedir el estado
   explicito (ej.: prender `status=ADOPTED`).
+
+  Tampoco vienen las `EXPIRATED` (MS-270): un cron diario expira las publicaciones abiertas
+  que llevan 120 dias sin editarse. Se piden con `status=EXPIRATED` y siguen apareciendo en
+  `GET /animal-posts/{id}` y en las publicaciones del usuario.
 
   Guarda el id de la primera publicacion en `animal_post_id` para usarlo en Like / Dislike.
 
