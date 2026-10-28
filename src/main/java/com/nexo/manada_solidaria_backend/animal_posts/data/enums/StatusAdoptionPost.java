@@ -5,5 +5,5 @@ public enum StatusAdoptionPost {
     SEARCHING_ADOPT_AND_TRANSIT,
     SEARCHING_ADOPT,
     ADOPTED,
-    EXPIRATED
+    EXPIRED
 }

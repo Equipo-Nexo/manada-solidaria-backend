@@ -6,5 +6,5 @@ public enum StatusLostPost {
     TO_RESCUE,
     FOUND,
     RESCUED,
-    EXPIRATED
+    EXPIRED
 }

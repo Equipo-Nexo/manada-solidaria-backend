@@ -115,9 +115,11 @@ public interface AnimalPostRepository extends JpaRepository<AnimalPost, UUID> {
             SELECT p FROM AnimalPost p
             WHERE COALESCE(p.updatedAt, p.createdAt) < :since
             AND NOT EXISTS (SELECT 1 FROM LostPostStatusHistory h
-                            WHERE h.post.id = p.id AND h.finishedAt IS NULL AND h.status IN :excludedLostStatuses)
+                            WHERE h.post.id = p.id AND h.finishedAt IS NULL
+                            AND (h.status IN :excludedLostStatuses OR h.createdAt >= :since))
             AND NOT EXISTS (SELECT 1 FROM AdoptionPostStatusHistory h
-                            WHERE h.post.id = p.id AND h.finishedAt IS NULL AND h.status IN :excludedAdoptionStatuses)
+                            WHERE h.post.id = p.id AND h.finishedAt IS NULL
+                            AND (h.status IN :excludedAdoptionStatuses OR h.createdAt >= :since))
             """)
     List<AnimalPost<?, ?>> findWithoutActivitySince(
             @Param("since") LocalDateTime since,

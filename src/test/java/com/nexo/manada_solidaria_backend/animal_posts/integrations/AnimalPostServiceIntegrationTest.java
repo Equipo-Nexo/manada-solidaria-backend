@@ -15,6 +15,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -44,17 +45,19 @@ class AnimalPostServiceIntegrationTest extends BaseAuthenticatedIntegrationTest 
             String status,
             int createdDaysAgo,
             Integer updatedDaysAgo,
+            int statusDaysAgo,
             boolean expires
     ) {
         AnimalPost<?, ?> post = buildPost(postType, status);
         post.setCreatedAt(LocalDateTime.now().minusDays(createdDaysAgo));
         post.setUpdatedAt(Optional.ofNullable(updatedDaysAgo).map(LocalDateTime.now()::minusDays).orElse(null));
+        ReflectionTestUtils.setField(post.getCurrentStatus(), "createdAt", LocalDateTime.now().minusDays(statusDaysAgo));
         UUID seededStatusId = animalPostRepository.save(post).getCurrentStatus().getId();
 
         animalPostService.expireInactivePosts();
 
         StatusHistory<?> current = animalPostRepository.findById(post.getId()).orElseThrow().getCurrentStatus();
-        assertThat(current.getStatus().name()).isEqualTo(expires ? "EXPIRATED" : status);
+        assertThat(current.getStatus().name()).isEqualTo(expires ? "EXPIRED" : status);
         assertThat(current.getId().equals(seededStatusId)).isEqualTo(!expires);
     }
 
