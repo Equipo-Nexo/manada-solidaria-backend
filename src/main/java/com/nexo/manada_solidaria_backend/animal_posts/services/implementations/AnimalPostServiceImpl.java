@@ -1,12 +1,8 @@
 package com.nexo.manada_solidaria_backend.animal_posts.services.implementations;
 
 import com.nexo.manada_solidaria_backend.animal_posts.components.AnimalPostFactory;
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAnimalPostRequest;
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.GetAnimalPostsRequest;
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.*;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AnimalPostResponse;
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.HappyCaseResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.ReactionType;
@@ -225,7 +221,7 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     }
 
     private static String describe(Location location) {
-        return location.getAddress() + " " + location.getNumber() + ", " + location.getName();
+        return location.getStreet() + " " + location.getHouseNumber() + ", " + location.getCity();
     }
 
     private static boolean isRecentlyResolved(AnimalPost<?, ?> post) {
