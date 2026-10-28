@@ -636,7 +636,9 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
 
         AdoptionForm form = new AdoptionForm("Quiero adoptarlo", new PhoneNumber("353", "4123456"), applicant, post);
         form.addAnswer(new AdoptionFormDetail("Sí, tengo patio", form, q1));
-        adoptionFormRepository.save(form);
+
+        post.addAdoptionForm(form);
+        animalPostRepository.save(post);
 
         assertThat(adoptionFormRepository.findAll()).hasSize(1);
 

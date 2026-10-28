@@ -46,6 +46,11 @@ public class AdoptionPost extends AnimalPost<StatusAdoptionPost, AdoptionPostSta
         startSearching(inTransit);
     }
 
+    public void addAdoptionForm(AdoptionForm form) {
+        this.adoptionForms.add(form);
+        form.setAdoptionPost(this);
+    }
+
     @Override
     public AdoptionPostStatusHistory getCurrentStatus() {
         return StatusHistoryUtils.getCurrentStatus(this.statusHistory);

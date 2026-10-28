@@ -128,10 +128,12 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     }
 
     @Override
+    @Transactional
     public void delete(UUID animalPostId, User authenticatedUser) {
         AnimalPost post = getAnimalPostOrThrow(animalPostId);
 
         animalPostRepository.delete(post);
+        animalPostRepository.flush();
         log.info("Animal post deleted: id={} by={}", animalPostId, authenticatedUser.getId());
     }
 
