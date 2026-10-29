@@ -114,16 +114,13 @@ public interface AnimalPostRepository extends JpaRepository<AnimalPost, UUID> {
     @Query("""
             SELECT p FROM AnimalPost p
             WHERE COALESCE(p.updatedAt, p.createdAt) < :since
-            AND NOT EXISTS (SELECT 1 FROM LostPostStatusHistory h
-                            WHERE h.post.id = p.id AND h.finishedAt IS NULL
-                            AND (h.status IN :excludedLostStatuses OR h.createdAt >= :since))
-            AND NOT EXISTS (SELECT 1 FROM AdoptionPostStatusHistory h
-                            WHERE h.post.id = p.id AND h.finishedAt IS NULL
-                            AND (h.status IN :excludedAdoptionStatuses OR h.createdAt >= :since))
+            AND (EXISTS (SELECT 1 FROM LostPostStatusHistory h
+                         WHERE h.post.id = p.id AND h.finishedAt IS NULL AND cast(h.status as string) IN :expirableStatuses)
+                OR EXISTS (SELECT 1 FROM AdoptionPostStatusHistory h
+                           WHERE h.post.id = p.id AND h.finishedAt IS NULL AND cast(h.status as string) IN :expirableStatuses))
             """)
     List<AnimalPost<?, ?>> findWithoutActivitySince(
             @Param("since") LocalDateTime since,
-            @Param("excludedLostStatuses") Set<StatusLostPost> excludedLostStatuses,
-            @Param("excludedAdoptionStatuses") Set<StatusAdoptionPost> excludedAdoptionStatuses
+            @Param("expirableStatuses") Set<String> expirableStatuses
     );
 }

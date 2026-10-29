@@ -37,10 +37,13 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -49,6 +52,10 @@ public class AnimalPostServiceImpl implements AnimalPostService {
 
     private static final int RECENT_DAYS = 7;
     private static final int INACTIVITY_DAYS = 120;
+    private static final Set<String> EXPIRABLE_STATUSES = Stream.concat(
+            EnumSet.complementOf(EnumSet.copyOf(LostPost.FINAL_STATUSES)).stream(),
+            EnumSet.complementOf(EnumSet.copyOf(AdoptionPost.FINAL_STATUSES)).stream()
+    ).map(Enum::name).collect(Collectors.toSet());
 
     private final AnimalPostRepository animalPostRepository;
     private final ReactionRepository reactionRepository;
@@ -204,8 +211,7 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     public void expireInactivePosts() {
         List<AnimalPost<?, ?>> inactive = animalPostRepository.findWithoutActivitySince(
                 LocalDateTime.now().minusDays(INACTIVITY_DAYS),
-                LostPost.FINAL_STATUSES,
-                AdoptionPost.FINAL_STATUSES
+                EXPIRABLE_STATUSES
         );
 
         if (!inactive.isEmpty()) {

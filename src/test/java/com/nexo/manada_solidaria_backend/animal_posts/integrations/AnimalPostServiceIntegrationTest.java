@@ -12,10 +12,10 @@ import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import com.nexo.manada_solidaria_backend.users.data.repositories.UserRepository;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -45,13 +45,11 @@ class AnimalPostServiceIntegrationTest extends BaseAuthenticatedIntegrationTest 
             String status,
             int createdDaysAgo,
             Integer updatedDaysAgo,
-            int statusDaysAgo,
             boolean expires
     ) {
         AnimalPost<?, ?> post = buildPost(postType, status);
         post.setCreatedAt(LocalDateTime.now().minusDays(createdDaysAgo));
         post.setUpdatedAt(Optional.ofNullable(updatedDaysAgo).map(LocalDateTime.now()::minusDays).orElse(null));
-        ReflectionTestUtils.setField(post.getCurrentStatus(), "createdAt", LocalDateTime.now().minusDays(statusDaysAgo));
         UUID seededStatusId = animalPostRepository.save(post).getCurrentStatus().getId();
 
         animalPostService.expireInactivePosts();
@@ -59,6 +57,21 @@ class AnimalPostServiceIntegrationTest extends BaseAuthenticatedIntegrationTest 
         StatusHistory<?> current = animalPostRepository.findById(post.getId()).orElseThrow().getCurrentStatus();
         assertThat(current.getStatus().name()).isEqualTo(expires ? "EXPIRED" : status);
         assertThat(current.getId().equals(seededStatusId)).isEqualTo(!expires);
+    }
+
+    @Test
+    @DisplayName("El cron no expira una publicacion vieja que cambio de estado hace poco")
+    void expireInactivePosts_transitionCountsAsActivity() {
+        AnimalPost<?, ?> post = buildPost(AnimalPostFilter.ADOPTION, "SEARCHING_ADOPT");
+        post.setCreatedAt(LocalDateTime.now().minusDays(200));
+        post.setUpdatedAt(LocalDateTime.now().minusDays(200));
+        post.transitionTo("SEARCHING_ADOPT_AND_TRANSIT");
+        animalPostRepository.save(post);
+
+        animalPostService.expireInactivePosts();
+
+        StatusHistory<?> current = animalPostRepository.findById(post.getId()).orElseThrow().getCurrentStatus();
+        assertThat(current.getStatus().name()).isEqualTo("SEARCHING_ADOPT_AND_TRANSIT");
     }
 
     private AnimalPost<?, ?> buildPost(AnimalPostFilter postType, String status) {
