@@ -4,8 +4,10 @@ import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.Anima
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.*;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.*;
+import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AdoptionFormRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.ReactionRepository;
+import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.QuestionFormRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.utils.MockAnimalPostDataUtils;
 import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthenticatedIntegrationTest;
@@ -71,6 +73,10 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     private NotificationDeliveryRepository notificationDeliveryRepository;
     @Autowired
     private PushSuscriptionRepository pushSuscriptionRepository;
+    @Autowired
+    private AdoptionFormRepository adoptionFormRepository;
+    @Autowired
+    private QuestionFormRepository questionFormRepository;
 
     @MockitoBean
     private WebPushClient webPushClient;
@@ -624,6 +630,38 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     @Test
+    @DisplayName("DELETE /animal-posts/{id} de adopción con formularios asociados: borra el post y sus formularios en cascada")
+    void delete_adoptionPostWithAssociatedForms_removesPostAndFormsInCascade() throws Exception {
+        User owner = admin();
+        User applicant = saveUserWithRoleAndGet("solicitante", Rol.COMMUNITY);
+
+        AdoptionPost post = saveAdoptionPost("Perro en adopción con formularios", StatusAdoptionPost.SEARCHING_ADOPT);
+        QuestionForm q1 = questionFormRepository.save(new QuestionForm("¿Tenés patio?", QuestionType.TEXT, "icon", "placeholder", 1, true, null, new ArrayList<>(), UUID.randomUUID()));
+
+        AdoptionForm form = new AdoptionForm("Quiero adoptarlo", new PhoneNumber("353", "4123456"), applicant, post);
+        form.addAnswer(new AdoptionFormDetail("Sí, tengo patio", form, q1));
+
+        post.addAdoptionForm(form);
+        animalPostRepository.save(post);
+
+        assertThat(adoptionFormRepository.findAll()).hasSize(1);
+
+        mockMvc.perform(
+                        delete("/animal-posts/" + post.getId())
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(
+                        get("/animal-posts/" + post.getId())
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isNotFound());
+
+        assertThat(adoptionFormRepository.findAll()).isEmpty();
+    }
+
+    @Test
     @DisplayName("DELETE /animal-posts/{id} inexistente devuelve 404 con mensaje")
     void delete_nonExistentPost_returnsNotFound() throws Exception {
         mockMvc.perform(
@@ -749,7 +787,6 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         mockMvc.perform(request)
                 .andExpect(status().is(expectedStatus.value()));
     }
-
 
     @DisplayName("PATCH /animal-posts/{id}/status — transiciones validas, estado ajeno al tipo y transiciones prohibidas")
     @ParameterizedTest(name = "{index} - {0}")
@@ -943,6 +980,11 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
 
     private void saveUserWithRole(String username, Rol role) {
         userRepository.save(new User(username, "x",
+                new Profile(username + "@mail.com", new PhoneNumber("353", "4014524"), Set.of(role))));
+    }
+
+    private User saveUserWithRoleAndGet(String username, Rol role) {
+        return userRepository.save(new User(username, "x",
                 new Profile(username + "@mail.com", new PhoneNumber("353", "4014524"), Set.of(role))));
     }
 
