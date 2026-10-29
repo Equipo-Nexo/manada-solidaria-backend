@@ -32,13 +32,13 @@ public interface UserService extends UserDetailsService {
 
     void updatePassword(User user, String rawPassword);
 
-    UserDetailResponse getUser(UUID userId, String type);
+    UserDetailResponse getUser(UUID userId, String type, User authenticatedUser);
 
     UserProfileResponse getUserProfile(UUID userId);
 
     List<UserResponse> getUsers(String username, Rol role);
 
-    List<UserPostResponse> getUserPosts(User user, String type);
+    List<UserPostResponse> getUserPosts(User user, String type, User authenticatedUser);
 
     ProfileResponse updateProfile(UpdateProfileRequest request, User authenticatedUser);
 

@@ -1,0 +1,30 @@
+info:
+  name: Dislike animal post
+  type: http
+  seq: 7
+
+http:
+  method: POST
+  url: "{{MANADA_SOLIDARIA_HOST}}/animal-posts/{{animal_post_id}}/dislike"
+  auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "204"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true
+
+docs: |-
+  Saca el like del usuario del token. Correr antes `Get animal posts` (guarda `animal_post_id`).
+
+  Es idempotente: si el usuario no le habia dado like, no falla. Nunca borra los likes de otros usuarios.
+  Despues, en `GET /animal-posts` la publicacion trae `reactedByMe: false`.
+
+  Esperado: 204 sin body. Publicacion inexistente: 404 ("La publicación no existe"). Sin token o token invalido: 401.

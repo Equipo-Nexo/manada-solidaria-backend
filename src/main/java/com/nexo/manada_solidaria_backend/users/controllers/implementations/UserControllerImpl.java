@@ -29,8 +29,8 @@ public class UserControllerImpl implements UserController {
     private final NotificationDeliveryService notificationDeliveryService;
 
     @Override
-    public UserDetailResponse getUser(UUID userId, String type) {
-        return userService.getUser(userId, type);
+    public UserDetailResponse getUser(UUID userId, String type, User authenticatedUser) {
+        return userService.getUser(userId, type, authenticatedUser);
     }
 
     @Override
@@ -45,7 +45,7 @@ public class UserControllerImpl implements UserController {
 
     @Override
     public List<UserPostResponse> getUserPosts(User user, String type) {
-        return userService.getUserPosts(user, type);
+        return userService.getUserPosts(user, type, user);
     }
 
     @Override
