@@ -35,9 +35,21 @@ public class AdoptionPost extends AnimalPost<StatusAdoptionPost, AdoptionPostSta
             List.of(new AdoptionPostStatusHistory(StatusAdoptionPost.CREATED, this))
     );
 
+    @OneToMany(
+            mappedBy = "adoptionPost",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<AdoptionForm> adoptionForms = new ArrayList<>();
+
     public AdoptionPost(String name, String description, String imageUrl, String sharePostUrl, PhoneNumber phoneNumber, User owner, Animal animal, Location location, boolean inTransit) {
         super(name, description, imageUrl, sharePostUrl, phoneNumber, owner, animal, location);
         startSearching(inTransit);
+    }
+
+    public void addAdoptionForm(AdoptionForm form) {
+        this.adoptionForms.add(form);
+        form.setAdoptionPost(this);
     }
 
     @Override
@@ -72,6 +84,11 @@ public class AdoptionPost extends AnimalPost<StatusAdoptionPost, AdoptionPostSta
     @Override
     protected void addStatus(StatusAdoptionPost status) {
         this.statusHistory.add(new AdoptionPostStatusHistory(status, this));
+    }
+
+    @Override
+    protected Set<StatusAdoptionPost> finalStatuses() {
+        return HAPPY_STATUSES;
     }
 
     private void startSearching(boolean inTransit) {

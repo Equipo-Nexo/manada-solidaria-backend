@@ -143,10 +143,22 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     }
 
     @Override
+    @Transactional
+    public void repost(UUID animalPostId, User authenticatedUser) {
+        AnimalPost post = getAnimalPostOrThrow(animalPostId);
+
+        post.repost();
+        animalPostRepository.save(post);
+        log.info("Animal post reposted: id={} by={}", animalPostId, authenticatedUser.getId());
+    }
+
+    @Override
+    @Transactional
     public void delete(UUID animalPostId, User authenticatedUser) {
         AnimalPost post = getAnimalPostOrThrow(animalPostId);
 
         animalPostRepository.delete(post);
+        animalPostRepository.flush();
         log.info("Animal post deleted: id={} by={}", animalPostId, authenticatedUser.getId());
     }
 
@@ -264,4 +276,5 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                                 "La publicación no existe"
                         ));
     }
+    
 }

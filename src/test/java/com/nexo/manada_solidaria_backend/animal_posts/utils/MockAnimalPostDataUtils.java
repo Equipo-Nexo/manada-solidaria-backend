@@ -467,6 +467,18 @@ public class MockAnimalPostDataUtils {
         );
     }
 
+    private static Stream<Arguments> provideRepostCases() {
+        return Stream.of(
+                Arguments.of("Un perdido en busqueda se republica", AnimalPostFilter.LOST, "SEARCHING", HttpStatus.NO_CONTENT),
+                Arguments.of("Uno de la calle para rescatar se republica", AnimalPostFilter.IN_STREET, "TO_RESCUE", HttpStatus.NO_CONTENT),
+                Arguments.of("Una adopcion con transito se republica", AnimalPostFilter.ADOPTION, "SEARCHING_ADOPT", HttpStatus.NO_CONTENT),
+                Arguments.of("Una adopcion que busca transito se republica", AnimalPostFilter.ADOPTION, "SEARCHING_ADOPT_AND_TRANSIT", HttpStatus.NO_CONTENT),
+                Arguments.of("Un perdido ya encontrado no se republica", AnimalPostFilter.LOST, "FOUND", HttpStatus.CONFLICT),
+                Arguments.of("Uno de la calle ya rescatado no se republica", AnimalPostFilter.IN_STREET, "RESCUED", HttpStatus.CONFLICT),
+                Arguments.of("Una adopcion ya adoptada no se republica", AnimalPostFilter.ADOPTION, "ADOPTED", HttpStatus.CONFLICT)
+        );
+    }
+
     private static Stream<Arguments> provideTransitNotificationCreateCases() {
         return Stream.of(
                 Arguments.of("Una adopcion que busca transito avisa al hogar de transito", ADOPTION_VALID, "transito", 1),
@@ -630,7 +642,8 @@ public class MockAnimalPostDataUtils {
         return Stream.of(
                 Arguments.of("PUT /animal-posts/{id}", HttpMethod.PUT, "", buildUpdateRequest()),
                 Arguments.of("PATCH /animal-posts/{id}/status", HttpMethod.PATCH, "/status", new TransitionStatusRequest("FOUND")),
-                Arguments.of("DELETE /animal-posts/{id}", HttpMethod.DELETE, "", null)
+                Arguments.of("DELETE /animal-posts/{id}", HttpMethod.DELETE, "", null),
+                Arguments.of("POST /animal-posts/{id}/repost", HttpMethod.POST, "/repost", null)
         );
     }
 

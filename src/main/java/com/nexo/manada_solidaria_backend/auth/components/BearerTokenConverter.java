@@ -1,8 +1,10 @@
 package com.nexo.manada_solidaria_backend.auth.components;
 
 import com.nexo.manada_solidaria_backend.auth.data.BearerTokenAuthentication;
+import com.nexo.manada_solidaria_backend.auth.services.implementations.JsonWebTokenServiceImpl;
 import com.nexo.manada_solidaria_backend.auth.services.interfaces.JsonWebTokenService;
 import com.nexo.manada_solidaria_backend.common.exceptions.custom_exceptions.InvalidJwtException;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -15,7 +17,7 @@ import org.springframework.util.StringUtils;
 @Slf4j
 public class BearerTokenConverter implements AuthenticationConverter {
     private final JsonWebTokenService jsonWebTokenService;
-    private final String BEARER_PREFIX = "Bearer ";
+    public static final String BEARER_PREFIX = "Bearer ";
 
     public BearerTokenConverter(JsonWebTokenService jsonWebTokenService) {
         this.jsonWebTokenService = jsonWebTokenService;
@@ -33,7 +35,7 @@ public class BearerTokenConverter implements AuthenticationConverter {
     }
 
     private String getSubject(String jwt) {
-        return jsonWebTokenService.getSubject(jwt);
+        return jsonWebTokenService.getSubject(jwt, JsonWebTokenServiceImpl.TokenType.ACCESS);
     }
 
     private boolean authorizationHeaderIsInvalid(String authorizationHeader) {
@@ -51,12 +53,7 @@ public class BearerTokenConverter implements AuthenticationConverter {
     }
 
     private boolean jwtIsInvalid(String authorizationHeader) {
-        try {
-            return !jsonWebTokenService.isValid(getJwtValue(authorizationHeader));
-        } catch (Exception e) {
-            log.error("Error checking if JWT is valid", e);
-            return true;
-        }
+        return !jsonWebTokenService.isValid(getJwtValue(authorizationHeader), JsonWebTokenServiceImpl.TokenType.ACCESS);
     }
 
     private String getJwtValue(String authorizationHeader) {
