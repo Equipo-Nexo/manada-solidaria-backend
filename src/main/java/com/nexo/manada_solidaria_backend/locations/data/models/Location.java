@@ -25,9 +25,9 @@ public class Location {
     private String city;
 
     @Column(nullable = false)
-    private String formatted;
-
     private String district;
+
+    private String formatted;
 
     private String street;
 

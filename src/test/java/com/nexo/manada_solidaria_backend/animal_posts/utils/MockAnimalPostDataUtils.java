@@ -619,7 +619,7 @@ public class MockAnimalPostDataUtils {
                 null,
                 null,
                 new UpdateAnimalPostRequest.AnimalUpdate(AnimalType.CAT, AnimalSize.LARGE, AnimalGender.FEMALE, "negro", AnimalAge.SENIOR),
-                new UpdateLocationRequest("Refugio Nuevo", "Nueva direccion 456", 999, -34.7, -58.7)
+                new UpdateLocationRequest("Refugio Nuevo", "Nueva direccion 456", "Nueva Direccion 456, Refugio Nuevo", "Barrio", "Calle", 999, -34.7, -58.7)
         );
     }
 

@@ -15,8 +15,8 @@ public class LocationMapper {
         return new Location(
                 request.country(),
                 request.city(),
-                request.formatted(),
                 request.district(),
+                request.formatted(),
                 request.street(),
                 request.houseNumber(),
                 request.latitude(),
