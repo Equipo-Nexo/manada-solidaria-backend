@@ -39,6 +39,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.FORBIDDEN_MESSAGE;
@@ -820,6 +821,69 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         mockMvc.perform(request).andExpect(status().isUnauthorized());
     }
 
+    @DisplayName("POST /animal-posts/{id}/repost actualiza updatedAt solo si la publicacion no esta finalizada")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideRepostCases")
+    void repostTests(String testName, AnimalPostFilter postType, String status, HttpStatus expectedStatus) throws Exception {
+        AnimalPost<?, ?> post = animalPostRepository.findById(seedPost(postType, status)).orElseThrow();
+        LocalDateTime previousUpdatedAt = LocalDateTime.now().minusDays(30);
+        post.setUpdatedAt(previousUpdatedAt);
+
+        repost(post.getId()).andExpect(status().is(expectedStatus.value()));
+
+        LocalDateTime updatedAt = animalPostRepository.findById(post.getId()).orElseThrow().getUpdatedAt();
+        if (expectedStatus.is2xxSuccessful()) {
+            assertThat(updatedAt).isAfter(previousUpdatedAt);
+        } else {
+            assertThat(updatedAt).isEqualTo(previousUpdatedAt);
+        }
+    }
+
+    @Test
+    @DisplayName("POST /animal-posts/{id}/repost lleva la publicacion al principio de GET /animal-posts")
+    void repost_movesPostToTheTopOfTheList() throws Exception {
+        LostPost older = saveLostPost("Mas vieja", StatusLostPost.SEARCHING);
+        Thread.sleep(2);
+        saveLostPost("Mas nueva", StatusLostPost.SEARCHING);
+        Thread.sleep(2);
+
+        repost(older.getId()).andExpect(status().isNoContent());
+
+        mockMvc.perform(
+                        get("/animal-posts").header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].name").value("Mas vieja"))
+                .andExpect(jsonPath("$.content[1].name").value("Mas nueva"));
+    }
+
+    @Test
+    @DisplayName("POST /animal-posts deja updatedAt igual a createdAt")
+    void create_setsUpdatedAtEqualToCreatedAt() throws Exception {
+        AnimalPost<?, ?> created = animalPostRepository.findById(createOwnedPostReturningId()).orElseThrow();
+
+        assertThat(created.getUpdatedAt()).isEqualTo(created.getCreatedAt());
+    }
+
+    @Test
+    @DisplayName("POST /animal-posts/{id}/repost inexistente devuelve 404")
+    void repost_nonExistentPost_returnsNotFound() throws Exception {
+        repost(UUID.randomUUID()).andExpect(status().isNotFound());
+    }
+
+    @DisplayName("POST /animal-posts/{id}/repost sin autenticacion valida devuelve 401")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideTransitionUnauthorizedCases")
+    void repost_unauthorized(String testName, String token) throws Exception {
+        MockHttpServletRequestBuilder request = post("/animal-posts/" + UUID.randomUUID() + "/repost");
+
+        if (token != null) {
+            request = request.header("Authorization", "Bearer " + token);
+        }
+
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
+    }
+
     @DisplayName("POST /animal-posts avisa a los hogares de transito, menos al autor, solo si la adopcion busca transito")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource(MOCK_DATA + "provideTransitNotificationCreateCases")
@@ -913,6 +977,13 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(toJson(new TransitionStatusRequest(targetStatus)))
+        );
+    }
+
+    private ResultActions repost(UUID postId) throws Exception {
+        return mockMvc.perform(
+                post("/animal-posts/" + postId + "/repost")
+                        .header("Authorization", "Bearer " + accessToken)
         );
     }
 

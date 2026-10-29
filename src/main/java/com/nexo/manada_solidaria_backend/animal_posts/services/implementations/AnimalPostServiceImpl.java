@@ -134,6 +134,16 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     }
 
     @Override
+    @Transactional
+    public void repost(UUID animalPostId, User authenticatedUser) {
+        AnimalPost post = getAnimalPostOrThrow(animalPostId);
+
+        post.repost();
+        animalPostRepository.save(post);
+        log.info("Animal post reposted: id={} by={}", animalPostId, authenticatedUser.getId());
+    }
+
+    @Override
     public void delete(UUID animalPostId, User authenticatedUser) {
         AnimalPost post = getAnimalPostOrThrow(animalPostId);
 

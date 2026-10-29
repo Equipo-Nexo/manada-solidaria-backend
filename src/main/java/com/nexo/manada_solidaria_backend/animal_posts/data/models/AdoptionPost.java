@@ -68,6 +68,11 @@ public class AdoptionPost extends AnimalPost<StatusAdoptionPost, AdoptionPostSta
         this.statusHistory.add(new AdoptionPostStatusHistory(status, this));
     }
 
+    @Override
+    protected Set<StatusAdoptionPost> finalStatuses() {
+        return HAPPY_STATUSES;
+    }
+
     private void startSearching(boolean inTransit) {
         getCurrentStatus().finish();
         StatusAdoptionPost next = inTransit
