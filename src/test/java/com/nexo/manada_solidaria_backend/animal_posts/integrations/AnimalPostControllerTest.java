@@ -99,7 +99,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
 
         NotificationDelivery delivery = similarLostPetDeliveriesOf("busca-perro").getFirst();
         NotificationPayload payload = delivery.getPayload();
-        assertThat(payload.getMessage()).isEqualTo("Vieron un animal en Corrientes 500, Esquina. Revisá si puede ser tu mascota perdida.");
+        assertThat(payload.getMessage()).isEqualTo("Vieron un animal en Corrientes 500, Buenos Aires. Revisá si puede ser tu mascota perdida.");
         assertThat(delivery.getStatusHistory().getLast().getStatus()).isEqualTo(NotificationStatus.SENT);
     }
 

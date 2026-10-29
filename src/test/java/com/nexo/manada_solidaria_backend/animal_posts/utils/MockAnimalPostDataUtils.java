@@ -38,7 +38,7 @@ public class MockAnimalPostDataUtils {
               "hasOwner": true,
               "reward": 5000,
               "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE", "age": "ADULT" },
-              "location": { "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Patricias 100, Buenos Aires", "district": "Caballito", "street": "Av. Patricias", "houseNumber": 100, "latitude": -34.6, "longitude": -58.4 } 
+              "location": { "district": "San Justo",  "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Patricias 100, Buenos Aires", "district": "Caballito", "street": "Av. Patricias", "houseNumber": 100, "latitude": -34.6, "longitude": -58.4 } 
               }
             """;
 
@@ -51,7 +51,7 @@ public class MockAnimalPostDataUtils {
               "phoneNumber": {"areaCode": "3533", "number": "436249"},
               "inTransit": false,
               "animal": { "type": "CAT", "size": "SMALL", "gender": "FEMALE", "age": "PUPPY" },
-              "location": { "country": "Argentina", "city": "Buenos Aires", "formatted": "Calle Falsa 123, Buenos Aires", "street": "Calle Falsa", "houseNumber": 123, "latitude": -34.5, "longitude": -58.5 }
+              "location": { "district": "San Justo",  "country": "Argentina", "city": "Buenos Aires", "formatted": "Calle Falsa 123, Buenos Aires", "street": "Calle Falsa", "houseNumber": 123, "latitude": -34.5, "longitude": -58.5 }
             }
             """;
 
@@ -64,7 +64,7 @@ public class MockAnimalPostDataUtils {
               "phoneNumber": {"areaCode": "3533", "number": "436249"},
               "inTransit": true,
               "animal": { "type": "CAT", "size": "SMALL", "gender": "FEMALE", "age": "PUPPY" },
-              "location": { "country": "Argentina", "city": "Buenos Aires", "formatted": "Calle 1, Buenos Aires", "street": "Calle", "houseNumber": 1, "latitude": -34.5, "longitude": -58.5 }
+              "location": { "district": "San Justo",  "country": "Argentina", "city": "Buenos Aires", "formatted": "Calle 1, Buenos Aires", "street": "Calle", "houseNumber": 1, "latitude": -34.5, "longitude": -58.5 }
               }
             """;
 
@@ -75,7 +75,7 @@ public class MockAnimalPostDataUtils {
               "description": "Estaba solo en la calle",
               "imageId": "cf-image-999",
               "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE" },
-              "location": { "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
+              "location": { "district": "San Justo",  "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
             }
             """;
 
@@ -86,7 +86,7 @@ public class MockAnimalPostDataUtils {
               "imageId": "cf-image-789",
               "hasOwner": false,
               "animal": { "type": "DOG", "size": "LARGE", "gender": "UNKNOWN", "age": "ADULT" },
-              "location": { "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
+              "location": { "district": "San Justo",  "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
             }
             """;
 
@@ -96,7 +96,7 @@ public class MockAnimalPostDataUtils {
               "name": "Gatito en adopción",
               "imageId": "cf-image-111",
               "animal": { "type": "CAT", "size": "SMALL", "gender": "FEMALE" },
-              "location": { "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
+              "location": { "district": "San Justo",  "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
             }
             """;
 
@@ -106,7 +106,7 @@ public class MockAnimalPostDataUtils {
               "name": "Gatito en adopción",
               "description": "Rescatado de la calle",
               "animal": { "type": "CAT", "size": "SMALL", "gender": "FEMALE" },
-              "location": { "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
+              "location": { "district": "San Justo",  "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
             }
             """;
 
@@ -116,7 +116,7 @@ public class MockAnimalPostDataUtils {
               "name": "Post sin animal",
               "description": "Descripción válida",
               "imageId": "cf-image-222",
-              "location": { "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
+              "location": { "district": "San Justo",  "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
             }
             """;
 
@@ -136,7 +136,7 @@ public class MockAnimalPostDataUtils {
               "description": "Descripción válida",
               "imageId": "cf-image-000",
               "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE" },
-              "location": { "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
+              "location": { "district": "San Justo",  "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
             }
             """;
 
@@ -149,7 +149,7 @@ public class MockAnimalPostDataUtils {
               "phoneNumber": {"areaCode": "3533", "number": "436249"},
               "hasOwner": true,
               "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE" },
-              "location": { "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
+              "location": { "district": "San Justo",  "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
             }
             """;
 
@@ -162,7 +162,7 @@ public class MockAnimalPostDataUtils {
               "phoneNumber": {"areaCode": "3533", "number": "436249"},
               "hasOwner": true,
               "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE", "age": "OLD" },
-              "location": { "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
+              "location": { "district": "San Justo",  "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
             }
             """;
 
@@ -175,7 +175,7 @@ public class MockAnimalPostDataUtils {
               "phoneNumber": {"areaCode": "3533", "number": "436249"},
               "hasOwner": true,
               "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE", "age": "UNKNOWN" },
-              "location": { "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
+              "location": { "district": "San Justo",  "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
             }
             """;
 
@@ -188,7 +188,7 @@ public class MockAnimalPostDataUtils {
               "phoneNumber": {"number": "436249"},
               "hasOwner": true,
               "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE", "age": "ADULT" },
-             "location": { "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
+             "location": { "district": "San Justo",  "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
             }
             """;
 
@@ -200,7 +200,7 @@ public class MockAnimalPostDataUtils {
               "imageId": "cf-image-777",
               "hasOwner": true,
               "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE", "age": "ADULT" },
-              "location": { "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
+              "location": { "district": "San Justo",  "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
             }
             """;
 
@@ -213,7 +213,7 @@ public class MockAnimalPostDataUtils {
               "imageId": "cf-image-street",
               "hasOwner": false,
               "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE", "age": "ADULT" },
-              "location": { "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
+              "location": { "district": "San Justo",  "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
             }
             """;
 
@@ -225,7 +225,7 @@ public class MockAnimalPostDataUtils {
               "imageId": "cf-image-aa1",
               "inTransit": false,
               "animal": { "type": "CAT", "size": "SMALL", "gender": "FEMALE", "age": "PUPPY" },
-              "location": { "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
+              "location": { "district": "San Justo",  "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
             }
             """;
 
@@ -237,7 +237,7 @@ public class MockAnimalPostDataUtils {
               "imageId": "cf-image-888",
               "phoneNumber": {"areaCode": "3533", "number": "436249"},
               "animal": { "type": "CAT", "size": "SMALL", "gender": "FEMALE", "age": "PUPPY" },
-              "location": { "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
+              "location": { "district": "San Justo",  "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
             }
             """;
 
@@ -251,7 +251,7 @@ public class MockAnimalPostDataUtils {
               "inTransit": false,
               "reward": 5000,
               "animal": { "type": "CAT", "size": "SMALL", "gender": "FEMALE", "age": "PUPPY" },
-              "location": { "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
+              "location": { "district": "San Justo",  "country": "Argentina", "city": "Buenos Aires", "formatted": "Av. Corrientes 500, Buenos Aires", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
             }
             """;
     
@@ -263,7 +263,7 @@ public class MockAnimalPostDataUtils {
               "phoneNumber": {"areaCode": "3511", "number": "998877"},
               "reward": 7500,
               "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE", "age": "SENIOR", "color": "negro" },
-              "location": { "country": "Argentina", "city": "Córdoba", "formatted": "Nueva direccion 456, Córdoba", "street": "Nueva direccion", "houseNumber": 456, "latitude": -34.7, "longitude": -58.7 }
+              "location": { "district": "San Justo",  "country": "Argentina", "city": "Córdoba", "formatted": "Nueva direccion 456, Córdoba", "street": "Nueva direccion", "houseNumber": 456, "latitude": -34.7, "longitude": -58.7 }
             }
             """;
 
@@ -336,7 +336,7 @@ public class MockAnimalPostDataUtils {
             {
               "name": "t", "imageId": "i", "phoneNumber": {"areaCode": "3533", "number": "436249"},
               "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE", "age": "SENIOR" },
-              "location": { "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
+              "location": { "district": "San Justo",  "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
             }
             """;
 
@@ -344,14 +344,14 @@ public class MockAnimalPostDataUtils {
             {
               "name": "t", "description": "d", "phoneNumber": {"areaCode": "3533", "number": "436249"},
               "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE", "age": "SENIOR" },
-              "location": { "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
+              "location": { "district": "San Justo",  "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
             }
             """;
 
     private static final String PUT_WITHOUT_ANIMAL = """
             {
               "name": "t", "description": "d", "imageId": "i", "phoneNumber": {"areaCode": "3533", "number": "436249"},
-              "location": { "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
+              "location": { "district": "San Justo",  "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
             }
             """;
 
@@ -366,7 +366,7 @@ public class MockAnimalPostDataUtils {
             {
               "name": "t", "description": "d", "imageId": "i", "phoneNumber": {"areaCode": "3533", "number": "436249"},
               "animal": { "size": "LARGE", "gender": "FEMALE", "age": "SENIOR" },
-              "location": { "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
+              "location": { "district": "San Justo",  "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
             }
             """;
 
@@ -374,7 +374,7 @@ public class MockAnimalPostDataUtils {
             {
               "name": "t", "description": "d", "imageId": "i", "phoneNumber": {"areaCode": "3533", "number": "436249"},
               "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE" },
-              "location": { "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
+              "location": { "district": "San Justo",  "name": "n", "address": "a", "number": 1, "latitude": -34.6, "longitude": -58.4 }
             }
             """;
 
@@ -382,7 +382,7 @@ public class MockAnimalPostDataUtils {
         {
           "name": "t", "description": "d", "imageId": "i", "phoneNumber": {"areaCode": "3533", "number": "436249"},
           "animal": { "type": "CAT", "size": "LARGE", "gender": "FEMALE", "age": "SENIOR" },
-          "location": { "city": "Córdoba", "formatted": "formatted", "street": "a", "houseNumber": 1, "latitude": -34.6, "longitude": -58.4 }
+          "location": { "district": "San Justo",  "city": "Córdoba", "formatted": "formatted", "street": "a", "houseNumber": 1, "latitude": -34.6, "longitude": -58.4 }
         }
         """;
 
@@ -655,7 +655,7 @@ public class MockAnimalPostDataUtils {
                   "imageId": "cf-image-street",
                   "hasOwner": false,
                   "animal": { "type": "DOG", "size": "MEDIUM", "gender": "MALE", "age": "ADULT", "color": %s },
-                  "location": { "name": "Esquina", "address": "Corrientes", "number": 500, "latitude": -34.6, "longitude": -58.4 }
+                  "location": { "country": "Argentina", "formatted": "Corrientes 500, Villa Maria", "district": "San Justo", "city": "Esquina", "street": "Corrientes", "houseNumber": 500, "latitude": -34.6, "longitude": -58.4 }
                 }
                 """.formatted(color == null ? "null" : "\"" + color + "\"");
     }

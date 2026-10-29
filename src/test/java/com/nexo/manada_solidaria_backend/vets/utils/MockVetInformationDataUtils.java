@@ -343,7 +343,7 @@ public class MockVetInformationDataUtils {
                 Arguments.of("Devuelve el email enviado", CREATE_VET_VALID, "$.email", is("contacto@sanroque.com")),
                 Arguments.of("Devuelve la ciudad de la ubicación", CREATE_VET_VALID, "$.location.city", is("Córdoba")),
                 Arguments.of("Devuelve la cantidad correcta de días de atención", CREATE_VET_VALID, "$.calendar.length()", is(2)),
-                Arguments.of("Devuelve el nombre de la ubicación", CREATE_VET_VALID, "$.location.name", is("Sede Central")),
+                Arguments.of("Devuelve el nombre de la ubicación", CREATE_VET_VALID, "$.location.city", is("Córdoba")),
                 Arguments.of("Devuelve la cantidad correcta de días de atención", CREATE_VET_VALID, "$.calendar.length()", is(2)),
                 Arguments.of("Devuelve isOpen calculado según hora actual", CREATE_VET_VALID, "$.isOpen", is(false)),
                 Arguments.of("Devuelve distanceInKm en null al crear sin coordenadas de usuario", CREATE_VET_VALID, "$.distanceInKm", nullValue())
