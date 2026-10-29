@@ -96,6 +96,6 @@ public class LostPost extends AnimalPost<StatusLostPost, LostPostStatusHistory> 
 
     @Override
     protected Set<StatusLostPost> finalStatuses() {
-        return HAPPY_STATUSES;
+        return FINAL_STATUSES;
     }
 }

@@ -475,7 +475,9 @@ public class MockAnimalPostDataUtils {
                 Arguments.of("Una adopcion que busca transito se republica", AnimalPostFilter.ADOPTION, "SEARCHING_ADOPT_AND_TRANSIT", HttpStatus.NO_CONTENT),
                 Arguments.of("Un perdido ya encontrado no se republica", AnimalPostFilter.LOST, "FOUND", HttpStatus.CONFLICT),
                 Arguments.of("Uno de la calle ya rescatado no se republica", AnimalPostFilter.IN_STREET, "RESCUED", HttpStatus.CONFLICT),
-                Arguments.of("Una adopcion ya adoptada no se republica", AnimalPostFilter.ADOPTION, "ADOPTED", HttpStatus.CONFLICT)
+                Arguments.of("Una adopcion ya adoptada no se republica", AnimalPostFilter.ADOPTION, "ADOPTED", HttpStatus.CONFLICT),
+                Arguments.of("Un perdido expirado no se republica", AnimalPostFilter.LOST, "EXPIRED", HttpStatus.CONFLICT),
+                Arguments.of("Una adopcion expirada no se republica", AnimalPostFilter.ADOPTION, "EXPIRED", HttpStatus.CONFLICT)
         );
     }
 

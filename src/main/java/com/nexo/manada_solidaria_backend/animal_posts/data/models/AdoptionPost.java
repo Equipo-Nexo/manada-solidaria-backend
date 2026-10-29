@@ -88,7 +88,7 @@ public class AdoptionPost extends AnimalPost<StatusAdoptionPost, AdoptionPostSta
 
     @Override
     protected Set<StatusAdoptionPost> finalStatuses() {
-        return HAPPY_STATUSES;
+        return FINAL_STATUSES;
     }
 
     private void startSearching(boolean inTransit) {

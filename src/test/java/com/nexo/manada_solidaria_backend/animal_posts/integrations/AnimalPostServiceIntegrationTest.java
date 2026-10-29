@@ -49,7 +49,7 @@ class AnimalPostServiceIntegrationTest extends BaseAuthenticatedIntegrationTest 
     ) {
         AnimalPost<?, ?> post = buildPost(postType, status);
         post.setCreatedAt(LocalDateTime.now().minusDays(createdDaysAgo));
-        post.setUpdatedAt(Optional.ofNullable(updatedDaysAgo).map(LocalDateTime.now()::minusDays).orElse(null));
+        post.setUpdatedAt(LocalDateTime.now().minusDays(Optional.ofNullable(updatedDaysAgo).orElse(createdDaysAgo)));
         UUID seededStatusId = animalPostRepository.save(post).getCurrentStatus().getId();
 
         animalPostService.expireInactivePosts();
