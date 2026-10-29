@@ -253,4 +253,5 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                                 "La publicación no existe"
                         ));
     }
+    
 }
