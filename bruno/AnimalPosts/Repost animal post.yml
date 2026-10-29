@@ -1,0 +1,38 @@
+info:
+  name: Repost animal post
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{MANADA_SOLIDARIA_HOST}}/animal-posts/{{animal_post_id}}/repost"
+  auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "204"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true
+
+docs: |-
+  Republica una publicacion: actualiza su updatedAt al momento actual, y como GET /animal-posts ordena por
+  updatedAt (desc), la publicacion vuelve al principio del listado. Solo puede hacerlo el dueño.
+
+  {{animal_post_id}} lo deja cargado Create "Mascota perdida" (correr Auth/Login y despues esa request),
+  o se reemplaza a mano por el id de una publicacion propia.
+
+  Respuesta: 204 sin body.
+
+  Errores:
+  - 401: sin token o token invalido.
+  - 403: la publicacion es de otro usuario.
+  - 404: la publicacion no existe.
+  - 409: la publicacion esta finalizada (FOUND, RESCUED o ADOPTED)
+    { "status": 409, "errors": ["No se puede republicar una publicación finalizada"], ... }
