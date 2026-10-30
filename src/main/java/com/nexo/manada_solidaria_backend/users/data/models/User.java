@@ -34,4 +34,14 @@ public class User implements UserDetails {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return this.profile.getRoles();
     }
+
+    public String getFullNameOrUsername() {
+        if (this.profile != null) {
+            String fullName = this.profile.getFullName();
+            if (fullName != null) {
+                return fullName;
+            }
+        }
+        return this.username;
+    }
 }

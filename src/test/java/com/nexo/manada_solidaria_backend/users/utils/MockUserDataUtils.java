@@ -352,4 +352,22 @@ public class MockUserDataUtils {
         points.addAll(newer);
         return points;
     }
+
+    private static Stream<Arguments> provideUserPostReactionCases() {
+        String adminDetail = "/users/22222222-2222-2222-2222-222222222222";
+        String animalPostInDetail = "$.posts[?(@.id == '77777777-7777-7777-7777-777777777777')]";
+        String animalPostInOwnPosts = "$[?(@.id == '77777777-7777-7777-7777-777777777777')]";
+        return Stream.of(
+                Arguments.of("GET /users/{userId} cuenta los likes del post", "admin", adminDetail,
+                        animalPostInDetail + ".reactionsCount", contains(1)),
+                Arguments.of("GET /users/{userId} no marca el like de otro usuario", "admin", adminDetail,
+                        animalPostInDetail + ".reactedByMe", contains(false)),
+                Arguments.of("GET /users/{userId} marca el like de quien mira el perfil, aunque no sea el dueño", "NOTADMIN", adminDetail,
+                        animalPostInDetail + ".reactedByMe", contains(true)),
+                Arguments.of("GET /users/posts cuenta los likes del post", "admin", "/users/posts",
+                        animalPostInOwnPosts + ".reactionsCount", contains(1)),
+                Arguments.of("GET /users/posts no marca el like de otro usuario", "admin", "/users/posts",
+                        animalPostInOwnPosts + ".reactedByMe", contains(false))
+        );
+    }
 }

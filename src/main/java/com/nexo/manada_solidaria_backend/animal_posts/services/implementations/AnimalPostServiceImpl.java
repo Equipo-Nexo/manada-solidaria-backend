@@ -9,11 +9,14 @@ import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.Anim
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.HappyCaseResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.ReactionType;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusLostPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.Reaction;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
+import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.ReactionRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
 import com.nexo.manada_solidaria_backend.common.utils.EnumUtils;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
@@ -24,6 +27,7 @@ import com.nexo.manada_solidaria_backend.notifications.services.interfaces.Notif
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -45,6 +49,7 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     private static final int RECENT_DAYS = 7;
 
     private final AnimalPostRepository animalPostRepository;
+    private final ReactionRepository reactionRepository;
     private final AnimalPostFactory animalPostFactory;
     private final NotificationService notificationService;
 
@@ -72,31 +77,34 @@ public class AnimalPostServiceImpl implements AnimalPostService {
         }
 
         log.info("Animal post created: id={} type={} owner={}", saved.getId(), saved.getType(), owner.getId());
-        return AnimalPostResponse.from(saved);
+        return AnimalPostResponse.from(saved, false);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<AnimalPostResponse> getAnimalPosts(GetAnimalPostsRequest request, Pageable pageable) {
+    public Page<AnimalPostResponse> getAnimalPosts(GetAnimalPostsRequest request, Pageable pageable, User authenticatedUser) {
         log.debug("Listing animal posts: filters={} page={}", request, pageable);
-        return animalPostRepository
-                .findAllFiltered(
-                        EnumUtils.getNameOrNull(request.type()),
-                        request.status(),
-                        request.animalType(),
-                        request.animalSize(),
-                        request.animalGender(),
-                        request.animalAge(),
-                        request.animalColor(),
-                        pageable
-                )
-                .map(AnimalPostResponse::from);
+        Page<AnimalPost<?, ?>> posts = animalPostRepository.findAllFiltered(
+                EnumUtils.getNameOrNull(request.type()),
+                request.status(),
+                request.animalType(),
+                request.animalSize(),
+                request.animalGender(),
+                request.animalAge(),
+                request.animalColor(),
+                LostPost.HAPPY_STATUSES,
+                AdoptionPost.HAPPY_STATUSES,
+                pageable
+        );
+        Set<UUID> reactedPostIds = reactedPostIds(posts.getContent(), authenticatedUser);
+        return posts.map(post -> AnimalPostResponse.from(post, reactedPostIds.contains(post.getId())));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public AnimalPostResponse getAnimalPost(UUID animalPostId) {
-        return AnimalPostResponse.from(getAnimalPostOrThrow(animalPostId));
+    public AnimalPostResponse getAnimalPost(UUID animalPostId, User authenticatedUser) {
+        AnimalPost post = getAnimalPostOrThrow(animalPostId);
+        return AnimalPostResponse.from(post, reactionRepository.existsByPostAndOwner(post, authenticatedUser));
     }
 
     @Override
@@ -122,26 +130,49 @@ public class AnimalPostServiceImpl implements AnimalPostService {
         if (isSearchingTransit(saved)) {
             notifyTransitHomes(saved);
         }
-        return AnimalPostResponse.from(saved);
-    }
-
-    private static boolean isSearchingTransit(AnimalPost<?, ?> post) {
-        return post instanceof AdoptionPost adoptionPost && adoptionPost.isSearchingTransit();
-    }
-
-    private void notifyTransitHomes(AnimalPost<?, ?> post) {
-        notificationService.notify(
-                NotificationType.IN_ADOPTION_AND_TRANSIT_PET,
-                Map.of("postId", post.getId()),
-                new NotificationContext(post.getOwner().getId()));
+        return AnimalPostResponse.from(saved, reactionRepository.existsByPostAndOwner(saved, authenticatedUser));
     }
 
     @Override
+    @Transactional
+    public void repost(UUID animalPostId, User authenticatedUser) {
+        AnimalPost post = getAnimalPostOrThrow(animalPostId);
+
+        post.repost();
+        animalPostRepository.save(post);
+        log.info("Animal post reposted: id={} by={}", animalPostId, authenticatedUser.getId());
+    }
+
+    @Override
+    @Transactional
     public void delete(UUID animalPostId, User authenticatedUser) {
         AnimalPost post = getAnimalPostOrThrow(animalPostId);
 
         animalPostRepository.delete(post);
+        animalPostRepository.flush();
         log.info("Animal post deleted: id={} by={}", animalPostId, authenticatedUser.getId());
+    }
+
+    @Override
+    public void like(UUID animalPostId, User authenticatedUser) {
+        AnimalPost post = getAnimalPostOrThrow(animalPostId);
+
+        if (!reactionRepository.existsByPostAndOwner(post, authenticatedUser)) {
+            try {
+                reactionRepository.save(new Reaction(ReactionType.HEART, authenticatedUser, post));
+                log.info("Animal post liked: id={} by={}", animalPostId, authenticatedUser.getId());
+            } catch (DataIntegrityViolationException e) {
+                log.info("Animal post already liked: id={} by={}", animalPostId, authenticatedUser.getId());
+            }
+        }
+    }
+
+    @Override
+    public void dislike(UUID animalPostId, User authenticatedUser) {
+        AnimalPost post = getAnimalPostOrThrow(animalPostId);
+
+        reactionRepository.deleteByPostAndOwner(post, authenticatedUser);
+        log.info("Animal post disliked: id={} by={}", animalPostId, authenticatedUser.getId());
     }
 
     @Override
@@ -151,17 +182,17 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                 .map(post -> HappyCaseResponse.from(post, isRecentlyResolved(post)));
     }
 
-    private static boolean isRecentlyResolved(AnimalPost<?, ?> post) {
-        return post.getCurrentStatus().getCreatedAt().toLocalDate()
-                .isAfter(LocalDate.now().minusDays(RECENT_DAYS));
+    @Override
+    public List<AnimalPostResponse> getUserAnimalPosts(User user, User authenticatedUser) {
+        List<AnimalPost<?, ?>> posts = animalPostRepository.findAllByOwnerOrderByCreatedAtDesc(user);
+        Set<UUID> reactedPostIds = reactedPostIds(posts, authenticatedUser);
+        return posts.stream()
+                .map(post -> AnimalPostResponse.from(post, reactedPostIds.contains(post.getId())))
+                .toList();
     }
 
-    @Override
-    public List<AnimalPostResponse> getUserAnimalPosts(User user) {
-        return animalPostRepository.findAllByOwnerOrderByCreatedAtDesc(user)
-                .stream()
-                .map(AnimalPostResponse::from)
-                .toList();
+    private Set<UUID> reactedPostIds(List<AnimalPost<?, ?>> posts, User user) {
+        return reactionRepository.findPostIdsReactedBy(user, posts.stream().map(AnimalPost::getId).toList());
     }
 
     @Override
@@ -184,8 +215,31 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     public List<AnimalPostResponse> getActiveLostPosts() {
         return animalPostRepository.findActiveLostPosts(LostPost.HAPPY_STATUSES)
                 .stream()
-                .map(AnimalPostResponse::from)
+                .map(post -> AnimalPostResponse.from(post, false))
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public AdoptionPost getAdoptionPostOrThrow(UUID adoptionPostId) {
+        return animalPostRepository.findById(adoptionPostId)
+                .filter(post -> post instanceof AdoptionPost)
+                .map(post -> (AdoptionPost) post)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "La publicación de adopción no fue encontrada"
+                ));
+    }
+
+    private static boolean isSearchingTransit(AnimalPost<?, ?> post) {
+        return post instanceof AdoptionPost adoptionPost && adoptionPost.isSearchingTransit();
+    }
+
+    private void notifyTransitHomes(AnimalPost<?, ?> post) {
+        notificationService.notify(
+                NotificationType.IN_ADOPTION_AND_TRANSIT_PET,
+                Map.of("postId", post.getId()),
+                new NotificationContext(post.getOwner().getId()));
     }
 
     private static boolean isStreetAnimal(AnimalPost<?, ?> post) {
@@ -196,6 +250,11 @@ public class AnimalPostServiceImpl implements AnimalPostService {
         return location.getAddress() + " " + location.getNumber() + ", " + location.getName();
     }
 
+    private static boolean isRecentlyResolved(AnimalPost<?, ?> post) {
+        return post.getCurrentStatus().getCreatedAt().toLocalDate()
+                .isAfter(LocalDate.now().minusDays(RECENT_DAYS));
+    }
+
     private AnimalPost getAnimalPostOrThrow(UUID animalPostId) {
         return animalPostRepository.findById(animalPostId)
                 .orElseThrow(() ->
@@ -204,4 +263,5 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                                 "La publicación no existe"
                         ));
     }
+    
 }

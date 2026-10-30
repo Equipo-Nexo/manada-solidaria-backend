@@ -17,6 +17,7 @@ public class AdoptionFormItemResponse {
     private UUID id;
     private String animalName;
     private String animalImageUrl;
+    private String applicantName;
     private String description;
     private Boolean isRead;
     private LocalDateTime createdAt;
@@ -25,7 +26,8 @@ public class AdoptionFormItemResponse {
         return AdoptionFormItemResponse.builder()
                 .id(form.getId())
                 .animalName(form.getAdoptionPost().getName())
-                .animalName(form.getAdoptionPost().getImageUrl())
+                .animalImageUrl(form.getAdoptionPost().getImageUrl())
+                .applicantName(form.getApplicant().getFullNameOrUsername())
                 .description(form.getDescription())
                 .isRead(form.isRead())
                 .createdAt(form.getCreatedAt())

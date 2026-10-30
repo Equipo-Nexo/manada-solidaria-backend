@@ -40,7 +40,8 @@ public interface AnimalPostController {
     @GetMapping
     Page<AnimalPostResponse> getAnimalPosts(
             @ParameterObject GetAnimalPostsRequest request,
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) @ParameterObject Pageable pageable
+            @PageableDefault(size = 10, sort = "updatedAt", direction = Sort.Direction.DESC) @ParameterObject Pageable pageable,
+            @AuthenticationPrincipal User authenticatedUser
     );
 
     @GetMapping("/happy-cases")
@@ -50,7 +51,8 @@ public interface AnimalPostController {
 
     @GetMapping("/{animalPostId}")
     AnimalPostResponse getAnimalPost(
-            @PathVariable UUID animalPostId
+            @PathVariable UUID animalPostId,
+            @AuthenticationPrincipal User authenticatedUser
     );
 
     @PutMapping("/{animalPostId}")
@@ -68,9 +70,30 @@ public interface AnimalPostController {
             @AuthenticationPrincipal User authenticatedUser
     );
 
+    @PostMapping("/{animalPostId}/repost")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void repost(
+            @PathVariable UUID animalPostId,
+            @AuthenticationPrincipal User authenticatedUser
+    );
+
     @DeleteMapping("/{animalPostId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void delete(
+            @PathVariable UUID animalPostId,
+            @AuthenticationPrincipal User authenticatedUser
+    );
+
+    @PostMapping("/{animalPostId}/like")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void like(
+            @PathVariable UUID animalPostId,
+            @AuthenticationPrincipal User authenticatedUser
+    );
+
+    @PostMapping("/{animalPostId}/dislike")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void dislike(
             @PathVariable UUID animalPostId,
             @AuthenticationPrincipal User authenticatedUser
     );

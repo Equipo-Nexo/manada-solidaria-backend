@@ -5,6 +5,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.Adop
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormsWithCountersResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormStatusFilter;
 import com.nexo.manada_solidaria_backend.auth.components.pre_filters.AnimalPostOwner;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 
@@ -17,7 +18,9 @@ public interface AdoptionFormService {
     @AnimalPostOwner
     List<AdoptionFormResponse> getFormsByPostId(UUID animalPostId);
 
-    AdoptionFormsWithCountersResponse getFormsByUser(UUID userId, FormFilter filter);
+    AdoptionFormsWithCountersResponse getFormsByUser(UUID userId, FormFilter filter, FormStatusFilter status);
 
     AdoptionFormDetailResponse getFormById(UUID adoptionFormId, User authenticatedUser);
+
+    void markAsRead(UUID formId, User authenticatedUser);
 }
