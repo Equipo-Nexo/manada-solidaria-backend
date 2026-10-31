@@ -5,7 +5,7 @@ import com.nexo.manada_solidaria_backend.campaigns.data.models.Campaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationCampaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.FundraisingCampaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.NewsCampaign;
-import com.nexo.manada_solidaria_backend.common.controllers.responses.LocationResponse;
+import com.nexo.manada_solidaria_backend.locations.controllers.responses.LocationResponse;
 import com.nexo.manada_solidaria_backend.common.controllers.responses.PhoneNumberResponse;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 

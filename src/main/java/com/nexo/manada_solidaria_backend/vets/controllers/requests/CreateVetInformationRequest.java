@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.vets.controllers.requests;
 
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
+import com.nexo.manada_solidaria_backend.locations.controllers.requests.LocationRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
@@ -37,24 +38,6 @@ public record CreateVetInformationRequest(
         List<ScheduleRequest> calendar
 
 ) {
-
-    public record LocationRequest(
-
-            @NotBlank(message = "El nombre de la ubicación es obligatorio")
-            String name,
-
-            String address,
-
-            Integer number,
-
-            @NotNull(message = "La latitud es obligatoria")
-            Double latitude,
-
-            @NotNull(message = "La longitud es obligatoria")
-            Double longitude
-
-    ) {
-    }
 
     public record ScheduleRequest(
             @NotNull(message = "El día es obligatorio")

@@ -109,7 +109,7 @@ class MapControllerTest extends BaseAuthenticatedIntegrationTest {
         LostPost post = new LostPost(
                 "Nocturno", "Se perdio a la noche", "/fotoNocturno", null,
                 new PhoneNumber("353", "4010369"), true, owner,
-                new Location("San Justo", "Constancio Vigil", 1821, -32.4102, -63.2411),
+                new Location("Argentina", "Villa María", "San Justo", "Formatted", "Constancio Vigil", 1821, -32.4102, -63.2411),
                 new Animal(null, null, AnimalSize.MEDIUM, AnimalGender.MALE, AnimalType.DOG),
                 null
         );

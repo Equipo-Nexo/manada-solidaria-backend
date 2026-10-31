@@ -11,8 +11,8 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPo
 import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthenticatedIntegrationTest;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
-import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.CreateUserLocationRequest;
+import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.Profile;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -617,9 +617,10 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
     }
 
     private void saveLostPost(User owner, StatusLostPost status) {
+        Location location = new Location("Argentina", "Buenos Aires", "Av. Patricias 100, Buenos Aires", "Caballito", "Av. Patricias", 100, -34.6, -58.4);
         LostPost post = new LostPost(
                 "Publicacion de prueba", "Descripcion", "cf-img", null, null, true,
-                owner, new Location("Parque", "Av. Patricias", 100, -34.6, -58.4), new Animal(), null
+                owner, location, new Animal(), null
         );
         post.setStatusHistory(new ArrayList<>(List.of(new LostPostStatusHistory(status, post))));
         animalPostRepository.save(post);
@@ -645,5 +646,4 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
     private Set<Rol> rolesOfAdmin() {
         return userRepository.findByUsername("admin").orElseThrow().getProfile().getRoles();
     }
-    
 }

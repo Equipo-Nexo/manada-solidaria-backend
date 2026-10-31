@@ -5,6 +5,7 @@ import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCatego
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import com.nexo.manada_solidaria_backend.common.controllers.validations.ConditionalField;
 import com.nexo.manada_solidaria_backend.common.controllers.validations.DateRange;
+import com.nexo.manada_solidaria_backend.locations.controllers.requests.LocationRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
@@ -125,21 +126,6 @@ public record CreateCampaignRequest(
         NewsCampaignCategory category
 
 ) {
-
-    public record LocationRequest(
-            @NotBlank(message = "El nombre de la ubicacion es obligatorio.")
-            String name,
-
-            String address,
-
-            Integer number,
-
-            @NotNull(message = "La latitud es obligatoria")
-            Double latitude,
-
-            @NotNull(message = "La longitud es obligatoria")
-            Double longitude
-    ) {}
 
     public record DonationItemRequest(
             String name,

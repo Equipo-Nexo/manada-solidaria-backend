@@ -4,16 +4,22 @@
 
 MERGE INTO LOCATION (
     ID,
-    NAME,
-    ADDRESS,
-    NUMBER,
+    COUNTRY,
+    CITY,
+    FORMATTED,
+    DISTRICT,
+    STREET,
+    HOUSE_NUMBER,
     LATITUDE,
     LONGITUDE
 )
 KEY (ID)
 VALUES (
     '33333333-3333-3333-3333-333333333335',
+    'Argentina',
     'Villa María',
+    'Av. Libertador San Martín 500, Villa María',
+    'Centro',
     'Av. Libertador San Martín',
     500,
     -32.4108,
