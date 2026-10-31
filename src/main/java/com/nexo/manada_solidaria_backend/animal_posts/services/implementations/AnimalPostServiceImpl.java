@@ -1,12 +1,8 @@
 package com.nexo.manada_solidaria_backend.animal_posts.services.implementations;
 
 import com.nexo.manada_solidaria_backend.animal_posts.components.AnimalPostFactory;
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAnimalPostRequest;
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.GetAnimalPostsRequest;
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.*;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AnimalPostResponse;
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.HappyCaseResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.ReactionType;
@@ -19,14 +15,15 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPo
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.ReactionRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
 import com.nexo.manada_solidaria_backend.common.utils.EnumUtils;
+import com.nexo.manada_solidaria_backend.events.data.models.AnimalPostCreatedEvent;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.notifications.components.recipients.data.NotificationContext;
-import com.nexo.manada_solidaria_backend.notifications.components.recipients.data.NotificationContext.AnimalTraits;
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,11 +34,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -61,29 +54,39 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     private final ReactionRepository reactionRepository;
     private final AnimalPostFactory animalPostFactory;
     private final NotificationService notificationService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
+    @Transactional
     public AnimalPostResponse create(CreateAnimalPostRequest request, User owner) {
         AnimalPost saved = animalPostRepository.save(
                 animalPostFactory.buildAnimalPost(request, owner)
         );
 
-        if (Boolean.TRUE.equals(request.needTransport())) {
-            notificationService.notify(
-                    NotificationType.NEW_CARRIAGE_REQUEST,
-                    Map.of("postId", saved.getId()));
-        }
 
-        if (isStreetAnimal(saved)) {
-            notificationService.notify(
-                    NotificationType.SIMILAR_ANIMAL_RECENTLY_LOST,
-                    Map.of("postId", saved.getId(), "location", describe(saved.getLocation())),
-                    new NotificationContext(owner.getId(), new AnimalTraits(saved.getAnimal().getType(), saved.getAnimal().getColor())));
-        }
+        eventPublisher.publishEvent(new AnimalPostCreatedEvent(
+                saved.getId(),
+                owner.getId(),
+                request.needTransport(),
+                saved.getType()
+        ));
 
-        if (isSearchingTransit(saved)) {
-            notifyTransitHomes(saved);
-        }
+//        if (Boolean.TRUE.equals(request.needTransport())) {
+//            notificationService.notify(
+//                    NotificationType.NEW_CARRIAGE_REQUEST,
+//                    Map.of("postId", saved.getId()));
+//        }
+
+//        if (isStreetAnimal(saved)) {
+//            notificationService.notify(
+//                    NotificationType.SIMILAR_ANIMAL_RECENTLY_LOST,
+//                    Map.of("postId", saved.getId(), "location", describe(saved.getLocation())),
+//                    new NotificationContext(owner.getId(), new AnimalTraits(saved.getAnimal().getType(), saved.getAnimal().getColor())));
+//        }
+
+//        if (isSearchingTransit(saved)) {
+//            notifyTransitHomes(saved);
+//        }
 
         log.info("Animal post created: id={} type={} owner={}", saved.getId(), saved.getType(), owner.getId());
         return AnimalPostResponse.from(saved, false);
@@ -286,5 +289,5 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                                 "La publicación no existe"
                         ));
     }
-    
+
 }
