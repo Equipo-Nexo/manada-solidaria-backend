@@ -2,6 +2,7 @@ package com.nexo.manada_solidaria_backend.campaigns.integrations;
 
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CampaignType;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest;
+import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.TransitionCampaignStatusRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationFundraisingCampaignStatus;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCategory;
@@ -65,8 +66,12 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(status().is(expectedStatus.value()));
 
         if (expectedStatus.is2xxSuccessful()) {
+            String expectedStatusValue = "NEWS".equals(request.type().name()) && request.newsStartDateTime() == null
+                    ? "STARTED"
+                    : "CREATED";
+
             result.andExpect(jsonPath("$.type").value(expectedType))
-                    .andExpect(jsonPath("$.status").value("CREATED"));
+                    .andExpect(jsonPath("$.status").value(expectedStatusValue));
         }
     }
 
@@ -87,7 +92,7 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andReturn().getResponse().getContentAsString();
 
         UUID generatedId = UUID.fromString(mapper.readTree(responseBody).get("id").asText());
-        Campaign savedCampaign = campaignRepository.findById(generatedId).orElseThrow();
+        Campaign<?, ?> savedCampaign = campaignRepository.findById(generatedId).orElseThrow();
 
         assertThat(savedCampaign.getTitle()).isEqualTo("Operación de mofli");
         assertThat(savedCampaign.getOwner().getId()).isEqualTo(adminId);
@@ -119,7 +124,6 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     @Test
     @DisplayName("GET /campaigns devuelve News y Donation, excluyendo Fundraising")
     void getCampaigns_returnsNewsAndDonation() throws Exception {
-
         var owner = userRepository.findByUsername("admin").orElseThrow();
 
         campaignRepository.save(MockCampaignDataUtils.buildDonationModel(owner));
@@ -141,7 +145,6 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     @Test
     @DisplayName("GET /campaigns?category=VACCINATION devuelve solo noticias de vacunación")
     void getCampaigns_filterVaccination() throws Exception {
-
         var owner = userRepository.findByUsername("admin").orElseThrow();
 
         campaignRepository.save(MockCampaignDataUtils.buildDonationModel(owner));
@@ -159,7 +162,6 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     @Test
     @DisplayName("GET /campaigns?category=DONATION devuelve solo campañas de donación")
     void getCampaigns_filterDonation() throws Exception {
-
         var owner = userRepository.findByUsername("admin").orElseThrow();
 
         campaignRepository.save(MockCampaignDataUtils.buildDonationModel(owner));
@@ -177,7 +179,6 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     @Test
     @DisplayName("GET /fundraising_campaigns devuelve solo campañas de recaudación")
     void getFundraisingCampaigns_returnsOnlyFundraisings() throws Exception {
-
         var owner = userRepository.findByUsername("admin").orElseThrow();
 
         campaignRepository.save(MockCampaignDataUtils.buildDonationModel(owner));
@@ -194,7 +195,6 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     @Test
     @DisplayName("GET /campaigns?category=HOLA devuelve 400")
     void getCampaigns_invalidCategory_returnsBadRequest() throws Exception {
-
         mockMvc.perform(get("/campaigns")
                         .header("Authorization", "Bearer " + accessToken)
                         .param("category", "HOLA"))
@@ -262,6 +262,20 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     @Test
+    @DisplayName("DELETE /campaigns/{id} de una noticia en estado CANCELLED devuelve 409 y no elimina")
+    void delete_cancelledNewsCampaign_returnsConflictAndKeepsCampaign() throws Exception {
+        NewsCampaign campaign = MockCampaignDataUtils.buildNewsModel(admin());
+        campaign.setStatusHistory(new ArrayList<>(List.of(new NewsCampaignStatusHistory(NewsCampaignStatus.CANCELLED, campaign))));
+        UUID campaignId = campaignRepository.save(campaign).getId();
+
+        mockMvc.perform(delete("/campaigns/" + campaignId)
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isConflict());
+
+        assertThat(campaignRepository.findById(campaignId)).isPresent();
+    }
+
+    @Test
     @DisplayName("DELETE /campaigns/{id} inexistente devuelve 404 con mensaje")
     void delete_nonExistentCampaign_returnsNotFound() throws Exception {
         mockMvc.perform(delete("/campaigns/" + UUID.randomUUID())
@@ -315,9 +329,7 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
         mockMvc.perform(put("/campaigns/" + campaignId)
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(toJson(
-                                MockCampaignDataUtils.buildFundraisingUpdateRequest()
-                        )))
+                        .content(toJson(MockCampaignDataUtils.buildFundraisingUpdateRequest())))
                 .andExpect(status().isNoContent());
 
         FundraisingCampaign updated = (FundraisingCampaign) campaignRepository.findById(campaignId).orElseThrow();
@@ -337,9 +349,7 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
         mockMvc.perform(put("/campaigns/" + campaignId)
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(toJson(
-                                MockCampaignDataUtils.buildNewsUpdateRequest()
-                        )))
+                        .content(toJson(MockCampaignDataUtils.buildNewsUpdateRequest())))
                 .andExpect(status().isNoContent());
 
         NewsCampaign updated = (NewsCampaign) campaignRepository.findById(campaignId).orElseThrow();
@@ -352,41 +362,30 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     @Test
     @DisplayName("PUT /campaigns/{id} inexistente devuelve 404")
     void update_nonExistentCampaign_returnsNotFound() throws Exception {
-
         mockMvc.perform(put("/campaigns/" + UUID.randomUUID())
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(toJson(
-                                MockCampaignDataUtils.buildDonationUpdateRequest()
-                        )))
+                        .content(toJson(MockCampaignDataUtils.buildDonationUpdateRequest())))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.errors",
-                        hasItem(containsString("no existe"))));
+                .andExpect(jsonPath("$.errors", hasItem(containsString("no existe"))));
     }
 
     @Test
     @DisplayName("PUT /campaigns/{id} sin token devuelve 401")
     void update_withoutToken_returnsUnauthorized() throws Exception {
-
         mockMvc.perform(put("/campaigns/" + UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(toJson(
-                                MockCampaignDataUtils.buildDonationUpdateRequest()
-                        )))
+                        .content(toJson(MockCampaignDataUtils.buildDonationUpdateRequest())))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     @DisplayName("PUT /campaigns/{id} con token inválido devuelve 401")
     void update_withInvalidToken_returnsUnauthorized() throws Exception {
-
         mockMvc.perform(put("/campaigns/" + UUID.randomUUID())
-                        .header("Authorization",
-                                "Bearer " + INVALID_ACCESS_TOKEN)
+                        .header("Authorization", "Bearer " + INVALID_ACCESS_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(toJson(
-                                MockCampaignDataUtils.buildDonationUpdateRequest()
-                        )))
+                        .content(toJson(MockCampaignDataUtils.buildDonationUpdateRequest())))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -398,9 +397,7 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
         mockMvc.perform(put("/campaigns/" + campaign.getId())
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(toJson(
-                                MockCampaignDataUtils.buildFundraisingUpdateRequestWithoutLocation()
-                        )))
+                        .content(toJson(MockCampaignDataUtils.buildFundraisingUpdateRequestWithoutLocation())))
                 .andExpect(status().isNoContent());
 
         FundraisingCampaign updated = (FundraisingCampaign) campaignRepository.findById(campaign.getId()).orElseThrow();
@@ -415,9 +412,7 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
         mockMvc.perform(put("/campaigns/" + campaign.getId())
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(toJson(
-                                MockCampaignDataUtils.buildNewsUpdateRequestWithoutLocation()
-                        )))
+                        .content(toJson(MockCampaignDataUtils.buildNewsUpdateRequestWithoutLocation())))
                 .andExpect(status().isBadRequest());
     }
 
@@ -428,7 +423,6 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
     )
     void getCampaign(String testName, UUID id, String expectedType, String expectedTitle, Integer expectedItems) throws Exception {
-
         ResultActions result = mockMvc.perform(
                 get("/campaigns/" + id)
                         .header("Authorization", "Bearer " + accessToken)
@@ -447,18 +441,15 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     @Test
     @DisplayName("GET /campaigns/{id} inexistente devuelve 404")
     void getCampaign_nonExisting_returnsNotFound() throws Exception {
-
         mockMvc.perform(get("/campaigns/" + UUID.randomUUID())
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.errors",
-                        hasItem(containsString("no existe"))));
+                .andExpect(jsonPath("$.errors", hasItem(containsString("no existe"))));
     }
 
     @Test
     @DisplayName("GET /campaigns/{id} sin token devuelve 401")
     void getCampaign_withoutToken_returnsUnauthorized() throws Exception {
-
         mockMvc.perform(get("/campaigns/" + UUID.randomUUID()))
                 .andExpect(status().isUnauthorized());
     }
@@ -466,7 +457,6 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     @Test
     @DisplayName("GET /campaigns/{id} con token inválido devuelve 401")
     void getCampaign_withInvalidToken_returnsUnauthorized() throws Exception {
-
         mockMvc.perform(get("/campaigns/" + UUID.randomUUID())
                         .header("Authorization", "Bearer " + INVALID_ACCESS_TOKEN))
                 .andExpect(status().isUnauthorized());
@@ -492,19 +482,15 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                                 .header("Authorization", "Bearer " + accessToken)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(toJson(
-                                        new com.nexo.manada_solidaria_backend.campaigns.controllers.requests.TransitionCampaignStatusRequest(
-                                                targetStatus.name()
-                                        )
+                                        new TransitionCampaignStatusRequest(targetStatus.name())
                                 ))
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(targetStatus.name()));
 
-        Campaign<?, ?> updated =
-                campaignRepository.findById(campaign.getId()).orElseThrow();
+        Campaign<?, ?> updated = campaignRepository.findById(campaign.getId()).orElseThrow();
 
-        assertThat(updated.getCurrentStatus().getStatus())
-                .isEqualTo(targetStatus);
+        assertThat(updated.getCurrentStatus().getStatus()).isEqualTo(targetStatus);
     }
 
     @ParameterizedTest(name = "{index} - {0}")
@@ -523,23 +509,18 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
         );
 
         mockMvc.perform(
-                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                                .patch("/campaigns/" + campaign.getId() + "/status")
+                        patch("/campaigns/" + campaign.getId() + "/status")
                                 .header("Authorization", "Bearer " + accessToken)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(toJson(
-                                        new com.nexo.manada_solidaria_backend.campaigns.controllers.requests.TransitionCampaignStatusRequest(
-                                                targetStatus.name()
-                                        )
+                                        new TransitionCampaignStatusRequest(targetStatus.name())
                                 ))
                 )
                 .andExpect(status().isConflict());
 
-        Campaign<?, ?> unchanged =
-                campaignRepository.findById(campaign.getId()).orElseThrow();
+        Campaign<?, ?> unchanged = campaignRepository.findById(campaign.getId()).orElseThrow();
 
-        assertThat(unchanged.getCurrentStatus().getStatus())
-                .isEqualTo(currentStatus);
+        assertThat(unchanged.getCurrentStatus().getStatus()).isEqualTo(currentStatus);
     }
 
     @ParameterizedTest(name = "{index} - {0}")
@@ -564,32 +545,26 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
 
         userRepository.save(other);
 
-        Campaign<?, ?> campaign =
-                saveCampaignWithStatusOwnedByUser(
-                        campaignType,
-                        currentStatus,
-                        other
-                );
+        Campaign<?, ?> campaign = saveCampaignWithStatusOwnedByUser(
+                campaignType,
+                currentStatus,
+                other
+        );
 
         mockMvc.perform(
-                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                                .patch("/campaigns/" + campaign.getId() + "/status")
+                        patch("/campaigns/" + campaign.getId() + "/status")
                                 .header("Authorization", "Bearer " + accessToken)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(toJson(
-                                        new com.nexo.manada_solidaria_backend.campaigns.controllers.requests.TransitionCampaignStatusRequest(
-                                                targetStatus
-                                        )
+                                        new TransitionCampaignStatusRequest(targetStatus)
                                 ))
                 )
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.errors", hasItem(containsString(FORBIDDEN_MESSAGE))));
 
-        Campaign<?, ?> unchanged =
-                campaignRepository.findById(campaign.getId()).orElseThrow();
+        Campaign<?, ?> unchanged = campaignRepository.findById(campaign.getId()).orElseThrow();
 
-        assertThat(unchanged.getCurrentStatus().getStatus().name())
-                .isEqualTo(currentStatus);
+        assertThat(unchanged.getCurrentStatus().getStatus().name()).isEqualTo(currentStatus);
     }
 
     @Test
@@ -597,38 +572,28 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     void transitionStatus_nonExistingCampaign_returnsNotFound() throws Exception {
 
         mockMvc.perform(
-                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                                .patch("/campaigns/" + UUID.randomUUID() + "/status")
+                        patch("/campaigns/" + UUID.randomUUID() + "/status")
                                 .header("Authorization", "Bearer " + accessToken)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(toJson(
-                                        new com.nexo.manada_solidaria_backend.campaigns.controllers.requests.TransitionCampaignStatusRequest(
-                                                "FINISHED"
-                                        )
+                                        new TransitionCampaignStatusRequest("CANCELLED")
                                 ))
                 )
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.errors",
-                        hasItem(containsString("no existe"))));
+                .andExpect(jsonPath("$.errors", hasItem(containsString("no existe"))));
     }
 
     @Test
     @DisplayName("PATCH /campaigns/{id}/status sin token devuelve 401")
     void transitionStatus_withoutToken_returnsUnauthorized() throws Exception {
 
-        UUID campaignId =
-                campaignRepository.save(
-                        MockCampaignDataUtils.buildDonationModel(admin())
-                ).getId();
+        UUID campaignId = campaignRepository.save(MockCampaignDataUtils.buildDonationModel(admin())).getId();
 
         mockMvc.perform(
-                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                                .patch("/campaigns/" + campaignId + "/status")
+                        patch("/campaigns/" + campaignId + "/status")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(toJson(
-                                        new com.nexo.manada_solidaria_backend.campaigns.controllers.requests.TransitionCampaignStatusRequest(
-                                                "COMPLETED"
-                                        )
+                                        new TransitionCampaignStatusRequest("COMPLETED")
                                 ))
                 )
                 .andExpect(status().isUnauthorized());
@@ -638,20 +603,14 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     @DisplayName("PATCH /campaigns/{id}/status con token inválido devuelve 401")
     void transitionStatus_withInvalidToken_returnsUnauthorized() throws Exception {
 
-        UUID campaignId =
-                campaignRepository.save(
-                        MockCampaignDataUtils.buildDonationModel(admin())
-                ).getId();
+        UUID campaignId = campaignRepository.save(MockCampaignDataUtils.buildDonationModel(admin())).getId();
 
         mockMvc.perform(
-                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                                .patch("/campaigns/" + campaignId + "/status")
+                        patch("/campaigns/" + campaignId + "/status")
                                 .header("Authorization", "Bearer " + INVALID_ACCESS_TOKEN)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(toJson(
-                                        new com.nexo.manada_solidaria_backend.campaigns.controllers.requests.TransitionCampaignStatusRequest(
-                                                "COMPLETED"
-                                        )
+                                        new TransitionCampaignStatusRequest("COMPLETED")
                                 ))
                 )
                 .andExpect(status().isUnauthorized());
@@ -661,14 +620,10 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     @DisplayName("PATCH /campaigns/{id}/status con estado vacío devuelve 400")
     void transitionStatus_blankStatus_returnsBadRequest() throws Exception {
 
-        UUID campaignId =
-                campaignRepository.save(
-                        MockCampaignDataUtils.buildDonationModel(admin())
-                ).getId();
+        UUID campaignId = campaignRepository.save(MockCampaignDataUtils.buildDonationModel(admin())).getId();
 
         mockMvc.perform(
-                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                                .patch("/campaigns/" + campaignId + "/status")
+                        patch("/campaigns/" + campaignId + "/status")
                                 .header("Authorization", "Bearer " + accessToken)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
@@ -684,14 +639,10 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     @DisplayName("PATCH /campaigns/{id}/status con estado inexistente devuelve 400")
     void transitionStatus_invalidStatus_returnsBadRequest() throws Exception {
 
-        UUID campaignId =
-                campaignRepository.save(
-                        MockCampaignDataUtils.buildDonationModel(admin())
-                ).getId();
+        UUID campaignId = campaignRepository.save(MockCampaignDataUtils.buildDonationModel(admin())).getId();
 
         mockMvc.perform(
-                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                                .patch("/campaigns/" + campaignId + "/status")
+                        patch("/campaigns/" + campaignId + "/status")
                                 .header("Authorization", "Bearer " + accessToken)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
@@ -707,13 +658,10 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     @DisplayName("PUT /campaigns/{id} completa automáticamente una recaudación al alcanzar el monto objetivo y setea finishedAt")
     void update_fundraising_reachesGoal_completesCampaign() throws Exception {
 
-        FundraisingCampaign campaign =
-                MockCampaignDataUtils.buildFundraisingModel(admin());
-
+        FundraisingCampaign campaign = MockCampaignDataUtils.buildFundraisingModel(admin());
         UUID campaignId = campaignRepository.save(campaign).getId();
 
-        UpdateCampaignRequest request =
-                MockCampaignDataUtils.buildFundraisingUpdateRequestWithAmountCollected(100000L);
+        UpdateCampaignRequest request = MockCampaignDataUtils.buildFundraisingUpdateRequestWithAmountCollected(100000L);
 
         mockMvc.perform(put("/campaigns/" + campaignId)
                         .header("Authorization", "Bearer " + accessToken)
@@ -721,15 +669,11 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                         .content(toJson(request)))
                 .andExpect(status().isNoContent());
 
-        FundraisingCampaign updated =
-                (FundraisingCampaign) campaignRepository.findById(campaignId).orElseThrow();
+        FundraisingCampaign updated = (FundraisingCampaign) campaignRepository.findById(campaignId).orElseThrow();
 
         assertThat(updated.getAmountCollected()).isEqualTo(100000L);
         assertThat(updated.getAmountToBeCollected()).isEqualTo(100000L);
-
-        assertThat(updated.getCurrentStatus().getStatus())
-                .isEqualTo(DonationFundraisingCampaignStatus.COMPLETED);
-
+        assertThat(updated.getCurrentStatus().getStatus()).isEqualTo(DonationFundraisingCampaignStatus.COMPLETED);
         assertThat(updated.getFinishedAt()).isNotNull();
     }
 
@@ -737,13 +681,10 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     @DisplayName("PUT /campaigns/{id} no completa automáticamente una recaudación si no alcanzó el monto objetivo")
     void update_fundraising_doesNotCompleteBeforeReachingGoal() throws Exception {
 
-        FundraisingCampaign campaign =
-                MockCampaignDataUtils.buildFundraisingModel(admin());
-
+        FundraisingCampaign campaign = MockCampaignDataUtils.buildFundraisingModel(admin());
         UUID campaignId = campaignRepository.save(campaign).getId();
 
-        UpdateCampaignRequest request =
-                MockCampaignDataUtils.buildFundraisingUpdateRequestWithAmountCollected(25000L);
+        UpdateCampaignRequest request = MockCampaignDataUtils.buildFundraisingUpdateRequestWithAmountCollected(25000L);
 
         mockMvc.perform(put("/campaigns/" + campaignId)
                         .header("Authorization", "Bearer " + accessToken)
@@ -751,13 +692,10 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                         .content(toJson(request)))
                 .andExpect(status().isNoContent());
 
-        FundraisingCampaign updated =
-                (FundraisingCampaign) campaignRepository.findById(campaignId).orElseThrow();
+        FundraisingCampaign updated = (FundraisingCampaign) campaignRepository.findById(campaignId).orElseThrow();
 
         assertThat(updated.getAmountCollected()).isEqualTo(25000L);
-        assertThat(updated.getCurrentStatus().getStatus())
-                .isEqualTo(DonationFundraisingCampaignStatus.CREATED);
-
+        assertThat(updated.getCurrentStatus().getStatus()).isEqualTo(DonationFundraisingCampaignStatus.CREATED);
         assertThat(updated.getFinishedAt()).isNull();
     }
 
@@ -765,15 +703,14 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
         return userRepository.findByUsername("admin").orElseThrow();
     }
 
-    private Campaign saveCampaignOwnedByOtherUser() {
+    private Campaign<?, ?> saveCampaignOwnedByOtherUser() {
         User other = new User("otro-campaign-user", "x", new Profile("otro@mail.com", new PhoneNumber("3533", "436249"), Set.of(Rol.COMMUNITY)));
         userRepository.save(other);
         return campaignRepository.save(MockCampaignDataUtils.buildDonationModel(other));
     }
 
-    private Campaign saveDonationWithStatus(User owner, DonationFundraisingCampaignStatus status) {
+    private Campaign<?, ?> saveDonationWithStatus(User owner, DonationFundraisingCampaignStatus status) {
         DonationCampaign campaign = MockCampaignDataUtils.buildDonationModel(owner);
-        // Fila con finishedAt == null: es el estado vigente que resuelve getCurrentStatus().
         campaign.setStatusHistory(new ArrayList<>(List.of(new DonationCampaignStatusHistory(status, campaign))));
         return campaignRepository.save(campaign);
     }
@@ -783,56 +720,23 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
 
         return switch (type) {
             case DONATION -> {
-                DonationCampaign campaign =
-                        MockCampaignDataUtils.buildDonationModel(owner);
-
-                DonationFundraisingCampaignStatus campaignStatus =
-                        DonationFundraisingCampaignStatus.valueOf(status);
-
-                campaign.setStatusHistory(new ArrayList<>(
-                        List.of(
-                                new DonationCampaignStatusHistory(
-                                        campaignStatus,
-                                        campaign
-                                )
-                        )
-                ));
-
+                DonationCampaign campaign = MockCampaignDataUtils.buildDonationModel(owner);
+                DonationFundraisingCampaignStatus campaignStatus = DonationFundraisingCampaignStatus.valueOf(status);
+                campaign.setStatusHistory(new ArrayList<>(List.of(new DonationCampaignStatusHistory(campaignStatus, campaign))));
                 yield campaignRepository.save(campaign);
             }
 
             case FUNDRAISING -> {
-                FundraisingCampaign campaign =
-                        MockCampaignDataUtils.buildFundraisingModel(owner);
-
-                DonationFundraisingCampaignStatus campaignStatus =
-                        DonationFundraisingCampaignStatus.valueOf(status);
-
-                campaign.setStatusHistory(new ArrayList<>(
-                        List.of(
-                                new FundraisingCampaignStatusHistory(
-                                        campaignStatus,
-                                        campaign
-                                )
-                        )
-                ));
-
+                FundraisingCampaign campaign = MockCampaignDataUtils.buildFundraisingModel(owner);
+                DonationFundraisingCampaignStatus campaignStatus = DonationFundraisingCampaignStatus.valueOf(status);
+                campaign.setStatusHistory(new ArrayList<>(List.of(new FundraisingCampaignStatusHistory(campaignStatus, campaign))));
                 yield campaignRepository.save(campaign);
             }
 
             case NEWS -> {
                 NewsCampaign campaign = MockCampaignDataUtils.buildNewsModel(owner);
                 NewsCampaignStatus campaignStatus = NewsCampaignStatus.valueOf(status);
-
-                campaign.setStatusHistory(new ArrayList<>(
-                        List.of(
-                                new NewsCampaignStatusHistory(
-                                        campaignStatus,
-                                        campaign
-                                )
-                        )
-                ));
-
+                campaign.setStatusHistory(new ArrayList<>(List.of(new NewsCampaignStatusHistory(campaignStatus, campaign))));
                 yield campaignRepository.save(campaign);
             }
         };
@@ -845,44 +749,26 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
     ) {
         return switch (type) {
             case DONATION -> {
-                DonationCampaign campaign =
-                        MockCampaignDataUtils.buildDonationModel(owner);
-
+                DonationCampaign campaign = MockCampaignDataUtils.buildDonationModel(owner);
                 campaign.setStatusHistory(new ArrayList<>(List.of(
-                        new DonationCampaignStatusHistory(
-                                DonationFundraisingCampaignStatus.valueOf(status),
-                                campaign
-                        )
+                        new DonationCampaignStatusHistory(DonationFundraisingCampaignStatus.valueOf(status), campaign)
                 )));
-
                 yield campaignRepository.save(campaign);
             }
 
             case FUNDRAISING -> {
-                FundraisingCampaign campaign =
-                        MockCampaignDataUtils.buildFundraisingModel(owner);
-
+                FundraisingCampaign campaign = MockCampaignDataUtils.buildFundraisingModel(owner);
                 campaign.setStatusHistory(new ArrayList<>(List.of(
-                        new FundraisingCampaignStatusHistory(
-                                DonationFundraisingCampaignStatus.valueOf(status),
-                                campaign
-                        )
+                        new FundraisingCampaignStatusHistory(DonationFundraisingCampaignStatus.valueOf(status), campaign)
                 )));
-
                 yield campaignRepository.save(campaign);
             }
 
             case NEWS -> {
-                NewsCampaign campaign =
-                        MockCampaignDataUtils.buildNewsModel(owner);
-
+                NewsCampaign campaign = MockCampaignDataUtils.buildNewsModel(owner);
                 campaign.setStatusHistory(new ArrayList<>(List.of(
-                        new NewsCampaignStatusHistory(
-                                NewsCampaignStatus.valueOf(status),
-                                campaign
-                        )
+                        new NewsCampaignStatusHistory(NewsCampaignStatus.valueOf(status), campaign)
                 )));
-
                 yield campaignRepository.save(campaign);
             }
         };
