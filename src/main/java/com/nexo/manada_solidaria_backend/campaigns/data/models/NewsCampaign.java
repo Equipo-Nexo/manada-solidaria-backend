@@ -107,7 +107,7 @@ public class NewsCampaign extends Campaign<NewsCampaignStatus, NewsCampaignStatu
                     false;
 
             case STARTED ->
-                    target == NewsCampaignStatus.CANCELLED;
+                    target == NewsCampaignStatus.CANCELLED || target == NewsCampaignStatus.FINISHED;
 
             case FINISHED, CANCELLED ->
                     false;
