@@ -8,6 +8,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.Animal;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
 import com.nexo.manada_solidaria_backend.common.controllers.responses.LocationResponse;
 import com.nexo.manada_solidaria_backend.common.controllers.responses.PhoneNumberResponse;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -16,7 +17,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
-
 
 public record AnimalPostResponse(
         UUID id,
@@ -33,10 +33,11 @@ public record AnimalPostResponse(
         OwnerResponse owner,
         BigDecimal reward,
         long reactionsCount,
-        boolean reactedByMe
+        boolean reactedByMe,
+        Boolean hasCompletedAdoptionForm
 ) {
 
-    public static AnimalPostResponse from(AnimalPost post, boolean reactedByMe) {
+    public static AnimalPostResponse from(AnimalPost post, boolean reactedByMe, Boolean hasCompletedAdoptionForm) {
         return new AnimalPostResponse(
                 post.getId(),
                 post.getType(),
@@ -54,7 +55,8 @@ public record AnimalPostResponse(
                 OwnerResponse.from(post.getOwner()),
                 post instanceof LostPost lost ? lost.getReward() : null,
                 post.getReactionsCount(),
-                reactedByMe
+                reactedByMe,
+                hasCompletedAdoptionForm
         );
     }
 
@@ -77,5 +79,4 @@ public record AnimalPostResponse(
             );
         }
     }
-
 }

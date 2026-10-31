@@ -967,6 +967,28 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         assertThat(delivery.getStatusHistory().getLast().getStatus()).isEqualTo(NotificationStatus.SENT);
     }
 
+    @Test
+    @DisplayName("GET /animal-posts — Devuelve hasCompletedAdoptionForm como true/false en adopciones y null en perdidos")
+    void getAnimalPosts_returnsHasCompletedAdoptionFormCorrectly() throws Exception {
+        User postOwner = saveUserWithRoleAndGet("owner-post", Rol.COMMUNITY);
+        User applicant = admin();
+
+        AdoptionPost adoptionPostWithForm = saveAdoptionPost("Adopción con formulario", StatusAdoptionPost.SEARCHING_ADOPT, postOwner);
+        AdoptionPost adoptionPostWithoutForm = saveAdoptionPost("Adopción sin formulario", StatusAdoptionPost.SEARCHING_ADOPT, postOwner);
+        LostPost lostPost = saveLostPost("Perdido", StatusLostPost.SEARCHING);
+
+        adoptionFormRepository.save(form);
+
+        mockMvc.perform(
+                        get("/animal-posts")
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[?(@.id == '" + adoptionPostWithForm.getId() + "')].hasCompletedAdoptionForm", hasItem(true)))
+                .andExpect(jsonPath("$.content[?(@.id == '" + adoptionPostWithoutForm.getId() + "')].hasCompletedAdoptionForm", hasItem(false)))
+                .andExpect(jsonPath("$.content[?(@.id == '" + lostPost.getId() + "')].hasCompletedAdoptionForm", hasItem(nullValue())));
+    }
+
     private void seedTransitScenario() {
         notificationRepository.save(new Notification(
                 "🏠 Un animal necesita hogar de tránsito",
@@ -1213,6 +1235,12 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
 
     private AdoptionPost saveAdoptionPost(String name, StatusAdoptionPost status) {
         return saveAdoptionPost(name, status, animal());
+    }
+
+    private AdoptionPost saveAdoptionPost(String name, StatusAdoptionPost status, User owner) {
+        AdoptionPost post = new AdoptionPost(name, "Descripción", "cf-img", null, new PhoneNumber("3533", "436249"), owner, animal(), location(), false);
+        post.setStatusHistory(new ArrayList<>(List.of(new AdoptionPostStatusHistory(status, post))));
+        return animalPostRepository.save(post);
     }
 
     private AdoptionPost saveAdoptionPost(String name, StatusAdoptionPost status, Animal animal) {

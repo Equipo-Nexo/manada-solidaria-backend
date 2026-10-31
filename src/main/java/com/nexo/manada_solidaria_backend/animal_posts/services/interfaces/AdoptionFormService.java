@@ -10,6 +10,7 @@ import com.nexo.manada_solidaria_backend.auth.components.pre_filters.AnimalPostO
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public interface AdoptionFormService {
@@ -23,4 +24,6 @@ public interface AdoptionFormService {
     AdoptionFormDetailResponse getFormById(UUID adoptionFormId, User authenticatedUser);
 
     void markAsRead(UUID formId, User authenticatedUser);
+
+    Set<UUID> getPostIdsWithFormByApplicant(User applicant, List<UUID> postIds);
 }
