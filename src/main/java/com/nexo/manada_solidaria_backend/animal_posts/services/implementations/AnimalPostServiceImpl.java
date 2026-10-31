@@ -36,10 +36,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -47,6 +51,11 @@ import java.util.UUID;
 public class AnimalPostServiceImpl implements AnimalPostService {
 
     private static final int RECENT_DAYS = 7;
+    private static final int INACTIVITY_DAYS = 120;
+    private static final Set<String> EXPIRABLE_STATUSES = Stream.concat(
+            EnumSet.complementOf(EnumSet.copyOf(LostPost.FINAL_STATUSES)).stream(),
+            EnumSet.complementOf(EnumSet.copyOf(AdoptionPost.FINAL_STATUSES)).stream()
+    ).map(Enum::name).collect(Collectors.toSet());
 
     private final AnimalPostRepository animalPostRepository;
     private final ReactionRepository reactionRepository;
@@ -92,8 +101,8 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                 request.animalGender(),
                 request.animalAge(),
                 request.animalColor(),
-                LostPost.HAPPY_STATUSES,
-                AdoptionPost.HAPPY_STATUSES,
+                LostPost.FINAL_STATUSES,
+                AdoptionPost.FINAL_STATUSES,
                 pageable
         );
         Set<UUID> reactedPostIds = reactedPostIds(posts.getContent(), authenticatedUser);
@@ -213,10 +222,24 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     @Override
     @Transactional(readOnly = true)
     public List<AnimalPostResponse> getActiveLostPosts() {
-        return animalPostRepository.findActiveLostPosts(LostPost.HAPPY_STATUSES)
+        return animalPostRepository.findActiveLostPosts(LostPost.FINAL_STATUSES)
                 .stream()
                 .map(post -> AnimalPostResponse.from(post, false))
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public void expireInactivePosts() {
+        List<AnimalPost<?, ?>> inactive = animalPostRepository.findWithoutActivitySince(
+                LocalDateTime.now().minusDays(INACTIVITY_DAYS),
+                EXPIRABLE_STATUSES
+        );
+
+        if (!inactive.isEmpty()) {
+            log.info("Expiring {} animal posts without activity", inactive.size());
+            inactive.forEach(AnimalPost::expire);
+        }
     }
 
     @Override

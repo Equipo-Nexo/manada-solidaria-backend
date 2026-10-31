@@ -452,7 +452,11 @@ public class MockAnimalPostDataUtils {
                 Arguments.of("Uno de la calle NO puede pasar a encontrado", AnimalPostFilter.IN_STREET, "TO_RESCUE", "FOUND", HttpStatus.CONFLICT),
                 Arguments.of("Un perdido con dueno NO puede pasar a rescatado", AnimalPostFilter.LOST, "SEARCHING", "RESCUED", HttpStatus.CONFLICT),
                 Arguments.of("Uno de la calle ya rescatado no puede volver a transicionar", AnimalPostFilter.IN_STREET, "RESCUED", "RESCUED", HttpStatus.CONFLICT),
-                Arguments.of("No se puede transicionar desde CREATED", AnimalPostFilter.LOST, "CREATED", "FOUND", HttpStatus.CONFLICT)
+                Arguments.of("No se puede transicionar desde CREATED", AnimalPostFilter.LOST, "CREATED", "FOUND", HttpStatus.CONFLICT),
+                Arguments.of("Un perdido no se puede expirar a mano", AnimalPostFilter.LOST, "SEARCHING", "EXPIRED", HttpStatus.CONFLICT),
+                Arguments.of("Una adopcion no se puede expirar a mano", AnimalPostFilter.ADOPTION, "SEARCHING_ADOPT", "EXPIRED", HttpStatus.CONFLICT),
+                Arguments.of("Un perdido expirado no puede volver a transicionar", AnimalPostFilter.LOST, "EXPIRED", "FOUND", HttpStatus.CONFLICT),
+                Arguments.of("Una adopcion expirada no puede volver a transicionar", AnimalPostFilter.ADOPTION, "EXPIRED", "ADOPTED", HttpStatus.CONFLICT)
         );
     }
 
@@ -471,7 +475,9 @@ public class MockAnimalPostDataUtils {
                 Arguments.of("Una adopcion que busca transito se republica", AnimalPostFilter.ADOPTION, "SEARCHING_ADOPT_AND_TRANSIT", HttpStatus.NO_CONTENT),
                 Arguments.of("Un perdido ya encontrado no se republica", AnimalPostFilter.LOST, "FOUND", HttpStatus.CONFLICT),
                 Arguments.of("Uno de la calle ya rescatado no se republica", AnimalPostFilter.IN_STREET, "RESCUED", HttpStatus.CONFLICT),
-                Arguments.of("Una adopcion ya adoptada no se republica", AnimalPostFilter.ADOPTION, "ADOPTED", HttpStatus.CONFLICT)
+                Arguments.of("Una adopcion ya adoptada no se republica", AnimalPostFilter.ADOPTION, "ADOPTED", HttpStatus.CONFLICT),
+                Arguments.of("Un perdido expirado no se republica", AnimalPostFilter.LOST, "EXPIRED", HttpStatus.CONFLICT),
+                Arguments.of("Una adopcion expirada no se republica", AnimalPostFilter.ADOPTION, "EXPIRED", HttpStatus.CONFLICT)
         );
     }
 
@@ -570,9 +576,28 @@ public class MockAnimalPostDataUtils {
                 Arguments.of("Sin status no trae a un perdido encontrado", AnimalPostFilter.LOST, "FOUND", 0),
                 Arguments.of("Sin status no trae a uno de la calle rescatado", AnimalPostFilter.IN_STREET, "RESCUED", 0),
                 Arguments.of("Sin status no trae a una adopcion adoptada", AnimalPostFilter.ADOPTION, "ADOPTED", 0),
+                Arguments.of("Sin status no trae a un perdido expirado", AnimalPostFilter.LOST, "EXPIRED", 0),
+                Arguments.of("Sin status no trae a uno de la calle expirado", AnimalPostFilter.IN_STREET, "EXPIRED", 0),
+                Arguments.of("Sin status no trae a una adopcion expirada", AnimalPostFilter.ADOPTION, "EXPIRED", 0),
                 Arguments.of("Sin status trae a un perdido en busqueda", AnimalPostFilter.LOST, "SEARCHING", 1),
                 Arguments.of("Sin status trae a uno de la calle para rescatar", AnimalPostFilter.IN_STREET, "TO_RESCUE", 1),
                 Arguments.of("Sin status trae a una adopcion en busqueda", AnimalPostFilter.ADOPTION, "SEARCHING_ADOPT", 1)
+        );
+    }
+
+    private static Stream<Arguments> provideExpirationCases() {
+        return Stream.of(
+                Arguments.of("Un perdido en busqueda sin actividad hace 121 dias expira", AnimalPostFilter.LOST, "SEARCHING", 121, null, true),
+                Arguments.of("Uno de la calle para rescatar sin actividad hace 121 dias expira", AnimalPostFilter.IN_STREET, "TO_RESCUE", 121, null, true),
+                Arguments.of("Una adopcion buscando adoptante sin actividad hace 121 dias expira", AnimalPostFilter.ADOPTION, "SEARCHING_ADOPT", 121, null, true),
+                Arguments.of("Una adopcion buscando adoptante y transito sin actividad hace 121 dias expira", AnimalPostFilter.ADOPTION, "SEARCHING_ADOPT_AND_TRANSIT", 121, null, true),
+                Arguments.of("Con 119 dias sin actividad todavia no expira", AnimalPostFilter.LOST, "SEARCHING", 119, null, false),
+                Arguments.of("Creada hace 200 dias pero editada hace 10 no expira", AnimalPostFilter.LOST, "SEARCHING", 200, 10, false),
+                Arguments.of("Editada por ultima vez hace 121 dias expira", AnimalPostFilter.ADOPTION, "SEARCHING_ADOPT", 200, 121, true),
+                Arguments.of("Un perdido encontrado no expira", AnimalPostFilter.LOST, "FOUND", 121, null, false),
+                Arguments.of("Uno de la calle rescatado no expira", AnimalPostFilter.IN_STREET, "RESCUED", 121, null, false),
+                Arguments.of("Una adopcion adoptada no expira", AnimalPostFilter.ADOPTION, "ADOPTED", 121, null, false),
+                Arguments.of("Una publicacion ya expirada no vuelve a expirar", AnimalPostFilter.LOST, "EXPIRED", 121, null, false)
         );
     }
 

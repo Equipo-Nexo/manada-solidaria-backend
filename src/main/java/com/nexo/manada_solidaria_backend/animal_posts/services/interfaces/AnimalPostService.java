@@ -52,5 +52,7 @@ public interface AnimalPostService {
 
     List<AnimalPostResponse> getActiveLostPosts();
 
+    void expireInactivePosts();
+
     AdoptionPost getAdoptionPostOrThrow(UUID adoptionPostId);
 }

@@ -16,6 +16,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -31,9 +32,9 @@ public interface AnimalPostRepository extends JpaRepository<AnimalPost, UUID> {
                 OR (:type = 'ADOPTION' AND TYPE(p) = AdoptionPost))
             AND ((:status IS NULL
                     AND NOT EXISTS (SELECT 1 FROM LostPostStatusHistory h
-                                    WHERE h.post.id = p.id AND h.finishedAt IS NULL AND h.status IN :happyLostStatuses)
+                                    WHERE h.post.id = p.id AND h.finishedAt IS NULL AND h.status IN :excludedLostStatuses)
                     AND NOT EXISTS (SELECT 1 FROM AdoptionPostStatusHistory h
-                                    WHERE h.post.id = p.id AND h.finishedAt IS NULL AND h.status IN :happyAdoptionStatuses))
+                                    WHERE h.post.id = p.id AND h.finishedAt IS NULL AND h.status IN :excludedAdoptionStatuses))
                 OR EXISTS (SELECT 1 FROM LostPostStatusHistory h
                            WHERE h.post.id = p.id AND h.finishedAt IS NULL AND cast(h.status as string) = :status)
                 OR EXISTS (SELECT 1 FROM AdoptionPostStatusHistory h
@@ -52,8 +53,8 @@ public interface AnimalPostRepository extends JpaRepository<AnimalPost, UUID> {
             @Param("animalGender") AnimalGender animalGender,
             @Param("animalAge") AnimalAge animalAge,
             @Param("animalColor") String animalColor,
-            @Param("happyLostStatuses") Set<StatusLostPost> happyLostStatuses,
-            @Param("happyAdoptionStatuses") Set<StatusAdoptionPost> happyAdoptionStatuses,
+            @Param("excludedLostStatuses") Set<StatusLostPost> excludedLostStatuses,
+            @Param("excludedAdoptionStatuses") Set<StatusAdoptionPost> excludedAdoptionStatuses,
             Pageable pageable
     );
 
@@ -126,4 +127,18 @@ public interface AnimalPostRepository extends JpaRepository<AnimalPost, UUID> {
             ORDER BY p.createdAt DESC
             """)
     List<LostPost> findActiveLostPosts(@Param("excludedStatuses") Set<StatusLostPost> excludedStatuses);
+
+    @EntityGraph(attributePaths = {"animal", "location", "owner", "owner.profile"})
+    @Query("""
+            SELECT p FROM AnimalPost p
+            WHERE p.updatedAt < :since
+            AND (EXISTS (SELECT 1 FROM LostPostStatusHistory h
+                         WHERE h.post.id = p.id AND h.finishedAt IS NULL AND cast(h.status as string) IN :expirableStatuses)
+                OR EXISTS (SELECT 1 FROM AdoptionPostStatusHistory h
+                           WHERE h.post.id = p.id AND h.finishedAt IS NULL AND cast(h.status as string) IN :expirableStatuses))
+            """)
+    List<AnimalPost<?, ?>> findWithoutActivitySince(
+            @Param("since") LocalDateTime since,
+            @Param("expirableStatuses") Set<String> expirableStatuses
+    );
 }

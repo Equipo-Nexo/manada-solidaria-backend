@@ -24,6 +24,7 @@ import java.util.Set;
 public class AdoptionPost extends AnimalPost<StatusAdoptionPost, AdoptionPostStatusHistory> {
 
     public static final Set<StatusAdoptionPost> HAPPY_STATUSES = Set.of(StatusAdoptionPost.ADOPTED);
+    public static final Set<StatusAdoptionPost> FINAL_STATUSES = Set.of(StatusAdoptionPost.ADOPTED, StatusAdoptionPost.EXPIRED);
 
     @OneToMany(
             mappedBy = "post",
@@ -70,9 +71,14 @@ public class AdoptionPost extends AnimalPost<StatusAdoptionPost, AdoptionPostSta
     protected boolean isTransitionAllowed(StatusAdoptionPost current, StatusAdoptionPost target) {
         return switch (current) {
             case SEARCHING_ADOPT, SEARCHING_ADOPT_AND_TRANSIT ->
-                    target != StatusAdoptionPost.CREATED && target != current;
-            case CREATED, ADOPTED -> false;
+                    target != StatusAdoptionPost.CREATED && target != StatusAdoptionPost.EXPIRED && target != current;
+            case CREATED, ADOPTED, EXPIRED -> false;
         };
+    }
+
+    @Override
+    protected StatusAdoptionPost expiredStatus() {
+        return StatusAdoptionPost.EXPIRED;
     }
 
     @Override
@@ -82,7 +88,7 @@ public class AdoptionPost extends AnimalPost<StatusAdoptionPost, AdoptionPostSta
 
     @Override
     protected Set<StatusAdoptionPost> finalStatuses() {
-        return HAPPY_STATUSES;
+        return FINAL_STATUSES;
     }
 
     private void startSearching(boolean inTransit) {

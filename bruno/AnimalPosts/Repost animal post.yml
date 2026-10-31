@@ -34,5 +34,5 @@ docs: |-
   - 401: sin token o token invalido.
   - 403: la publicacion es de otro usuario.
   - 404: la publicacion no existe.
-  - 409: la publicacion esta finalizada (FOUND, RESCUED o ADOPTED)
+  - 409: la publicacion esta finalizada (FOUND, RESCUED, ADOPTED o EXPIRED)
     { "status": 409, "errors": ["No se puede republicar una publicación finalizada"], ... }

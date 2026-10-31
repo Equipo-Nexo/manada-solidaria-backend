@@ -109,9 +109,17 @@ public abstract class AnimalPost<STATUS extends Enum<STATUS>, HISTORY extends St
 
         current.finish();
         addStatus(target);
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void expire() {
+        getCurrentStatus().finish();
+        addStatus(expiredStatus());
     }
 
     protected abstract Class<STATUS> statusType();
+
+    protected abstract STATUS expiredStatus();
 
     protected abstract boolean isTransitionAllowed(STATUS current, STATUS target);
 

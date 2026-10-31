@@ -39,6 +39,10 @@ settings:
   forwardAuthorizationHeader: true
 
 docs: |-
+  `EXPIRED` (MS-270) lo pone solo el sistema: un cron diario expira las publicaciones abiertas
+  que llevan 120 dias sin editarse ni cambiar de estado. Mandarlo a mano devuelve 409, y una publicacion expirada
+  ya no puede transicionar a ningun estado (409).
+
   Notificacion (MS-205): si una adopcion pasa a SEARCHING_ADOPT_AND_TRANSIT (perdio el transito y lo vuelve a buscar)
   se manda un push y una notificacion de campanita "🏠 Un animal necesita hogar de tránsito" a los usuarios con rol
   TRANSITIONAL_HOME, menos al autor. Ninguna otra transicion notifica. La respuesta no cambia (200).

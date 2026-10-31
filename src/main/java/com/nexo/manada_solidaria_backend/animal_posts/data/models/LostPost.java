@@ -27,6 +27,7 @@ import java.util.Set;
 public class LostPost extends AnimalPost<StatusLostPost, LostPostStatusHistory> {
 
     public static final Set<StatusLostPost> HAPPY_STATUSES = Set.of(StatusLostPost.FOUND, StatusLostPost.RESCUED);
+    public static final Set<StatusLostPost> FINAL_STATUSES = Set.of(StatusLostPost.FOUND, StatusLostPost.RESCUED, StatusLostPost.EXPIRED);
     @Column(nullable = false, updatable = false)
     private boolean hasOwner;
     @Column(precision = 12, scale = 2)
@@ -79,8 +80,13 @@ public class LostPost extends AnimalPost<StatusLostPost, LostPostStatusHistory> 
         return switch (current) {
             case SEARCHING -> target == StatusLostPost.FOUND;
             case TO_RESCUE -> target == StatusLostPost.RESCUED;
-            case CREATED, FOUND, RESCUED -> false;
+            case CREATED, FOUND, RESCUED, EXPIRED -> false;
         };
+    }
+
+    @Override
+    protected StatusLostPost expiredStatus() {
+        return StatusLostPost.EXPIRED;
     }
 
     @Override
@@ -90,6 +96,6 @@ public class LostPost extends AnimalPost<StatusLostPost, LostPostStatusHistory> 
 
     @Override
     protected Set<StatusLostPost> finalStatuses() {
-        return HAPPY_STATUSES;
+        return FINAL_STATUSES;
     }
 }
