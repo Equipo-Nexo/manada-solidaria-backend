@@ -135,6 +135,11 @@ public class CampaignServiceImpl implements CampaignService {
     }
 
     @Override
+    public long countUserCampaigns(User user) {
+        return campaignRepository.countByOwner(user);
+    }
+
+    @Override
     @Transactional
     public CampaignResponse transitionStatus(UUID campaignId, TransitionCampaignStatusRequest request, User authenticatedUser) {
         Campaign<?, ?> campaign = getCampaignOrThrowException(campaignId);

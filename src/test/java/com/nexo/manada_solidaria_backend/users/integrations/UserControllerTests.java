@@ -168,6 +168,31 @@ public class UserControllerTests extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.posts").doesNotExist());
     }
 
+    @DisplayName("GET /users/{userId}/profile devuelve las metricas del usuario del path")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideUserMetricsCases")
+    @Sql(
+            scripts = {
+                    "/sql/users/user-profile-data.sql",
+                    "/sql/users/create-campaigns.sql",
+                    "/sql/users/create-animal-posts.sql",
+                    "/sql/users/create-fundraising.sql",
+                    "/sql/users/user-metrics.sql"
+            },
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    void getUserProfile_returnsMetrics(
+            String testName,
+            UUID userId,
+            int expectedTotalPosts,
+            int expectedHappyCases
+    ) throws Exception {
+        getUserProfile(userId)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.metrics.totalPosts").value(expectedTotalPosts))
+                .andExpect(jsonPath("$.metrics.happyCases").value(expectedHappyCases));
+    }
+
     @DisplayName("Pedir un usuario inexistente devuelve 404")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource(MOCK_DATA + "provideNotFoundCases")

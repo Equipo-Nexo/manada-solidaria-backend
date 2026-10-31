@@ -87,6 +87,24 @@ public interface AnimalPostRepository extends JpaRepository<AnimalPost, UUID> {
     @EntityGraph(attributePaths = {"animal", "location"})
     List<AnimalPost<?, ?>> findAllByOwnerOrderByCreatedAtDesc(User user);
 
+    long countByOwner(User owner);
+
+    @Query("""
+            SELECT count(p) FROM AnimalPost p
+            WHERE p.owner = :owner
+              AND (EXISTS (SELECT 1 FROM LostPostStatusHistory h
+                           WHERE h.post.id = p.id AND h.finishedAt IS NULL
+                             AND h.status IN :happyLostStatuses)
+                OR EXISTS (SELECT 1 FROM AdoptionPostStatusHistory h
+                           WHERE h.post.id = p.id AND h.finishedAt IS NULL
+                             AND h.status IN :happyAdoptionStatuses))
+            """)
+    long countHappyCasesByOwner(
+            @Param("owner") User owner,
+            @Param("happyLostStatuses") Set<StatusLostPost> happyLostStatuses,
+            @Param("happyAdoptionStatuses") Set<StatusAdoptionPost> happyAdoptionStatuses
+    );
+
     @Query("""
             SELECT DISTINCT p.owner.id FROM LostPost p
             WHERE p.animal.type = :animalType

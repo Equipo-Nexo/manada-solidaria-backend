@@ -44,6 +44,10 @@ public interface AnimalPostService {
 
     List<AnimalPostResponse> getUserAnimalPosts(User user, User authenticatedUser);
 
+    long countUserAnimalPosts(User user);
+
+    long countUserHappyCases(User user);
+
     Set<UUID> getSearchingOwnerIds(AnimalType animalType, String animalColor);
 
     List<AnimalPostResponse> getActiveLostPosts();
