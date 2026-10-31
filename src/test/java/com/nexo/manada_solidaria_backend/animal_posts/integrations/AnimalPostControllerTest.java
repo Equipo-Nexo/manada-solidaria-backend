@@ -977,6 +977,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         AdoptionPost adoptionPostWithoutForm = saveAdoptionPost("Adopción sin formulario", StatusAdoptionPost.SEARCHING_ADOPT, postOwner);
         LostPost lostPost = saveLostPost("Perdido", StatusLostPost.SEARCHING);
 
+        AdoptionForm form = new AdoptionForm("Quiero adoptar", new PhoneNumber("353", "123456"), applicant, adoptionPostWithForm);
         adoptionFormRepository.save(form);
 
         mockMvc.perform(
