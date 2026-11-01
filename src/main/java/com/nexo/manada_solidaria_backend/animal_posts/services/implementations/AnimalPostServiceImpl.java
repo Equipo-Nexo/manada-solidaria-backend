@@ -254,6 +254,12 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                 ));
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public UUID getOwnerId(UUID animalPostId) {
+        return getAnimalPostOrThrow(animalPostId).getOwner().getId();
+    }
+
     private static boolean isSearchingTransit(AnimalPost<?, ?> post) {
         return post instanceof AdoptionPost adoptionPost && adoptionPost.isSearchingTransit();
     }

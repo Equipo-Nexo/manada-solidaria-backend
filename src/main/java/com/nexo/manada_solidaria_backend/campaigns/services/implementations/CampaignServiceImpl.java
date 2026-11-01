@@ -176,6 +176,12 @@ public class CampaignServiceImpl implements CampaignService {
         }
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public UUID getOwnerId(UUID campaignId) {
+        return getCampaignOrThrowException(campaignId).getOwner().getId();
+    }
+
     private <T extends Campaign<?, ?>> Page<CampaignResponse> toResponse(
             Page<T> campaigns
     ) {

@@ -1,0 +1,7 @@
+Hola Administradores,
+
+Una publicación ha alcanzado el límite de reportes y requiere su revisión:
+{{postUrl}}
+
+Saludos,
+Equipo de Manada Solidaria
