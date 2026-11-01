@@ -8,6 +8,7 @@ import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCa
 import com.nexo.manada_solidaria_backend.campaigns.controllers.responses.CampaignResponse;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.CampaignCategoryFilter;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCategory;
+import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignStatus;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.Campaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.FundraisingCampaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.repositories.CampaignRepository;
@@ -143,6 +144,7 @@ public class CampaignServiceImpl implements CampaignService {
     @Transactional
     public CampaignResponse transitionStatus(UUID campaignId, TransitionCampaignStatusRequest request, User authenticatedUser) {
         Campaign<?, ?> campaign = getCampaignOrThrowException(campaignId);
+        validateManualTransition(campaign, request.status());
         String previousStatus = campaign.getCurrentStatus().getStatus().name();
         campaign.transitionTo(request.status());
 
@@ -219,6 +221,16 @@ public class CampaignServiceImpl implements CampaignService {
                             "fundraisingId", saved.getId()
                     ),
                     new NotificationContext(owner.getId())
+            );
+        }
+    }
+
+    private void validateManualTransition(Campaign<?, ?> campaign, String targetStatus) {
+        if (campaign.getCampaignType() == CampaignType.NEWS &&
+                NewsCampaignStatus.FINISHED.name().equalsIgnoreCase(targetStatus)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "No se puede pasar una noticia a FINISHED manualmente. Este estado es exclusivo para la finalización automática por expiración."
             );
         }
     }

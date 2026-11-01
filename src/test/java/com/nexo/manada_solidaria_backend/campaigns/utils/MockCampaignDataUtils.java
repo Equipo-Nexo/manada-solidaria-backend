@@ -11,9 +11,11 @@ import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignStatus
 import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationCampaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationItem;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.FundraisingCampaign;
+import com.nexo.manada_solidaria_backend.campaigns.data.models.NewsCampaign;
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.locations.controllers.requests.UpdateLocationRequest;
+import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.junit.jupiter.params.provider.Arguments;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -82,7 +84,6 @@ public class MockCampaignDataUtils {
             NewsCampaignCategory.VACCINATION
     );
 
-
     public static final CreateCampaignRequest NEWS_UBICACION_OPCIONAL = new CreateCampaignRequest(
             CampaignType.NEWS,
             "Campaña Limpieza",
@@ -98,7 +99,6 @@ public class MockCampaignDataUtils {
             NEWS_END_DATE,
             NewsCampaignCategory.OTHER
     );
-
 
     public static final CreateCampaignRequest FUNDRAISING_VALID_FULL = new CreateCampaignRequest(
             CampaignType.FUNDRAISING,
@@ -116,7 +116,6 @@ public class MockCampaignDataUtils {
             null
     );
 
-
     public static final CreateCampaignRequest FUNDRAISING_VALID_OPEN = new CreateCampaignRequest(
             CampaignType.FUNDRAISING,
             "Fondo de emergencia",
@@ -132,7 +131,6 @@ public class MockCampaignDataUtils {
             null,
             null
     );
-
 
     public static final CreateCampaignRequest DONATION_VALID = new CreateCampaignRequest(
             CampaignType.DONATION,
@@ -159,7 +157,6 @@ public class MockCampaignDataUtils {
             null
     );
 
-
     private static final CreateCampaignRequest NEWS_WITH_ACCOUNT_ALIAS = new CreateCampaignRequest(
             CampaignType.NEWS,
             "Noticia con Alias",
@@ -175,7 +172,6 @@ public class MockCampaignDataUtils {
             NEWS_END_DATE,
             NewsCampaignCategory.VACCINATION
     );
-
 
     private static final CreateCampaignRequest FUNDRAISING_WITHOUT_ALIAS = new CreateCampaignRequest(
             CampaignType.FUNDRAISING,
@@ -193,7 +189,6 @@ public class MockCampaignDataUtils {
             null
     );
 
-
     private static final CreateCampaignRequest NEWS_WITH_FUNDRAISING_FIELDS = new CreateCampaignRequest(
             CampaignType.NEWS,
             "Noticia inválida",
@@ -209,7 +204,6 @@ public class MockCampaignDataUtils {
             NEWS_END_DATE,
             NewsCampaignCategory.CASTRATION
     );
-
 
     private static final CreateCampaignRequest DONATION_WITHOUT_ITEMS = new CreateCampaignRequest(
             CampaignType.DONATION,
@@ -227,7 +221,6 @@ public class MockCampaignDataUtils {
             null
     );
 
-
     private static final CreateCampaignRequest WITHOUT_TITLE = new CreateCampaignRequest(
             CampaignType.NEWS,
             null,
@@ -244,7 +237,6 @@ public class MockCampaignDataUtils {
             NewsCampaignCategory.OTHER
     );
 
-
     private static final CreateCampaignRequest FUNDRAISING_NEGATIVE_AMOUNT = new CreateCampaignRequest(
             CampaignType.FUNDRAISING,
             "Monto Negativo",
@@ -260,7 +252,6 @@ public class MockCampaignDataUtils {
             null,
             null
     );
-
 
     private static final CreateCampaignRequest FUNDRAISING_PAST_DATE = new CreateCampaignRequest(
             CampaignType.FUNDRAISING,
@@ -342,7 +333,7 @@ public class MockCampaignDataUtils {
             null
     );
 
-    private static Stream<Arguments> provideCreateCases() {
+    public static Stream<Arguments> provideCreateCases() {
         return Stream.of(
                 Arguments.of(
                         "La campaña NEWS se crea correctamente",
@@ -449,10 +440,7 @@ public class MockCampaignDataUtils {
         );
     }
 
-
-    public static com.nexo.manada_solidaria_backend.campaigns.data.models.NewsCampaign buildNewsModel(
-            com.nexo.manada_solidaria_backend.users.data.models.User owner
-    ) {
+    public static NewsCampaign buildNewsModel(User owner) {
         com.nexo.manada_solidaria_backend.locations.data.models.Location location =
                 new com.nexo.manada_solidaria_backend.locations.data.models.Location();
 
@@ -460,7 +448,7 @@ public class MockCampaignDataUtils {
         location.setLatitude(-32.41);
         location.setLongitude(-63.24);
 
-        return new com.nexo.manada_solidaria_backend.campaigns.data.models.NewsCampaign(
+        return new NewsCampaign(
                 "Título Noticia Test",
                 "Descripción Noticia",
                 "img-1",
@@ -474,10 +462,7 @@ public class MockCampaignDataUtils {
         );
     }
 
-
-    public static FundraisingCampaign buildFundraisingModel(
-            com.nexo.manada_solidaria_backend.users.data.models.User owner
-    ) {
+    public static FundraisingCampaign buildFundraisingModel(User owner) {
         com.nexo.manada_solidaria_backend.locations.data.models.Location location =
                 new com.nexo.manada_solidaria_backend.locations.data.models.Location();
 
@@ -499,9 +484,7 @@ public class MockCampaignDataUtils {
         );
     }
 
-    public static DonationCampaign buildDonationModel(
-            com.nexo.manada_solidaria_backend.users.data.models.User owner
-    ) {
+    public static DonationCampaign buildDonationModel(User owner) {
         com.nexo.manada_solidaria_backend.locations.data.models.Location location =
                 new com.nexo.manada_solidaria_backend.locations.data.models.Location();
 
@@ -529,7 +512,6 @@ public class MockCampaignDataUtils {
     }
 
     public static UpdateCampaignRequest buildDonationUpdateRequest() {
-
         return new UpdateCampaignRequest(
                 CampaignType.DONATION,
                 "Título Donación Editado",
@@ -553,9 +535,7 @@ public class MockCampaignDataUtils {
         );
     }
 
-
     public static UpdateCampaignRequest buildFundraisingUpdateRequest() {
-
         return new UpdateCampaignRequest(
                 CampaignType.FUNDRAISING,
                 "Recaudación Editada",
@@ -586,7 +566,7 @@ public class MockCampaignDataUtils {
                 "Nueva descripción sin lugar físico",
                 "img-fundraising-updated",
                 new PhoneNumberRequest("3533", "436249"),
-                null, // Location en NULL
+                null,
                 "nuevo.alias",
                 100000L,
                 25000L,
@@ -598,7 +578,6 @@ public class MockCampaignDataUtils {
     }
 
     public static UpdateCampaignRequest buildNewsUpdateRequest() {
-
         return new UpdateCampaignRequest(
                 CampaignType.NEWS,
                 "Noticia Editada",
@@ -629,7 +608,7 @@ public class MockCampaignDataUtils {
                 "Esta actualización debe fallar",
                 "img-news-updated",
                 new PhoneNumberRequest("3533", "436249"),
-                null, // Location en NULL (Inválido para NEWS)
+                null,
                 null,
                 null,
                 null,
@@ -641,9 +620,7 @@ public class MockCampaignDataUtils {
     }
 
     public static Stream<Arguments> provideGetCampaignCases() {
-
         return Stream.of(
-
                 Arguments.of(
                         "Donation Campaign",
                         UUID.fromString("40000000-0000-0000-0000-000000000001"),
@@ -651,7 +628,6 @@ public class MockCampaignDataUtils {
                         "Título Donación Test",
                         1
                 ),
-
                 Arguments.of(
                         "News Campaign",
                         UUID.fromString("40000000-0000-0000-0000-000000000002"),
@@ -659,7 +635,6 @@ public class MockCampaignDataUtils {
                         "Título Noticia Test",
                         null
                 ),
-
                 Arguments.of(
                         "Fundraising Campaign",
                         UUID.fromString("40000000-0000-0000-0000-000000000003"),
@@ -667,11 +642,10 @@ public class MockCampaignDataUtils {
                         "Título Fundraising Test",
                         null
                 )
-
         );
     }
 
-    private static Stream<Arguments> provideFinalDonationStatuses() {
+    public static Stream<Arguments> provideFinalDonationStatuses() {
         return Stream.of(
                 Arguments.of("Una donacion en estado FINISHED no se puede eliminar", DonationFundraisingCampaignStatus.FINISHED),
                 Arguments.of("Una donacion en estado COMPLETED tampoco se puede eliminar", DonationFundraisingCampaignStatus.COMPLETED)
@@ -693,10 +667,10 @@ public class MockCampaignDataUtils {
                         DonationFundraisingCampaignStatus.COMPLETED
                 ),
                 Arguments.of(
-                        "NEWS STARTED a FINISHED",
+                        "NEWS STARTED a CANCELLED",
                         CampaignType.NEWS,
                         NewsCampaignStatus.STARTED,
-                        NewsCampaignStatus.FINISHED
+                        NewsCampaignStatus.CANCELLED
                 ),
                 Arguments.of(
                         "DONATION CREATED a FINISHED",
@@ -752,10 +726,34 @@ public class MockCampaignDataUtils {
                         NewsCampaignStatus.FINISHED
                 ),
                 Arguments.of(
+                        "NEWS STARTED a FINISHED manualmente (inválido por API)",
+                        CampaignType.NEWS,
+                        NewsCampaignStatus.STARTED,
+                        NewsCampaignStatus.FINISHED
+                ),
+                Arguments.of(
+                        "NEWS CREATED a CANCELLED",
+                        CampaignType.NEWS,
+                        NewsCampaignStatus.CREATED,
+                        NewsCampaignStatus.CANCELLED
+                ),
+                Arguments.of(
                         "NEWS FINISHED a STARTED",
                         CampaignType.NEWS,
                         NewsCampaignStatus.FINISHED,
                         NewsCampaignStatus.STARTED
+                ),
+                Arguments.of(
+                        "NEWS CANCELLED a STARTED",
+                        CampaignType.NEWS,
+                        NewsCampaignStatus.CANCELLED,
+                        NewsCampaignStatus.STARTED
+                ),
+                Arguments.of(
+                        "NEWS CANCELLED a FINISHED",
+                        CampaignType.NEWS,
+                        NewsCampaignStatus.CANCELLED,
+                        NewsCampaignStatus.FINISHED
                 )
         );
     }
@@ -771,7 +769,7 @@ public class MockCampaignDataUtils {
         return Stream.of(
                 Arguments.of("Donation", CampaignType.DONATION, "CREATED", "COMPLETED"),
                 Arguments.of("Fundraising", CampaignType.FUNDRAISING, "CREATED", "COMPLETED"),
-                Arguments.of("News", CampaignType.NEWS, "STARTED", "FINISHED")
+                Arguments.of("News", CampaignType.NEWS, "STARTED", "CANCELLED")
         );
     }
 
