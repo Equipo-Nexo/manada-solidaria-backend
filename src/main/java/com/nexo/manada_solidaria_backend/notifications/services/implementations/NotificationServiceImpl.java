@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -33,6 +34,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Async("notificationExecutor")
+    @Transactional
     public void notify(NotificationType type, Map<String, Object> params, NotificationContext context) {
         sendNotificationsToUsers(type, params, context);
     }

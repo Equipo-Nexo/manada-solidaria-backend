@@ -9,7 +9,7 @@ spring:
     password: password
     driverClassName: org.h2.Driver
   jpa:
-    show-sql: false
+    show-sql: true
     hibernate:
       ddl-auto: update
   mail:
@@ -55,3 +55,16 @@ push:
     public-key: VAPID_PUBLIC_KEY
     private-key: VAPID_PRIVATE_KEY
     subject: mailto:06nexo@gmail.com
+logging:
+  level:
+    com:
+      nexo:
+        manada_solidaria_backend:
+          events: DEBUG
+          notifications: DEBUG
+    org:
+      springframework:
+        transaction: OFF
+        orm:
+          jpa:
+            JpaTransactionManager: OFF

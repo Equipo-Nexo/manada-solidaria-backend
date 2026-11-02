@@ -1,7 +1,6 @@
 package com.nexo.manada_solidaria_backend.notifications.components.notifiers.implementations;
 
 import com.nexo.manada_solidaria_backend.notifications.components.notifiers.NotificationResolver;
-import com.nexo.manada_solidaria_backend.notifications.models.data.Notification;
 import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationChannel;
 import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationDelivery;
 import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationPayload;
@@ -21,8 +20,10 @@ public class InAppNotifier extends NotificationResolver {
 
     @Override
     public void notify(User user, NotificationPayload notification, NotificationType type) {
+        log.debug("Creating notification IN_APP");
         NotificationDelivery delivery = createPendingNotificationDelivery(user, notification, type);
         markNotificationAsSent(delivery);
+        log.debug("Notification IN_APP created");
     }
 
     @Override
