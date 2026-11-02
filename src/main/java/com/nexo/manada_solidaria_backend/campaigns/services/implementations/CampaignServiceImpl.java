@@ -8,6 +8,7 @@ import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCa
 import com.nexo.manada_solidaria_backend.campaigns.controllers.responses.CampaignResponse;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.CampaignCategoryFilter;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCategory;
+import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignStatus;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.Campaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.repositories.CampaignRepository;
 import com.nexo.manada_solidaria_backend.campaigns.services.interfaces.CampaignService;
@@ -141,6 +142,7 @@ public class CampaignServiceImpl implements CampaignService {
     @Transactional
     public CampaignResponse transitionStatus(UUID campaignId, TransitionCampaignStatusRequest request, User authenticatedUser) {
         Campaign<?, ?> campaign = getCampaignOrThrowException(campaignId);
+        validateManualTransition(campaign, request.status());
         String previousStatus = campaign.getCurrentStatus().getStatus().name();
         campaign.transitionTo(request.status());
 
@@ -172,6 +174,12 @@ public class CampaignServiceImpl implements CampaignService {
             log.info("Finalizing {} expired news campaigns", expired.size());
             finalizeCampaigns(expired);
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UUID getOwnerId(UUID campaignId) {
+        return getCampaignOrThrowException(campaignId).getOwner().getId();
     }
 
     private <T extends Campaign<?, ?>> Page<CampaignResponse> toResponse(
@@ -206,5 +214,15 @@ public class CampaignServiceImpl implements CampaignService {
                     campaign.transitionTo("FINISHED");
                     log.info("Campaign automatically finalized by expiration: id={}", campaign.getId());
                 });
+    }
+
+    private void validateManualTransition(Campaign<?, ?> campaign, String targetStatus) {
+        if (campaign.getCampaignType() == CampaignType.NEWS &&
+                NewsCampaignStatus.FINISHED.name().equalsIgnoreCase(targetStatus)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "No se puede pasar una noticia a FINISHED manualmente. Este estado es exclusivo para la finalización automática por expiración."
+            );
+        }
     }
 }

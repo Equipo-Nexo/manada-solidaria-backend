@@ -1,6 +1,7 @@
 package com.nexo.manada_solidaria_backend.animal_posts.data.repositories;
 
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionForm;
+import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -8,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 public interface AdoptionFormRepository extends JpaRepository<AdoptionForm, UUID> {
@@ -33,4 +35,7 @@ public interface AdoptionFormRepository extends JpaRepository<AdoptionForm, UUID
         ORDER BY c.order ASC NULLS LAST, q.order ASC NULLS LAST
     """)
     Optional<AdoptionForm> findByIdWithDetailsOrdered(@Param("id") UUID id);
+
+    @Query("SELECT f.adoptionPost.id FROM AdoptionForm f WHERE f.applicant = :applicant AND f.adoptionPost.id IN :postIds")
+    Set<UUID> findPostIdsWithFormByApplicantAndPostIds(@Param("applicant") User applicant, @Param("postIds") List<UUID> postIds);
 }

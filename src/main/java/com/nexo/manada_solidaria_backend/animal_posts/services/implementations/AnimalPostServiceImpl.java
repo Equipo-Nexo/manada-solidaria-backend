@@ -14,6 +14,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.Reaction;
+import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AdoptionFormRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.ReactionRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
@@ -56,6 +57,7 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     private final AnimalPostFactory animalPostFactory;
     private final EventPublisher eventPublisher;
 
+    private final AdoptionFormRepository adoptionFormRepository;
 
     @Override
     @Transactional
@@ -67,7 +69,7 @@ public class AnimalPostServiceImpl implements AnimalPostService {
         eventPublisher.publishNewAnimalPostEvent(request, owner, saved);
 
         log.info("Animal post created: id={} type={} owner={}", saved.getId(), saved.getType(), owner.getId());
-        return AnimalPostResponse.from(saved, false);
+        return AnimalPostResponse.from(saved, false, null);
     }
 
     @Override
@@ -86,15 +88,25 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                 AdoptionPost.FINAL_STATUSES,
                 pageable
         );
-        Set<UUID> reactedPostIds = reactedPostIds(posts.getContent(), authenticatedUser);
-        return posts.map(post -> AnimalPostResponse.from(post, reactedPostIds.contains(post.getId())));
+
+        List<AnimalPost<?, ?>> postList = posts.getContent();
+        Set<UUID> reactedPostIds = reactedPostIds(postList, authenticatedUser);
+        Set<UUID> postsWithForm = resolveAdoptionFormStatuses(postList, authenticatedUser);
+
+        return posts.map(post -> {
+            Boolean hasForm = (post instanceof AdoptionPost) ? postsWithForm.contains(post.getId()) : null;
+            return AnimalPostResponse.from(post, reactedPostIds.contains(post.getId()), hasForm);
+        });
     }
 
     @Override
     @Transactional(readOnly = true)
     public AnimalPostResponse getAnimalPost(UUID animalPostId, User authenticatedUser) {
         AnimalPost post = getAnimalPostOrThrow(animalPostId);
-        return AnimalPostResponse.from(post, reactionRepository.existsByPostAndOwner(post, authenticatedUser));
+        boolean reactedByMe = reactionRepository.existsByPostAndOwner(post, authenticatedUser);
+        Boolean hasForm = resolveAdoptionFormStatus(post, authenticatedUser);
+
+        return AnimalPostResponse.from(post, reactedByMe, hasForm);
     }
 
     @Override
@@ -119,7 +131,10 @@ public class AnimalPostServiceImpl implements AnimalPostService {
         AnimalPost saved = animalPostRepository.save(post);
 
         eventPublisher.publishAnimalPostStatusChangedEvent(request, authenticatedUser, saved, previousStatus);
-        return AnimalPostResponse.from(saved, reactionRepository.existsByPostAndOwner(saved, authenticatedUser));
+
+        boolean reactedByMe = reactionRepository.existsByPostAndOwner(saved, authenticatedUser);
+        Boolean hasForm = resolveAdoptionFormStatus(saved, authenticatedUser);
+        return AnimalPostResponse.from(saved, reactedByMe, hasForm);
     }
 
     @Override
@@ -175,8 +190,13 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     public List<AnimalPostResponse> getUserAnimalPosts(User user, User authenticatedUser) {
         List<AnimalPost<?, ?>> posts = animalPostRepository.findAllByOwnerOrderByCreatedAtDesc(user);
         Set<UUID> reactedPostIds = reactedPostIds(posts, authenticatedUser);
+        Set<UUID> postsWithForm = resolveAdoptionFormStatuses(posts, authenticatedUser);
+
         return posts.stream()
-                .map(post -> AnimalPostResponse.from(post, reactedPostIds.contains(post.getId())))
+                .map(post -> {
+                    Boolean hasForm = (post instanceof AdoptionPost) ? postsWithForm.contains(post.getId()) : null;
+                    return AnimalPostResponse.from(post, reactedPostIds.contains(post.getId()), hasForm);
+                })
                 .toList();
     }
 
@@ -204,7 +224,7 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     public List<AnimalPostResponse> getActiveLostPosts() {
         return animalPostRepository.findActiveLostPosts(LostPost.FINAL_STATUSES)
                 .stream()
-                .map(post -> AnimalPostResponse.from(post, false))
+                .map(post -> AnimalPostResponse.from(post, false, null))
                 .toList();
     }
 
@@ -232,6 +252,34 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                         HttpStatus.NOT_FOUND,
                         "La publicación de adopción no fue encontrada"
                 ));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UUID getOwnerId(UUID animalPostId) {
+        return getAnimalPostOrThrow(animalPostId).getOwner().getId();
+    }
+
+    private Set<UUID> resolveAdoptionFormStatuses(List<AnimalPost<?, ?>> posts, User authenticatedUser) {
+        if (posts.isEmpty()) {
+            return Set.of();
+        }
+        List<UUID> adoptionPostIds = posts.stream()
+                .filter(post -> post instanceof AdoptionPost)
+                .map(AnimalPost::getId)
+                .toList();
+
+        if (adoptionPostIds.isEmpty()) {
+            return Set.of();
+        }
+        return adoptionFormRepository.findPostIdsWithFormByApplicantAndPostIds(authenticatedUser, adoptionPostIds);
+    }
+
+    private Boolean resolveAdoptionFormStatus(AnimalPost<?, ?> post, User authenticatedUser) {
+        if (!(post instanceof AdoptionPost)) {
+            return null;
+        }
+        return adoptionFormRepository.existsByAdoptionPostIdAndApplicantId(post.getId(), authenticatedUser.getId());
     }
 
     private static boolean isRecentlyResolved(AnimalPost<?, ?> post) {

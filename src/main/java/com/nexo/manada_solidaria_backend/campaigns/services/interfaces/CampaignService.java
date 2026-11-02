@@ -41,4 +41,6 @@ public interface CampaignService {
     void finalizeExpiredDonationAndFundraisingCampaigns();
 
     void finalizeExpiredNewsCampaigns();
+
+    UUID getOwnerId(UUID campaignId);
 }

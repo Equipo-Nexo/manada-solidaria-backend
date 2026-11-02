@@ -857,6 +857,29 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         mockMvc.perform(request).andExpect(status().isUnauthorized());
     }
 
+    @Test
+    @DisplayName("GET /animal-posts — Devuelve hasCompletedAdoptionForm como true/false en adopciones y null en perdidos")
+    void getAnimalPosts_returnsHasCompletedAdoptionFormCorrectly() throws Exception {
+        User postOwner = saveUserWithRoleAndGet("owner-post", Rol.COMMUNITY);
+        User applicant = admin();
+
+        AdoptionPost adoptionPostWithForm = saveAdoptionPost("Adopción con formulario", StatusAdoptionPost.SEARCHING_ADOPT, postOwner);
+        AdoptionPost adoptionPostWithoutForm = saveAdoptionPost("Adopción sin formulario", StatusAdoptionPost.SEARCHING_ADOPT, postOwner);
+        LostPost lostPost = saveLostPost("Perdido", StatusLostPost.SEARCHING);
+
+        AdoptionForm form = new AdoptionForm("Quiero adoptar", new PhoneNumber("353", "123456"), applicant, adoptionPostWithForm);
+        adoptionFormRepository.save(form);
+
+        mockMvc.perform(
+                        get("/animal-posts")
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[?(@.id == '" + adoptionPostWithForm.getId() + "')].hasCompletedAdoptionForm", hasItem(true)))
+                .andExpect(jsonPath("$.content[?(@.id == '" + adoptionPostWithoutForm.getId() + "')].hasCompletedAdoptionForm", hasItem(false)))
+                .andExpect(jsonPath("$.content[?(@.id == '" + lostPost.getId() + "')].hasCompletedAdoptionForm", hasItem(nullValue())));
+    }
+
     private User saveUserWithRoleAndGet(String username, Rol role) {
         return userRepository.save(new User(username, "x",
                 new Profile(username + "@mail.com", new PhoneNumber("353", "4014524"), Set.of(role))));
@@ -1081,6 +1104,12 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         return saveAdoptionPost(name, status, animal());
     }
 
+    private AdoptionPost saveAdoptionPost(String name, StatusAdoptionPost status, User owner) {
+        AdoptionPost post = new AdoptionPost(name, "Descripción", "cf-img", null, new PhoneNumber("3533", "436249"), owner, animal(), location(), false);
+        post.setStatusHistory(new ArrayList<>(List.of(new AdoptionPostStatusHistory(status, post))));
+        return animalPostRepository.save(post);
+    }
+
     private AdoptionPost saveAdoptionPost(String name, StatusAdoptionPost status, Animal animal) {
         AdoptionPost post = new AdoptionPost(name, "Descripción", "cf-img", null, new PhoneNumber("3533", "436249"), admin(), animal, location(), false);
         post.setStatusHistory(new ArrayList<>(List.of(new AdoptionPostStatusHistory(status, post))));
@@ -1101,14 +1130,5 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
 
     private Location location() {
         return new Location("Parque", "Av. Patricias", 100, -34.6, -58.4);
-    }
-
-    private ResultActions postAnimalPost(String body) throws Exception {
-        return mockMvc.perform(
-                post("/animal-posts")
-                        .header("Authorization", "Bearer " + accessToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body)
-        );
     }
 }
