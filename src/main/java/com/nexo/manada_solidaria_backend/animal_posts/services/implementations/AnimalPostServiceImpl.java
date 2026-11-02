@@ -1,7 +1,10 @@
 package com.nexo.manada_solidaria_backend.animal_posts.services.implementations;
 
 import com.nexo.manada_solidaria_backend.animal_posts.components.AnimalPostFactory;
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.*;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAnimalPostRequest;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.GetAnimalPostsRequest;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AnimalPostResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.HappyCaseResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
@@ -16,10 +19,8 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.Reaction
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
 import com.nexo.manada_solidaria_backend.common.utils.EnumUtils;
 import com.nexo.manada_solidaria_backend.events.data.models.AnimalPostCreatedEvent;
-import com.nexo.manada_solidaria_backend.locations.data.models.Location;
+import com.nexo.manada_solidaria_backend.events.data.models.AnimalPostStatusChangedEvent;
 import com.nexo.manada_solidaria_backend.notifications.components.recipients.data.NotificationContext;
-import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
-import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +35,10 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -53,7 +57,6 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     private final AnimalPostRepository animalPostRepository;
     private final ReactionRepository reactionRepository;
     private final AnimalPostFactory animalPostFactory;
-    private final NotificationService notificationService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
@@ -63,30 +66,15 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                 animalPostFactory.buildAnimalPost(request, owner)
         );
 
-
         eventPublisher.publishEvent(new AnimalPostCreatedEvent(
                 saved.getId(),
                 owner.getId(),
                 request.needTransport(),
-                saved.getType()
+                saved.getType(),
+                saved.getLocation(),
+                saved.getCurrentStatus().getStatus().name(),
+                new NotificationContext(owner.getId(), new NotificationContext.AnimalTraits(saved.getAnimal().getType(), saved.getAnimal().getColor()))
         ));
-
-//        if (Boolean.TRUE.equals(request.needTransport())) {
-//            notificationService.notify(
-//                    NotificationType.NEW_CARRIAGE_REQUEST,
-//                    Map.of("postId", saved.getId()));
-//        }
-
-//        if (isStreetAnimal(saved)) {
-//            notificationService.notify(
-//                    NotificationType.SIMILAR_ANIMAL_RECENTLY_LOST,
-//                    Map.of("postId", saved.getId(), "location", describe(saved.getLocation())),
-//                    new NotificationContext(owner.getId(), new AnimalTraits(saved.getAnimal().getType(), saved.getAnimal().getColor())));
-//        }
-
-//        if (isSearchingTransit(saved)) {
-//            notifyTransitHomes(saved);
-//        }
 
         log.info("Animal post created: id={} type={} owner={}", saved.getId(), saved.getType(), owner.getId());
         return AnimalPostResponse.from(saved, false);
@@ -139,9 +127,18 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                 animalPostId, previousStatus, request.status(), authenticatedUser.getId());
 
         AnimalPost saved = animalPostRepository.save(post);
-        if (isSearchingTransit(saved)) {
-            notifyTransitHomes(saved);
-        }
+
+        eventPublisher.publishEvent(
+                new AnimalPostStatusChangedEvent(
+                        saved.getId(),
+                        authenticatedUser.getId(),
+                        previousStatus,
+                        request.status(),
+                        saved.getType()
+                )
+        );
+
+
         return AnimalPostResponse.from(saved, reactionRepository.existsByPostAndOwner(saved, authenticatedUser));
     }
 
@@ -255,25 +252,6 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                         HttpStatus.NOT_FOUND,
                         "La publicación de adopción no fue encontrada"
                 ));
-    }
-
-    private static boolean isSearchingTransit(AnimalPost<?, ?> post) {
-        return post instanceof AdoptionPost adoptionPost && adoptionPost.isSearchingTransit();
-    }
-
-    private void notifyTransitHomes(AnimalPost<?, ?> post) {
-        notificationService.notify(
-                NotificationType.IN_ADOPTION_AND_TRANSIT_PET,
-                Map.of("postId", post.getId()),
-                new NotificationContext(post.getOwner().getId()));
-    }
-
-    private static boolean isStreetAnimal(AnimalPost<?, ?> post) {
-        return post.getType() == AnimalPostFilter.IN_STREET;
-    }
-
-    private static String describe(Location location) {
-        return location.getAddress() + " " + location.getNumber() + ", " + location.getName();
     }
 
     private static boolean isRecentlyResolved(AnimalPost<?, ?> post) {
