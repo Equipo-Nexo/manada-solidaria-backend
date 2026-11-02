@@ -18,13 +18,10 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPo
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.ReactionRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
 import com.nexo.manada_solidaria_backend.common.utils.EnumUtils;
-import com.nexo.manada_solidaria_backend.events.data.models.AnimalPostCreatedEvent;
-import com.nexo.manada_solidaria_backend.events.data.models.AnimalPostStatusChangedEvent;
-import com.nexo.manada_solidaria_backend.notifications.components.recipients.data.NotificationContext;
+import com.nexo.manada_solidaria_backend.events.EventPublisher;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -57,7 +54,8 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     private final AnimalPostRepository animalPostRepository;
     private final ReactionRepository reactionRepository;
     private final AnimalPostFactory animalPostFactory;
-    private final ApplicationEventPublisher eventPublisher;
+    private final EventPublisher eventPublisher;
+
 
     @Override
     @Transactional
@@ -66,7 +64,7 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                 animalPostFactory.buildAnimalPost(request, owner)
         );
 
-        sendNewAnimalPostEvent(request, owner, saved);
+        eventPublisher.publishNewAnimalPostEvent(request, owner, saved);
 
         log.info("Animal post created: id={} type={} owner={}", saved.getId(), saved.getType(), owner.getId());
         return AnimalPostResponse.from(saved, false);
@@ -120,9 +118,7 @@ public class AnimalPostServiceImpl implements AnimalPostService {
 
         AnimalPost saved = animalPostRepository.save(post);
 
-        sendAnimalPostStatusChangedEvent(request, authenticatedUser, saved, previousStatus);
-
-
+        eventPublisher.publishAnimalPostStatusChangedEvent(request, authenticatedUser, saved, previousStatus);
         return AnimalPostResponse.from(saved, reactionRepository.existsByPostAndOwner(saved, authenticatedUser));
     }
 
@@ -251,29 +247,4 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                                 "La publicación no existe"
                         ));
     }
-
-    private void sendNewAnimalPostEvent(CreateAnimalPostRequest request, User owner, AnimalPost saved) {
-        eventPublisher.publishEvent(new AnimalPostCreatedEvent(
-                saved.getId(),
-                owner.getId(),
-                request.needTransport(),
-                saved.getType(),
-                saved.getLocation(),
-                saved.getCurrentStatus().getStatus().name(),
-                new NotificationContext(owner.getId(), new NotificationContext.AnimalTraits(saved.getAnimal().getType(), saved.getAnimal().getColor()))
-        ));
-    }
-
-    private void sendAnimalPostStatusChangedEvent(TransitionStatusRequest request, User authenticatedUser, AnimalPost saved, String previousStatus) {
-        eventPublisher.publishEvent(
-                new AnimalPostStatusChangedEvent(
-                        saved.getId(),
-                        authenticatedUser.getId(),
-                        previousStatus,
-                        request.status(),
-                        saved.getType()
-                )
-        );
-    }
-
 }

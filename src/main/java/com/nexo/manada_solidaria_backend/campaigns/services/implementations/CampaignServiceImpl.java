@@ -11,11 +11,10 @@ import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCatego
 import com.nexo.manada_solidaria_backend.campaigns.data.models.Campaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.repositories.CampaignRepository;
 import com.nexo.manada_solidaria_backend.campaigns.services.interfaces.CampaignService;
-import com.nexo.manada_solidaria_backend.events.data.models.NewCampaignCreatedEvent;
+import com.nexo.manada_solidaria_backend.events.EventPublisher;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -35,13 +34,13 @@ public class CampaignServiceImpl implements CampaignService {
 
     private final CampaignRepository campaignRepository;
     private final CampaignFactory campaignFactory;
-    private final ApplicationEventPublisher eventPublisher;
+    private final EventPublisher eventPublisher;
 
     @Override
     @Transactional
     public CampaignResponse create(CreateCampaignRequest request, User owner) {
         Campaign<?, ?> saved = campaignRepository.save(campaignFactory.buildCampaign(request, owner));
-        publishNewCampaignEvent(owner, saved);
+        eventPublisher.publishNewCampaignEvent(owner, saved);
 
 
         log.info("Campaign created: id={} type={} title='{}' owner={}",
@@ -207,14 +206,5 @@ public class CampaignServiceImpl implements CampaignService {
                     campaign.transitionTo("FINISHED");
                     log.info("Campaign automatically finalized by expiration: id={}", campaign.getId());
                 });
-    }
-
-    private void publishNewCampaignEvent(User owner, Campaign<?, ?> saved) {
-        eventPublisher.publishEvent(new NewCampaignCreatedEvent(
-                saved.getCampaignType(),
-                owner.getUsername(),
-                saved.getId(),
-                owner.getId()
-        ));
     }
 }
