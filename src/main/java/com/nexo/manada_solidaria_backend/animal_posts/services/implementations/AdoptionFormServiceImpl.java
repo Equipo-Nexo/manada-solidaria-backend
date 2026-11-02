@@ -23,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -100,15 +99,6 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
             adoptionFormRepository.save(form);
             log.info("Adoption form marked as read: id={} by reviewer={}", formId, reviewer.getId());
         }
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Set<UUID> getPostIdsWithFormByApplicant(User applicant, List<UUID> postIds) {
-        if (applicant == null || postIds == null || postIds.isEmpty()) {
-            return Set.of();
-        }
-        return adoptionFormRepository.findPostIdsWithFormByApplicantAndPostIds(applicant, postIds);
     }
 
     private void validateNotOwner(AdoptionPost post, User applicant) {

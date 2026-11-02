@@ -15,9 +15,9 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.Reaction;
+import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AdoptionFormRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.ReactionRepository;
-import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AdoptionFormService;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
 import com.nexo.manada_solidaria_backend.common.utils.EnumUtils;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
@@ -28,7 +28,6 @@ import com.nexo.manada_solidaria_backend.notifications.services.interfaces.Notif
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -49,6 +48,7 @@ import java.util.stream.Stream;
 
 @Slf4j
 @Service
+@AllArgsConstructor
 public class AnimalPostServiceImpl implements AnimalPostService {
 
     private static final int RECENT_DAYS = 7;
@@ -62,21 +62,7 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     private final ReactionRepository reactionRepository;
     private final AnimalPostFactory animalPostFactory;
     private final NotificationService notificationService;
-    private final AdoptionFormService adoptionFormService;
-
-    public AnimalPostServiceImpl(
-            AnimalPostRepository animalPostRepository,
-            ReactionRepository reactionRepository,
-            AnimalPostFactory animalPostFactory,
-            NotificationService notificationService,
-            @Lazy AdoptionFormService adoptionFormService
-    ) {
-        this.animalPostRepository = animalPostRepository;
-        this.reactionRepository = reactionRepository;
-        this.animalPostFactory = animalPostFactory;
-        this.notificationService = notificationService;
-        this.adoptionFormService = adoptionFormService;
-    }
+    private final AdoptionFormRepository adoptionFormRepository;
 
     @Override
     public AnimalPostResponse create(CreateAnimalPostRequest request, User owner) {
@@ -289,7 +275,7 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     }
 
     private Set<UUID> resolveAdoptionFormStatuses(List<AnimalPost<?, ?>> posts, User authenticatedUser) {
-        if (authenticatedUser == null || posts == null || posts.isEmpty()) {
+        if (posts.isEmpty()) {
             return Set.of();
         }
         List<UUID> adoptionPostIds = posts.stream()
@@ -300,15 +286,14 @@ public class AnimalPostServiceImpl implements AnimalPostService {
         if (adoptionPostIds.isEmpty()) {
             return Set.of();
         }
-        return adoptionFormService.getPostIdsWithFormByApplicant(authenticatedUser, adoptionPostIds);
+        return adoptionFormRepository.findPostIdsWithFormByApplicantAndPostIds(authenticatedUser, adoptionPostIds);
     }
 
     private Boolean resolveAdoptionFormStatus(AnimalPost<?, ?> post, User authenticatedUser) {
-        if (!(post instanceof AdoptionPost) || authenticatedUser == null) {
+        if (!(post instanceof AdoptionPost)) {
             return null;
         }
-        Set<UUID> forms = adoptionFormService.getPostIdsWithFormByApplicant(authenticatedUser, List.of(post.getId()));
-        return forms.contains(post.getId());
+        return adoptionFormRepository.existsByAdoptionPostIdAndApplicantId(post.getId(), authenticatedUser.getId());
     }
 
     private static boolean isSearchingTransit(AnimalPost<?, ?> post) {
