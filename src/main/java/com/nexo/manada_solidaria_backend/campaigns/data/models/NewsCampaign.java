@@ -2,8 +2,8 @@ package com.nexo.manada_solidaria_backend.campaigns.data.models;
 
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CampaignType;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
-import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignStatus;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignCategory;
+import com.nexo.manada_solidaria_backend.campaigns.data.enums.NewsCampaignStatus;
 import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.common.utils.StatusHistoryUtils;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
@@ -83,14 +83,14 @@ public class NewsCampaign extends Campaign<NewsCampaignStatus, NewsCampaignStatu
 
     @Override
     public boolean isFinished() {
-        return getCurrentStatus().getStatus() == NewsCampaignStatus.FINISHED;
+        NewsCampaignStatus current = getCurrentStatus().getStatus();
+        return current == NewsCampaignStatus.FINISHED || current == NewsCampaignStatus.CANCELLED;
     }
 
     @Override
     public CampaignType getCampaignType() {
         return CampaignType.NEWS;
     }
-
 
     @Override
     protected Class<NewsCampaignStatus> statusType() {
@@ -107,9 +107,9 @@ public class NewsCampaign extends Campaign<NewsCampaignStatus, NewsCampaignStatu
                     false;
 
             case STARTED ->
-                    target == NewsCampaignStatus.FINISHED;
+                    target == NewsCampaignStatus.CANCELLED || target == NewsCampaignStatus.FINISHED;
 
-            case FINISHED ->
+            case FINISHED, CANCELLED ->
                     false;
         };
     }
@@ -126,7 +126,7 @@ public class NewsCampaign extends Campaign<NewsCampaignStatus, NewsCampaignStatu
 
     @Override
     protected boolean isFinalStatus(NewsCampaignStatus status) {
-        return status == NewsCampaignStatus.FINISHED;
+        return status == NewsCampaignStatus.FINISHED || status == NewsCampaignStatus.CANCELLED;
     }
 
     @Override
