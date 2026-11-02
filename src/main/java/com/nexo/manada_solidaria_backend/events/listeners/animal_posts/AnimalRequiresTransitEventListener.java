@@ -2,43 +2,65 @@ package com.nexo.manada_solidaria_backend.events.listeners.animal_posts;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusAdoptionPost;
+import com.nexo.manada_solidaria_backend.events.data.models.AnimalPostCreatedEvent;
 import com.nexo.manada_solidaria_backend.events.data.models.AnimalPostStatusChangedEvent;
+import com.nexo.manada_solidaria_backend.events.data.models.BaseAnimalPostStatusChanged;
 import com.nexo.manada_solidaria_backend.events.listeners.BaseEventNotificationListener;
+import com.nexo.manada_solidaria_backend.notifications.components.recipients.data.NotificationContext;
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.Map;
 
+import static com.nexo.manada_solidaria_backend.notifications.utils.NotificationParamUtil.POST_ID;
+
 @Component
 @Slf4j
-public class AnimalRequiresTransitEventListener extends BaseEventNotificationListener<AnimalPostStatusChangedEvent> {
+public class AnimalRequiresTransitEventListener extends BaseEventNotificationListener<BaseAnimalPostStatusChanged> {
 
     public AnimalRequiresTransitEventListener(NotificationService notificationService) {
         super(notificationService);
     }
 
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onEvent(AnimalPostCreatedEvent event) {
+        processEvent(event);
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onEvent(AnimalPostStatusChangedEvent event) {
+        processEvent(event);
+    }
+
     @Override
-    protected boolean shouldNotify(AnimalPostStatusChangedEvent event) {
-        return animalPostIsAdoption(event) && animalRequiresTransit(event);
+    protected boolean shouldNotify(BaseAnimalPostStatusChanged event) {
+        return animalPostIsAdoption(event.type()) && animalRequiresTransit(event.status());
     }
 
     @Override
     protected NotificationType getNotificationType() {
-        return null;
+        return NotificationType.IN_ADOPTION_AND_TRANSIT_PET;
     }
 
     @Override
-    protected Map<String, Object> getParams(AnimalPostStatusChangedEvent event) {
-        return Map.of();
+    protected Map<String, Object> getParams(BaseAnimalPostStatusChanged event) {
+        return Map.of(POST_ID, event.postId());
     }
 
-    private static boolean animalRequiresTransit(AnimalPostStatusChangedEvent event) {
-        return StatusAdoptionPost.SEARCHING_ADOPT_AND_TRANSIT.name().equals(event.newStatus());
+    @Override
+    protected NotificationContext getContext(BaseAnimalPostStatusChanged event) {
+        return new NotificationContext(event.ownerId());
     }
 
-    private static boolean animalPostIsAdoption(AnimalPostStatusChangedEvent event) {
-        return event.postType() == AnimalPostFilter.ADOPTION;
+    private static boolean animalRequiresTransit(String status) {
+        return StatusAdoptionPost.SEARCHING_ADOPT_AND_TRANSIT.name().equals(status);
+    }
+
+    private static boolean animalPostIsAdoption(AnimalPostFilter type) {
+        return type == AnimalPostFilter.ADOPTION;
     }
 }

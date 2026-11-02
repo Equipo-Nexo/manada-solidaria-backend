@@ -11,13 +11,13 @@ import java.util.UUID;
  * @param postId    identifier of the animal post
  * @param ownerId   identifier of the post owner
  * @param oldStatus previous status of the post
- * @param newStatus new status of the post
+ * @param status new status of the post
  */
 public record AnimalPostStatusChangedEvent(
         UUID postId,
         UUID ownerId,
         String oldStatus,
-        String newStatus,
-        AnimalPostFilter postType
-) {
+        String status,
+        AnimalPostFilter type
+) implements BaseAnimalPostStatusChanged {
 }

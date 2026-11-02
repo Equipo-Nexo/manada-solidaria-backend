@@ -17,6 +17,7 @@ logging:
     com:
       nexo:
         manada_solidaria_backend:
+          events: DEBUG
           notifications: DEBUG
     org:
       springframework:

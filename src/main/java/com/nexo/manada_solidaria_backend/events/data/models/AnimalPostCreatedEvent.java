@@ -14,5 +14,5 @@ public record AnimalPostCreatedEvent(
         Location location,
         String status,
         NotificationContext context
-) {
+) implements BaseAnimalPostStatusChanged {
 }
