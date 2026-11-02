@@ -2,8 +2,6 @@ package com.nexo.manada_solidaria_backend.events.listeners.animal_posts;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.AnimalPostFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusAdoptionPost;
-import com.nexo.manada_solidaria_backend.events.data.models.AnimalPostCreatedEvent;
-import com.nexo.manada_solidaria_backend.events.data.models.AnimalPostStatusChangedEvent;
 import com.nexo.manada_solidaria_backend.events.data.models.BaseAnimalPostStatusChanged;
 import com.nexo.manada_solidaria_backend.events.listeners.BaseEventNotificationListener;
 import com.nexo.manada_solidaria_backend.notifications.components.recipients.data.NotificationContext;
@@ -11,8 +9,6 @@ import com.nexo.manada_solidaria_backend.notifications.models.enums.Notification
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.Map;
 
@@ -24,16 +20,6 @@ public class AnimalRequiresTransitEventListener extends BaseEventNotificationLis
 
     public AnimalRequiresTransitEventListener(NotificationService notificationService) {
         super(notificationService);
-    }
-
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onEvent(AnimalPostCreatedEvent event) {
-        processEvent(event);
-    }
-
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onEvent(AnimalPostStatusChangedEvent event) {
-        processEvent(event);
     }
 
     @Override
