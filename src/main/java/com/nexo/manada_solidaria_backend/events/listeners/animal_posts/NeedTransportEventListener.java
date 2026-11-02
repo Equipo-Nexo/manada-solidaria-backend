@@ -6,6 +6,8 @@ import com.nexo.manada_solidaria_backend.notifications.models.enums.Notification
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.Map;
 
@@ -19,9 +21,14 @@ public class NeedTransportEventListener extends BaseEventNotificationListener<An
         super(notificationService);
     }
 
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onEvent(AnimalPostCreatedEvent event) {
+        processEvent(event);
+    }
+
     @Override
     protected boolean shouldNotify(AnimalPostCreatedEvent event) {
-        return event.needTransport();
+        return Boolean.TRUE.equals(event.needTransport());
     }
 
     @Override

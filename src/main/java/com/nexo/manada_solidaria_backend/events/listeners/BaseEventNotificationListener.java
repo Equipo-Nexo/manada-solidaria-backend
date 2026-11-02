@@ -5,8 +5,6 @@ import com.nexo.manada_solidaria_backend.notifications.models.enums.Notification
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.Map;
 
@@ -15,11 +13,6 @@ import java.util.Map;
 public abstract class BaseEventNotificationListener<T> {
 
     protected final NotificationService notificationService;
-
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onEvent(T event) {
-        processEvent(event);
-    }
 
     protected void processEvent(T event) {
         NotificationType type = getNotificationType();

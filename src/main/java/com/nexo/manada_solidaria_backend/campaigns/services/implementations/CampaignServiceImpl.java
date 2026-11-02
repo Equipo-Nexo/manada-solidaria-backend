@@ -38,6 +38,7 @@ public class CampaignServiceImpl implements CampaignService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
+    @Transactional
     public CampaignResponse create(CreateCampaignRequest request, User owner) {
         Campaign<?, ?> saved = campaignRepository.save(campaignFactory.buildCampaign(request, owner));
         publishNewCampaignEvent(owner, saved);

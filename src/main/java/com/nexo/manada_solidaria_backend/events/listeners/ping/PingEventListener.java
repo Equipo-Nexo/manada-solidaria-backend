@@ -6,6 +6,8 @@ import com.nexo.manada_solidaria_backend.notifications.models.enums.Notification
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.Map;
 
@@ -16,6 +18,11 @@ import static com.nexo.manada_solidaria_backend.notifications.models.enums.Notif
 public class PingEventListener extends BaseEventNotificationListener<PingEvent> {
     public PingEventListener(NotificationService notificationService) {
         super(notificationService);
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onEvent(PingEvent event) {
+        processEvent(event);
     }
 
     @Override

@@ -9,7 +9,7 @@ import java.util.UUID;
 public record AnimalPostCreatedEvent(
         UUID postId,
         UUID ownerId,
-        boolean needTransport,
+        Boolean needTransport,
         AnimalPostFilter type,
         Location location,
         String status,

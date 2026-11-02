@@ -3,10 +3,13 @@ package com.nexo.manada_solidaria_backend.events.listeners.animal_posts;
 import com.nexo.manada_solidaria_backend.events.data.models.AnimalPostCreatedEvent;
 import com.nexo.manada_solidaria_backend.events.listeners.BaseEventNotificationListener;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
+import com.nexo.manada_solidaria_backend.notifications.components.recipients.data.NotificationContext;
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.Map;
 
@@ -22,6 +25,11 @@ public class InStreetAnimalEventListener extends BaseEventNotificationListener<A
 
     public InStreetAnimalEventListener(NotificationService notificationService) {
         super(notificationService);
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onEvent(AnimalPostCreatedEvent event) {
+        processEvent(event);
     }
 
     @Override
@@ -40,6 +48,11 @@ public class InStreetAnimalEventListener extends BaseEventNotificationListener<A
                 POST_ID, event.postId(),
                 LOCATION, describe(event.location())
         );
+    }
+
+    @Override
+    protected NotificationContext getContext(AnimalPostCreatedEvent event) {
+        return event.context();
     }
 
 
