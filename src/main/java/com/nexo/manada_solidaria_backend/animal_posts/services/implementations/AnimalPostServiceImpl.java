@@ -66,15 +66,7 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                 animalPostFactory.buildAnimalPost(request, owner)
         );
 
-        eventPublisher.publishEvent(new AnimalPostCreatedEvent(
-                saved.getId(),
-                owner.getId(),
-                request.needTransport(),
-                saved.getType(),
-                saved.getLocation(),
-                saved.getCurrentStatus().getStatus().name(),
-                new NotificationContext(owner.getId(), new NotificationContext.AnimalTraits(saved.getAnimal().getType(), saved.getAnimal().getColor()))
-        ));
+        sendNewAnimalPostEvent(request, owner, saved);
 
         log.info("Animal post created: id={} type={} owner={}", saved.getId(), saved.getType(), owner.getId());
         return AnimalPostResponse.from(saved, false);
@@ -128,15 +120,7 @@ public class AnimalPostServiceImpl implements AnimalPostService {
 
         AnimalPost saved = animalPostRepository.save(post);
 
-        eventPublisher.publishEvent(
-                new AnimalPostStatusChangedEvent(
-                        saved.getId(),
-                        authenticatedUser.getId(),
-                        previousStatus,
-                        request.status(),
-                        saved.getType()
-                )
-        );
+        sendAnimalPostStatusChangedEvent(request, authenticatedUser, saved, previousStatus);
 
 
         return AnimalPostResponse.from(saved, reactionRepository.existsByPostAndOwner(saved, authenticatedUser));
@@ -266,6 +250,30 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                                 HttpStatus.NOT_FOUND,
                                 "La publicación no existe"
                         ));
+    }
+
+    private void sendNewAnimalPostEvent(CreateAnimalPostRequest request, User owner, AnimalPost saved) {
+        eventPublisher.publishEvent(new AnimalPostCreatedEvent(
+                saved.getId(),
+                owner.getId(),
+                request.needTransport(),
+                saved.getType(),
+                saved.getLocation(),
+                saved.getCurrentStatus().getStatus().name(),
+                new NotificationContext(owner.getId(), new NotificationContext.AnimalTraits(saved.getAnimal().getType(), saved.getAnimal().getColor()))
+        ));
+    }
+
+    private void sendAnimalPostStatusChangedEvent(TransitionStatusRequest request, User authenticatedUser, AnimalPost saved, String previousStatus) {
+        eventPublisher.publishEvent(
+                new AnimalPostStatusChangedEvent(
+                        saved.getId(),
+                        authenticatedUser.getId(),
+                        previousStatus,
+                        request.status(),
+                        saved.getType()
+                )
+        );
     }
 
 }

@@ -33,12 +33,6 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Async("notificationExecutor")
-    public void notify(NotificationType type, Map<String, Object> params) {
-        sendNotificationsToUsers(type, params, null);
-    }
-
-    @Override
-    @Async("notificationExecutor")
     public void notify(NotificationType type, Map<String, Object> params, NotificationContext context) {
         sendNotificationsToUsers(type, params, context);
     }
