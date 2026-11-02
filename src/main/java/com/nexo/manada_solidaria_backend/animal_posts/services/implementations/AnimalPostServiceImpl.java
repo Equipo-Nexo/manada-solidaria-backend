@@ -274,6 +274,12 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                 ));
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public UUID getOwnerId(UUID animalPostId) {
+        return getAnimalPostOrThrow(animalPostId).getOwner().getId();
+    }
+
     private Set<UUID> resolveAdoptionFormStatuses(List<AnimalPost<?, ?>> posts, User authenticatedUser) {
         if (posts.isEmpty()) {
             return Set.of();

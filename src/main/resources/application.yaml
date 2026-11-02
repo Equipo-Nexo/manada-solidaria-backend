@@ -72,3 +72,8 @@ push:
     public-key: ${VAPID_PUBLIC_KEY}
     private-key: ${VAPID_PRIVATE_KEY}
     subject: mailto:06nexo@gmail.com
+app:
+  report:
+    threshold: 15
+    admin-email: ${ADMIN_EMAIL}
+    frontend-url: ${FRONTEND_URL}

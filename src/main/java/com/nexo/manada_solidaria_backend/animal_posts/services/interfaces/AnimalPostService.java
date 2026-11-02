@@ -55,4 +55,6 @@ public interface AnimalPostService {
     void expireInactivePosts();
 
     AdoptionPost getAdoptionPostOrThrow(UUID adoptionPostId);
+
+    UUID getOwnerId(UUID animalPostId);
 }
