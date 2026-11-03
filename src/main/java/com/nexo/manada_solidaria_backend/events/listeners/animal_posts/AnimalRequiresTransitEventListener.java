@@ -49,8 +49,8 @@ public class AnimalRequiresTransitEventListener extends BaseEventNotificationLis
         return new NotificationContext(event.ownerId());
     }
 
-    private static boolean animalRequiresTransit(String status) {
-        return StatusAdoptionPost.SEARCHING_ADOPT_AND_TRANSIT.name().equals(status);
+    private static boolean animalRequiresTransit(Enum<?> status) {
+        return status == StatusAdoptionPost.SEARCHING_ADOPT_AND_TRANSIT;
     }
 
     private static boolean animalPostIsAdoption(AnimalPostFilter type) {

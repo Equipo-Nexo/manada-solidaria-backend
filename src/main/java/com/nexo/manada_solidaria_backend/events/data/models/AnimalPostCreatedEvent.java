@@ -12,7 +12,7 @@ public record AnimalPostCreatedEvent(
         Boolean needTransport,
         AnimalPostFilter type,
         Location location,
-        String status,
+        Enum<?> status,
         NotificationContext context
 ) implements BaseAnimalPostStatusChanged {
 }

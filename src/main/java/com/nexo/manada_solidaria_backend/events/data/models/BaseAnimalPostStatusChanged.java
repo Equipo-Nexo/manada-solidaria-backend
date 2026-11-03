@@ -8,5 +8,5 @@ public interface BaseAnimalPostStatusChanged {
     UUID postId();
     UUID ownerId();
     AnimalPostFilter type();
-    String status();
+    Enum<?> status();
 }

@@ -17,7 +17,7 @@ public record AnimalPostStatusChangedEvent(
         UUID postId,
         UUID ownerId,
         String oldStatus,
-        String status,
+        Enum<?> status,
         AnimalPostFilter type
 ) implements BaseAnimalPostStatusChanged {
 }

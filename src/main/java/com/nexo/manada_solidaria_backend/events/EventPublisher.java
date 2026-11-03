@@ -1,7 +1,6 @@
 package com.nexo.manada_solidaria_backend.events;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAnimalPostRequest;
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.Campaign;
 import com.nexo.manada_solidaria_backend.events.data.models.AnimalPostCreatedEvent;
@@ -28,19 +27,19 @@ public class EventPublisher {
                     request.needTransport(),
                     saved.getType(),
                     saved.getLocation(),
-                    saved.getCurrentStatus().getStatus().name(),
+                    saved.getCurrentStatus().getStatus(),
                     new NotificationContext(owner.getId(), new NotificationContext.AnimalTraits(saved.getAnimal().getType(), saved.getAnimal().getColor()))
                 )
         );
     }
 
-    public void publishAnimalPostStatusChangedEvent(TransitionStatusRequest request, User authenticatedUser, AnimalPost saved, String previousStatus) {
+    public void publishAnimalPostStatusChangedEvent(User authenticatedUser, AnimalPost saved, String previousStatus) {
         publishEvent(
                 new AnimalPostStatusChangedEvent(
                         saved.getId(),
                         authenticatedUser.getId(),
                         previousStatus,
-                        request.status(),
+                        saved.getCurrentStatus().getStatus(),
                         saved.getType()
                 )
         );

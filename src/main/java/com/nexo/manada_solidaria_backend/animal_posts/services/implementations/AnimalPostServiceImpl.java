@@ -130,7 +130,7 @@ public class AnimalPostServiceImpl implements AnimalPostService {
 
         AnimalPost saved = animalPostRepository.save(post);
 
-        eventPublisher.publishAnimalPostStatusChangedEvent(request, authenticatedUser, saved, previousStatus);
+        eventPublisher.publishAnimalPostStatusChangedEvent(authenticatedUser, saved, previousStatus);
 
         boolean reactedByMe = reactionRepository.existsByPostAndOwner(saved, authenticatedUser);
         Boolean hasForm = resolveAdoptionFormStatus(saved, authenticatedUser);
