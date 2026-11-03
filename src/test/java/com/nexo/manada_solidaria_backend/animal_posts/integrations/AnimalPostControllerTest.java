@@ -37,6 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusLostPost.SEARCHING;
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.FORBIDDEN_MESSAGE;
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -77,7 +78,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                     assertThat(event.postId()).isEqualTo(id);
                     assertThat(event.ownerId()).isEqualTo(saved.getOwner().getId());
                     assertThat(event.type()).isEqualTo(saved.getType());
-                    assertThat(event.status()).isEqualTo(saved.getCurrentStatus().getStatus().name());
+                    assertThat(event.status()).isEqualTo(saved.getCurrentStatus().getStatus());
                     assertThat(event.context().postOwnerId()).isEqualTo(saved.getOwner().getId());
                     assertThat(event.context().animal().type()).isEqualTo(saved.getAnimal().getType());
                     assertThat(event.context().animal().color()).isEqualTo(saved.getAnimal().getColor());
@@ -300,7 +301,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     @MethodSource(MOCK_DATA + "provideFilterCases")
     void filterTests(String testName, String type, String status, int expectedCount) throws Exception {
         saveLostPost("Lost creado", StatusLostPost.CREATED);
-        saveLostPost("Lost buscando", StatusLostPost.SEARCHING);
+        saveLostPost("Lost buscando", SEARCHING);
         saveLostPost("En la calle", StatusLostPost.TO_RESCUE, false);
         saveAdoptionPost("Adopción en búsqueda y tránsito", StatusAdoptionPost.SEARCHING_ADOPT_AND_TRANSIT);
         saveAdoptionPost("Adopción adoptada", StatusAdoptionPost.ADOPTED);
@@ -341,7 +342,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     @Test
     @DisplayName("GET /animal-posts?status=SEARCHING devuelve solo perdidos en ese estado")
     void filterByStatus_returnsOnlyMatchingStatusAndSubtype() throws Exception {
-        saveLostPost("En búsqueda", StatusLostPost.SEARCHING);
+        saveLostPost("En búsqueda", SEARCHING);
         saveLostPost("Recién creado", StatusLostPost.CREATED);
         saveAdoptionPost("Adopción", StatusAdoptionPost.SEARCHING_ADOPT);
 
@@ -738,7 +739,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     @Test
     @DisplayName("PATCH /animal-posts/{id}/status persiste el nuevo estado y cierra el anterior")
     void transitionStatus_persistsNewStatusAndClosesPrevious() throws Exception {
-        LostPost post = saveLostPost("Perdido", StatusLostPost.SEARCHING);
+        LostPost post = saveLostPost("Perdido", SEARCHING);
 
         patchStatus(post.getId(), "FOUND").andExpect(status().isOk());
 
@@ -748,13 +749,13 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                     assertThat(event.ownerId()).isEqualTo(post.getOwner().getId());
                     assertThat(event.type()).isEqualTo(post.getType());
                     assertThat(event.oldStatus()).isEqualTo("SEARCHING");
-                    assertThat(event.status()).isEqualTo("FOUND");
+                    assertThat(event.status()).isEqualTo(StatusLostPost.FOUND);
                 });
 
         LostPost saved = (LostPost) animalPostRepository.findById(post.getId()).orElseThrow();
         assertThat(saved.getCurrentStatus().getStatus()).isEqualTo(StatusLostPost.FOUND);
         assertThat(saved.getStatusHistory())
-                .filteredOn(history -> history.getStatus() == StatusLostPost.SEARCHING)
+                .filteredOn(history -> history.getStatus() == SEARCHING)
                 .allSatisfy(history -> assertThat(history.getFinishedAt()).isNotNull());
     }
 
@@ -767,7 +768,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     @Test
     @DisplayName("PATCH /animal-posts/{id}/status sin la clave status devuelve 400")
     void transitionStatus_withoutStatus_returnsBadRequest() throws Exception {
-        LostPost post = saveLostPost("Perdido", StatusLostPost.SEARCHING);
+        LostPost post = saveLostPost("Perdido", SEARCHING);
 
         mockMvc.perform(
                         patch("/animal-posts/" + post.getId() + "/status")
@@ -815,9 +816,9 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     @Test
     @DisplayName("POST /animal-posts/{id}/repost lleva la publicacion al principio de GET /animal-posts")
     void repost_movesPostToTheTopOfTheList() throws Exception {
-        LostPost older = saveLostPost("Mas vieja", StatusLostPost.SEARCHING);
+        LostPost older = saveLostPost("Mas vieja", SEARCHING);
         Thread.sleep(2);
-        saveLostPost("Mas nueva", StatusLostPost.SEARCHING);
+        saveLostPost("Mas nueva", SEARCHING);
         Thread.sleep(2);
 
         repost(older.getId()).andExpect(status().isNoContent());
@@ -865,7 +866,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
 
         AdoptionPost adoptionPostWithForm = saveAdoptionPost("Adopción con formulario", StatusAdoptionPost.SEARCHING_ADOPT, postOwner);
         AdoptionPost adoptionPostWithoutForm = saveAdoptionPost("Adopción sin formulario", StatusAdoptionPost.SEARCHING_ADOPT, postOwner);
-        LostPost lostPost = saveLostPost("Perdido", StatusLostPost.SEARCHING);
+        LostPost lostPost = saveLostPost("Perdido", SEARCHING);
 
         AdoptionForm form = new AdoptionForm("Quiero adoptar", new PhoneNumber("353", "123456"), applicant, adoptionPostWithForm);
         adoptionFormRepository.save(form);
@@ -886,7 +887,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     private void seedAnimalVariety() {
-        saveLostPost("Perro chico perdido", StatusLostPost.SEARCHING, true,
+        saveLostPost("Perro chico perdido", SEARCHING, true,
                 animal(AnimalType.DOG, AnimalSize.SMALL, AnimalGender.MALE, AnimalAge.PUPPY, "BLACK"));
         saveLostPost("Gata grande en la calle", StatusLostPost.TO_RESCUE, false,
                 animal(AnimalType.CAT, AnimalSize.LARGE, AnimalGender.FEMALE, AnimalAge.ADULT, "WHITE"));

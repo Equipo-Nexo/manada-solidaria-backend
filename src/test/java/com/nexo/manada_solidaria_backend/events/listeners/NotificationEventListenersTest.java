@@ -16,11 +16,7 @@ import com.nexo.manada_solidaria_backend.notifications.models.enums.Notification
 import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationService;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.EnumSource;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.NullSource;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.*;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -29,9 +25,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusLostPost.SEARCHING;
+import static com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusLostPost.TO_RESCUE;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationEventListenersTest {
@@ -46,7 +42,7 @@ class NotificationEventListenersTest {
     @ParameterizedTest
     @EnumSource(AnimalPostFilter.class)
     void streetNotification_onlyForStreetAnimals(AnimalPostFilter type) {
-        new InStreetAnimalEventListener(notificationService).onEvent(created(type, false, "TO_RESCUE"));
+        new InStreetAnimalEventListener(notificationService).onEvent(created(type, false, TO_RESCUE));
         if (type == AnimalPostFilter.IN_STREET) {
             verify(notificationService).notify(NotificationType.SIMILAR_ANIMAL_RECENTLY_LOST,
                     Map.of("postId", postId, "location", "Corrientes 500, Esquina"), context);
@@ -61,7 +57,7 @@ class NotificationEventListenersTest {
     @ValueSource(booleans = {true, false})
     void transportNotification_onlyWhenRequested(Boolean transport) {
         new NeedTransportEventListener(notificationService)
-                .onEvent(created(AnimalPostFilter.LOST, transport, "SEARCHING"));
+                .onEvent(created(AnimalPostFilter.LOST, transport, SEARCHING));
         if (Boolean.TRUE.equals(transport)) {
             verify(notificationService).notify(NotificationType.NEW_CARRIAGE_REQUEST,
                     Map.of("postId", postId), null);
@@ -80,13 +76,13 @@ class NotificationEventListenersTest {
     @ParameterizedTest
     @MethodSource("transitCases")
     void transitNotification_forCreationAndStatusChanges(AnimalPostFilter type, StatusAdoptionPost status,
-                                                        boolean creation) {
+                                                         boolean creation) {
         var listener = new AnimalRequiresTransitEventListener(notificationService);
         if (creation) {
-            listener.onEvent(created(type, false, status.name()));
+            listener.onEvent(created(type, false, status));
         } else {
             listener.onEvent(new AnimalPostStatusChangedEvent(postId, ownerId,
-                    "SEARCHING_ADOPT", status.name(), type));
+                    "SEARCHING_ADOPT", status, type));
         }
         if (type == AnimalPostFilter.ADOPTION && status == StatusAdoptionPost.SEARCHING_ADOPT_AND_TRANSIT) {
             verify(notificationService).notify(NotificationType.IN_ADOPTION_AND_TRANSIT_PET,
@@ -111,7 +107,7 @@ class NotificationEventListenersTest {
         }
     }
 
-    private AnimalPostCreatedEvent created(AnimalPostFilter type, Boolean transport, String status) {
+    private AnimalPostCreatedEvent created(AnimalPostFilter type, Boolean transport, Enum<?> status) {
         return new AnimalPostCreatedEvent(postId, ownerId, transport, type, location, status, context);
     }
 }
