@@ -4,16 +4,24 @@
 
 MERGE INTO LOCATION (
     ID,
-    NAME,
-    ADDRESS,
+    COUNTRY,
+    CITY,
+    FORMATTED,
+    DISTRICT,
+    STREET,
+    HOUSE_NUMBER,
     LATITUDE,
     LONGITUDE
 )
 KEY (ID)
 VALUES (
     '33333333-3333-3333-3333-333333333336',
+    'Argentina',
     'Córdoba',
-    'Av. Colón 1500',
+    'Av. Colón 1500, Córdoba',
+    'Centro',
+    'Av. Colón',
+    1500,
     -31.4135,
     -64.1810
 );

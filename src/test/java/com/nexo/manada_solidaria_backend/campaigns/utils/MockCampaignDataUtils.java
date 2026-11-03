@@ -1,7 +1,6 @@
 package com.nexo.manada_solidaria_backend.campaigns.utils;
 
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CampaignType;
-import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest.LocationRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.CreateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.controllers.requests.UpdateCampaignRequest;
 import com.nexo.manada_solidaria_backend.campaigns.data.enums.DonationCampaignCategory;
@@ -14,7 +13,9 @@ import com.nexo.manada_solidaria_backend.campaigns.data.models.FundraisingCampai
 import com.nexo.manada_solidaria_backend.campaigns.data.models.NewsCampaign;
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
 import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
+import com.nexo.manada_solidaria_backend.locations.controllers.requests.LocationRequest;
 import com.nexo.manada_solidaria_backend.locations.controllers.requests.UpdateLocationRequest;
+import com.nexo.manada_solidaria_backend.locations.data.models.Location;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.junit.jupiter.params.provider.Arguments;
 import org.springframework.http.HttpMethod;
@@ -29,15 +30,15 @@ import java.util.stream.Stream;
 public class MockCampaignDataUtils {
 
     private static final LocationRequest UBICACION_VILLA_MARIA = new LocationRequest(
-            "Villa María", "Belgrano", 450, -32.41, -63.24
+            "Argentina", "Villa María", "Belgrano 450, Villa María", "Centro", "Belgrano", 450, -32.41, -63.24
     );
 
     private static final LocationRequest UBICACION_CORDOBA = new LocationRequest(
-            "Córdoba Capital", "San Martín", 1020, -32.42, -63.25
+            "Argentina", "Córdoba", "San Martín 1020, Córdoba", "Centro", "San Martín", 1020, -32.42, -63.25
     );
 
     private static final LocationRequest UBICACION_SOLO_OBLIGATORIOS = new LocationRequest(
-            "Plaza Principal", null, null, -32.43, -63.26
+            "Argentina", "Villa María", "Plaza Principal, Villa María", null, "Plaza Principal", null, -32.43, -63.26
     );
 
     private static final LocalDateTime NEWS_START_DATE =
@@ -440,13 +441,13 @@ public class MockCampaignDataUtils {
         );
     }
 
-    public static NewsCampaign buildNewsModel(User owner) {
-        com.nexo.manada_solidaria_backend.locations.data.models.Location location =
-                new com.nexo.manada_solidaria_backend.locations.data.models.Location();
 
-        location.setName("Villa María");
-        location.setLatitude(-32.41);
-        location.setLongitude(-63.24);
+    public static com.nexo.manada_solidaria_backend.campaigns.data.models.NewsCampaign buildNewsModel(
+            User owner
+    ) {
+        Location location = new Location(
+                "Argentina", "Villa María", "Belgrano 450, Villa María", "Centro", "Belgrano", 450, -32.41, -63.24
+        );
 
         return new NewsCampaign(
                 "Título Noticia Test",
@@ -462,13 +463,13 @@ public class MockCampaignDataUtils {
         );
     }
 
-    public static FundraisingCampaign buildFundraisingModel(User owner) {
-        com.nexo.manada_solidaria_backend.locations.data.models.Location location =
-                new com.nexo.manada_solidaria_backend.locations.data.models.Location();
 
-        location.setName("Córdoba");
-        location.setLatitude(-32.42);
-        location.setLongitude(-63.25);
+    public static FundraisingCampaign buildFundraisingModel(
+            User owner
+    ) {
+        Location location = new Location(
+                "Argentina", "Córdoba", "San Martín 1020, Córdoba", "Centro", "San Martín", 1020, -32.42, -63.25
+        );
 
         return new FundraisingCampaign(
                 "Título Recaudación de Dinero Test",
@@ -484,13 +485,12 @@ public class MockCampaignDataUtils {
         );
     }
 
-    public static DonationCampaign buildDonationModel(User owner) {
-        com.nexo.manada_solidaria_backend.locations.data.models.Location location =
-                new com.nexo.manada_solidaria_backend.locations.data.models.Location();
-
-        location.setName("Villa María");
-        location.setLatitude(-32.41);
-        location.setLongitude(-63.24);
+    public static DonationCampaign buildDonationModel(
+            User owner
+    ) {
+        Location location = new Location(
+                "Argentina", "Villa María", "Belgrano 450, Villa María", "Centro", "Belgrano", 450, -32.41, -63.24
+        );
 
         DonationCampaign campaign = new DonationCampaign(
                 "Título Donación Test",
@@ -519,7 +519,10 @@ public class MockCampaignDataUtils {
                 "img-updated",
                 new PhoneNumberRequest("3533", "436249"),
                 new UpdateLocationRequest(
+                        "Argentina",
                         "Villa María",
+                        "Nueva dirección 100, Villa María",
+                        "Centro",
                         "Nueva dirección",
                         100,
                         -32.40,
@@ -543,7 +546,10 @@ public class MockCampaignDataUtils {
                 "img-fundraising-updated",
                 new PhoneNumberRequest("3533", "436249"),
                 new UpdateLocationRequest(
+                        "Argentina",
                         "Córdoba",
+                        "Nueva dirección 200, Córdoba",
+                        "Centro",
                         "Nueva dirección",
                         200,
                         -31.41,
@@ -585,7 +591,10 @@ public class MockCampaignDataUtils {
                 "img-news-updated",
                 new PhoneNumberRequest("3533", "436249"),
                 new UpdateLocationRequest(
+                        "Argentina",
                         "Villa María",
+                        "Plaza nueva 50, Villa María",
+                        "Centro",
                         "Plaza nueva",
                         50,
                         -32.41,
@@ -783,7 +792,10 @@ public class MockCampaignDataUtils {
                 "img-fundraising-updated",
                 new PhoneNumberRequest("3533", "436249"),
                 new UpdateLocationRequest(
+                        "Argentina",
                         "Córdoba",
+                        "Nueva dirección 200, Córdoba",
+                        "Centro",
                         "Nueva dirección",
                         200,
                         -31.41,

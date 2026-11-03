@@ -66,8 +66,8 @@ VALUES ('aa000000-0000-0000-0000-0000000000a1', 'marron', 'ADULT', 'MALE', 'MEDI
        ('aa000000-0000-0000-0000-0000000000a3', 'negro', 'ADULT', 'MALE', 'LARGE', 'DOG'),
        ('aa000000-0000-0000-0000-0000000000a4', 'blanco', 'ADULT', 'FEMALE', 'SMALL', 'CAT');
 
-INSERT INTO location (id, name, address, number, latitude, longitude)
-VALUES ('aa000000-0000-0000-0000-0000000000b1', 'Plaza', 'Mitre', 1, -34.6, -58.4);
+INSERT INTO location (id, country, city, formatted, district, street, house_number, latitude, longitude)
+VALUES ('aa000000-0000-0000-0000-0000000000b1', 'Argentina', 'Buenos Aires', 'Mitre 1, Buenos Aires', 'Centro', 'Mitre', 1, -34.6, -58.4);
 
 -- 1) LOST que llegó a FOUND: caso feliz MÁS VIEJO (transicionó hace 5 días)
 INSERT INTO animal_post (id, name, description, image_url, animal_id, location_id, owner_id, created_at)

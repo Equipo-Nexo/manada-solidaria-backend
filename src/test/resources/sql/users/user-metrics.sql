@@ -23,8 +23,8 @@ VALUES ('eea710e1-232c-4717-bc6e-deeaba851bd0', 'marron', 'ADULT', 'MALE', 'MEDI
        ('917544d4-2c9e-4cd8-8a9e-46deac18723f', 'negro', 'ADULT', 'MALE', 'LARGE', 'DOG'),
        ('56bb113b-aff0-40b9-9b49-5ee82740fc5c', 'blanco', 'ADULT', 'FEMALE', 'SMALL', 'CAT');
 
-INSERT INTO location (id, name, address, number, latitude, longitude)
-VALUES ('575c2a43-6f58-4b54-821a-95431913081d', 'Plaza', 'Mitre', 1, -32.41, -63.24);
+INSERT INTO location (id, city, street, house_number, latitude, longitude, country, district, formatted)
+VALUES ('575c2a43-6f58-4b54-821a-95431913081d', 'Plaza', 'Mitre', 1, -32.41, -63.24, 'argentina', 'san justo', 'mitre 1');
 
 -- Admin: LOST que llego a RESCUED (caso feliz)
 INSERT INTO animal_post (id, name, description, image_url, animal_id, location_id, owner_id, created_at)

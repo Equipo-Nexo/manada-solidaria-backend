@@ -1,6 +1,6 @@
 package com.nexo.manada_solidaria_backend.users.controllers.responses;
 
-import com.nexo.manada_solidaria_backend.common.controllers.responses.LocationResponse;
+import com.nexo.manada_solidaria_backend.locations.controllers.responses.LocationResponse;
 import com.nexo.manada_solidaria_backend.common.controllers.responses.PhoneNumberResponse;
 import lombok.Getter;
 import lombok.Setter;

@@ -1,7 +1,7 @@
 package com.nexo.manada_solidaria_backend.maps.controllers.responses;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AnimalPostResponse;
-import com.nexo.manada_solidaria_backend.common.controllers.responses.LocationResponse;
+import com.nexo.manada_solidaria_backend.locations.controllers.responses.LocationResponse;
 import com.nexo.manada_solidaria_backend.vets.controllers.responses.VetInformationResponse;
 
 import java.time.DayOfWeek;
@@ -52,8 +52,8 @@ public record MapItemResponse(
     }
 
     private static String describe(LocationResponse location) {
-        String address = joinPresent(" ", location.address(), Objects.toString(location.number(), null));
-        String description = joinPresent(", ", address, location.name());
+        String address = joinPresent(" ", location.street(), Objects.toString(location.houseNumber(), null));
+        String description = joinPresent(", ", address, location.city());
         return description.isEmpty() ? null : description;
     }
 

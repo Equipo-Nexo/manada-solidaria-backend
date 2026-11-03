@@ -1,13 +1,16 @@
 -- Location y Animal para el post
-MERGE INTO LOCATION (ID, NAME, ADDRESS, NUMBER, LATITUDE, LONGITUDE)
+MERGE INTO LOCATION (ID, CITY, STREET, LATITUDE, LONGITUDE, COUNTRY, DISTRICT, HOUSE_NUMBER, FORMATTED)
 KEY (ID)
 VALUES (
     '11111111-1111-1111-1111-111111111111',
     'Plaza',
     'San Martin',
-    100,
     -32.4,
-    -63.2
+    -63.2,
+    'Argentina',
+    'San Justo',
+    100,
+    'San Martin 100, Plaza, Argentina'
 );
 
 MERGE INTO ANIMAL (ID, COLOR, AGE, GENDER, SIZE, TYPE)

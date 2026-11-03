@@ -1,49 +1,72 @@
-
 --locations
 MERGE INTO LOCATION (
     ID,
-    NAME,
-    ADDRESS,
+    COUNTRY,
+    CITY,
+    FORMATTED,
+    DISTRICT,
+    STREET,
+    HOUSE_NUMBER,
     LATITUDE,
     LONGITUDE
 )
 KEY(ID)
 VALUES (
     '30000000-0000-0000-0000-000000000001',
+    'Argentina',
     'Villa María',
-    'Av. Sabattini 100',
+    'Av. Sabattini 100, Villa María, Córdoba',
+    'Centro',
+    'Av. Sabattini',
+    100,
     -32.40,
     -63.24
 );
 
 MERGE INTO LOCATION (
     ID,
-    NAME,
-    ADDRESS,
+    COUNTRY,
+    CITY,
+    FORMATTED,
+    DISTRICT,
+    STREET,
+    HOUSE_NUMBER,
     LATITUDE,
     LONGITUDE
 )
 KEY(ID)
 VALUES (
     '30000000-0000-0000-0000-000000000002',
+    'Argentina',
     'Villa Nueva',
-    'Av. Carranza 200',
+    'Av. Carranza 200, Villa Nueva, Córdoba',
+    'Centro',
+    'Av. Carranza',
+    200,
     -32.41,
     -63.25
 );
 
 MERGE INTO LOCATION (
     ID,
-    NAME,
-    ADDRESS,
+    COUNTRY,
+    CITY,
+    FORMATTED,
+    DISTRICT,
+    STREET,
+    HOUSE_NUMBER,
     LATITUDE,
     LONGITUDE
 )
 KEY(ID)
 VALUES (
     '30000000-0000-0000-0000-000000000003',
+    'Argentina',
     'Córdoba',
-    'Colón 100',
+    'Colón 100, Córdoba',
+    'Centro',
+    'Colón',
+    100,
     -31.41,
     -64.18
 );

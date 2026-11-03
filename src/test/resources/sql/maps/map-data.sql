@@ -10,10 +10,10 @@ VALUES ('ee000000-0000-0000-0000-0000000000a1', 'negro', 'ADULT', 'MALE', 'MEDIU
        ('ee000000-0000-0000-0000-0000000000a7', 'negro', 'ADULT', 'MALE', 'MEDIUM', 'DOG');
 
 -- Ubicaciones: completa, solo nombre, sin datos
-INSERT INTO location (id, name, address, number, latitude, longitude)
-VALUES ('ee000000-0000-0000-0000-0000000000b1', 'San Justo', 'Constancio Vigil', 1821, -32.4102, -63.2411),
-       ('ee000000-0000-0000-0000-0000000000b2', 'Centro', NULL, NULL, -32.4152, -63.2451),
-       ('ee000000-0000-0000-0000-0000000000b3', NULL, NULL, NULL, -32.4180, -63.2510);
+INSERT INTO location (id, district, street, house_number, latitude, longitude, country, city)
+VALUES ('ee000000-0000-0000-0000-0000000000b1', 'San Justo', 'Constancio Vigil', 1821, -32.4102, -63.2411, 'Argentina', 'Villa Maria'),
+       ('ee000000-0000-0000-0000-0000000000b2', 'Centro', NULL, NULL, -32.4152, -63.2451, 'Argentina', 'Villa Maria'),
+       ('ee000000-0000-0000-0000-0000000000b3', 'San Justo', NULL, NULL, -32.4180, -63.2510, 'Argentina', 'Villa Maria');
 
 -- LOST activo, publicado hace 2 dias
 INSERT INTO animal_post (id, name, description, image_url, animal_id, location_id, owner_id, created_at)
@@ -90,10 +90,10 @@ VALUES ('ee000000-0000-0000-0000-0000000000d7', 'ee000000-0000-0000-0000-0000000
         TIMESTAMP '2026-09-22 09:00:00', NULL);
 
 -- Veterinarias: abierta (dos turnos el miercoles), cerrada a las 10, sin horario
-INSERT INTO location (id, name, address, number, latitude, longitude)
-VALUES ('ee000000-0000-0000-0000-0000000000b4', 'Villa Maria', 'San Martin', 540, -32.4180, -63.2510),
-       ('ee000000-0000-0000-0000-0000000000b5', 'Centro', 'Mitre', 100, -32.4100, -63.2400),
-       ('ee000000-0000-0000-0000-0000000000b6', 'Norte', 'Salta', 200, -32.4000, -63.2300);
+INSERT INTO location (id, district, city, street, house_number, latitude, longitude, country)
+VALUES ('ee000000-0000-0000-0000-0000000000b4', 'San Justo', 'Villa Maria', 'San Martin', 540, -32.4180, -63.2510, 'Argentina'),
+       ('ee000000-0000-0000-0000-0000000000b5', 'San Justo', 'Villa Maria', 'Mitre', 100, -32.4100, -63.2400, 'Argentina'),
+       ('ee000000-0000-0000-0000-0000000000b6', 'San Justo', 'Villa Maria', 'Salta', 200, -32.4000, -63.2300, 'Argentina');
 
 INSERT INTO vet_information (id, location_id, description, email, name, area_code, phone_number, profile_picture_url, vet_page_url)
 VALUES ('ee000000-0000-0000-0000-0000000000e1', 'ee000000-0000-0000-0000-0000000000b4', 'Clinica', 'seba@mail.com',

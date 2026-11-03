@@ -103,6 +103,6 @@ class AnimalPostServiceIntegrationTest extends BaseAuthenticatedIntegrationTest 
     }
 
     private Location location() {
-        return new Location("Parque", "Av. Patricias", 100, -34.6, -58.4);
+        return new Location("Argentina", "Villa María", "Parque", "Av. Patricias 100", "Av. Patricias", 100, -34.6, -58.4);
     }
 }

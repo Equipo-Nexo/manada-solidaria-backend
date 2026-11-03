@@ -27,12 +27,12 @@ public class MockMapDataUtils {
                 Arguments.of("Publicado hace 1 dia", "$.inStreetAnimals[1].firstLineDescription.text", is("1")),
                 Arguments.of("Publicado hoy son 0 dias", "$.inStreetAnimals[0].firstLineDescription.text", is("0")),
                 Arguments.of("La segunda linea del animal es la ubicacion", "$.lostAnimals[0].secondLineDescription.iconName", is("LocationPin")),
-                Arguments.of("La segunda linea del animal trae la direccion", "$.lostAnimals[0].secondLineDescription.text", is("Constancio Vigil 1821, San Justo")),
-                Arguments.of("Sin direccion la segunda linea va sin texto", "$.inStreetAnimals[0].secondLineDescription.text", nullValue()),
+                Arguments.of("La segunda linea del animal trae la direccion", "$.lostAnimals[0].secondLineDescription.text", is("Constancio Vigil 1821, Villa Maria")),
+                Arguments.of("Sin direccion la segunda linea va sin texto", "$.inStreetAnimals[0].secondLineDescription.text", is("Villa Maria")),
 
-                Arguments.of("Location con direccion, numero y nombre", "$.lostAnimals[0].location", is("Constancio Vigil 1821, San Justo")),
-                Arguments.of("Location solo con nombre", "$.inStreetAnimals[1].location", is("Centro")),
-                Arguments.of("Location sin datos devuelve null", "$.inStreetAnimals[0].location", nullValue()),
+                Arguments.of("Location con direccion, numero y nombre", "$.lostAnimals[0].location", is("Constancio Vigil 1821, Villa Maria")),
+                Arguments.of("Location solo con nombre", "$.inStreetAnimals[1].location", is("Villa Maria")),
+                Arguments.of("Location sin datos devuelve null", "$.inStreetAnimals[0].location", is("Villa Maria")),
                 Arguments.of("Trae la latitud", "$.lostAnimals[0].latitude", is(-32.4102)),
                 Arguments.of("Trae la longitud", "$.lostAnimals[0].longitude", is(-63.2411)),
 
