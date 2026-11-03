@@ -17,6 +17,10 @@ runtime:
       operator: isString
     - expression: res.body.posts
       operator: isUndefined
+    - expression: res.body.metrics.totalPosts
+      operator: isNumber
+    - expression: res.body.metrics.happyCases
+      operator: isNumber
 
 settings:
   encodeUrl: true
@@ -42,11 +46,16 @@ docs: |-
       "profileImageURL": "cf-abril"
     },
     "roles": ["RESCUER", "TRANSITIONAL_HOME"],
-    "createdAt": "2026-09-07T10:15:32.412961"
+    "createdAt": "2026-09-07T10:15:32.412961",
+    "metrics": { "totalPosts": 24, "happyCases": 8 }
   }
 
   `createdAt` es la fecha de alta, sin zona horaria. Reemplaza al viejo `daysSinceRegistration`:
-  los dias transcurridos los calcula el front.
+  los dias transcurridos ("En la comunidad") los calcula el front.
+  `metrics.totalPosts` ("Publicaciones realizadas") = publicaciones de animales + campañas de
+  donacion, noticias y colectas del usuario.
+  `metrics.happyCases` ("Casos exitosos") = publicaciones de animales en estado FOUND, RESCUED o ADOPTED.
+  Son numeros: los textos los arma el front.
   Para ver ademas las publicaciones, usa `Users/Get user detail`.
 
   Esperado: 200, sin el campo `posts`. Sin token: 401.

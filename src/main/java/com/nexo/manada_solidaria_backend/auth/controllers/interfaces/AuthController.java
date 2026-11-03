@@ -1,7 +1,7 @@
 package com.nexo.manada_solidaria_backend.auth.controllers.interfaces;
 
 import com.nexo.manada_solidaria_backend.auth.controllers.requests.CreateUserRequest;
-import com.nexo.manada_solidaria_backend.auth.controllers.responses.LoginResponse;
+import com.nexo.manada_solidaria_backend.auth.controllers.responses.UserSessionResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -10,12 +10,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import static org.springframework.http.HttpStatus.CREATED;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 @Tag(name = "Authentication")
 @RequestMapping("/auth")
@@ -29,16 +27,21 @@ public interface AuthController {
             @ApiResponse(responseCode = "200", description = "The user has logged in correctly",
                     content = {@Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = LoginResponse.class)
+                            schema = @Schema(implementation = UserSessionResponse.class)
                     )}
             ),
             @ApiResponse(responseCode = "401", description = "Credentials are wrong")
     })
     @PostMapping("/login")
-    LoginResponse login(@RequestHeader("Authorization") String credentials);
+    ResponseEntity<UserSessionResponse> login(@RequestHeader("Authorization") String credentials);
 
     @PostMapping("/signup")
     @ResponseStatus(value = CREATED)
     void signup(@RequestBody @Valid CreateUserRequest createUserRequest);
+
+    @PostMapping("/refresh")
+    ResponseEntity<UserSessionResponse> refreshSession(
+            @CookieValue(value = "refreshToken", required = false) String refreshToken
+    );
 
 }

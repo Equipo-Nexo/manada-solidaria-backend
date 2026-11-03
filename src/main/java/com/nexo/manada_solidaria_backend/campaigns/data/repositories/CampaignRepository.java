@@ -66,6 +66,8 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
     """)
     List<Campaign<?, ?>> findFundraisingCampaignsByOwner(@Param("owner") User user);
 
+    long countByOwner(User owner);
+
     @Query("""
         SELECT c
         FROM Campaign c

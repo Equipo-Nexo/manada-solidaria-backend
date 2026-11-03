@@ -49,6 +49,7 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+  forwardAuthorizationHeader: true
 
 docs: |-
   Notificacion (MS-206): al publicar un animal en la calle (LOST con hasOwner=false) se manda un push y una

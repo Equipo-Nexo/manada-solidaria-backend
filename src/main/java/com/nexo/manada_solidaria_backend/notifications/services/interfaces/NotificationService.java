@@ -6,8 +6,5 @@ import com.nexo.manada_solidaria_backend.notifications.models.enums.Notification
 import java.util.Map;
 
 public interface NotificationService {
-
-    void notify(NotificationType type, Map<String, Object> params);
-
     void notify(NotificationType type, Map<String, Object> params, NotificationContext context);
 }

@@ -39,6 +39,13 @@ public class MockAuthDataUtils {
         );
     }
 
+    private static Stream<Arguments> provideRefreshSessionTestCases() {
+        return Stream.of(
+                Arguments.of("refresh token is valid", true, HttpStatus.OK),
+                Arguments.of("refresh token is invalid", false, HttpStatus.UNAUTHORIZED)
+        );
+    }
+
     private static Stream<Arguments> provideSignupCases() {
         return Stream.of(
                 Arguments.of(

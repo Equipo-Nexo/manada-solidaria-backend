@@ -45,7 +45,7 @@ class NotificationServiceTest {
 
         when(notificationRepository.findByType(type)).thenReturn(Optional.of(notification));
 
-        notificationService.notify(type, Collections.emptyMap());
+        notificationService.notify(type, Collections.emptyMap(), null);
         verify(notificationResolver, atLeastOnce())
                 .notify(any(User.class), any(NotificationPayload.class), any());
     }

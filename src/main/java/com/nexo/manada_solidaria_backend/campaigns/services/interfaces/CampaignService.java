@@ -33,10 +33,14 @@ public interface CampaignService {
 
     List<CampaignResponse> getUserFundraisingCampaigns(User user);
 
+    long countUserCampaigns(User user);
+
     @CampaignOwner
     CampaignResponse transitionStatus(UUID campaignId, TransitionCampaignStatusRequest request, User authenticatedUser);
 
     void finalizeExpiredDonationAndFundraisingCampaigns();
 
     void finalizeExpiredNewsCampaigns();
+
+    UUID getOwnerId(UUID campaignId);
 }

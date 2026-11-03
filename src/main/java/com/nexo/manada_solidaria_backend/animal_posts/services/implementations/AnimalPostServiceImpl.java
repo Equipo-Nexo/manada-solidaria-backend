@@ -1,7 +1,10 @@
 package com.nexo.manada_solidaria_backend.animal_posts.services.implementations;
 
 import com.nexo.manada_solidaria_backend.animal_posts.components.AnimalPostFactory;
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.*;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAnimalPostRequest;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.GetAnimalPostsRequest;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AnimalPostResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.HappyCaseResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
@@ -11,15 +14,12 @@ import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.Reaction;
+import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AdoptionFormRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.ReactionRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
 import com.nexo.manada_solidaria_backend.common.utils.EnumUtils;
-import com.nexo.manada_solidaria_backend.locations.data.models.Location;
-import com.nexo.manada_solidaria_backend.notifications.components.recipients.data.NotificationContext;
-import com.nexo.manada_solidaria_backend.notifications.components.recipients.data.NotificationContext.AnimalTraits;
-import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
-import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationService;
+import com.nexo.manada_solidaria_backend.events.EventPublisher;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,10 +32,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -43,37 +46,30 @@ import java.util.UUID;
 public class AnimalPostServiceImpl implements AnimalPostService {
 
     private static final int RECENT_DAYS = 7;
+    private static final int INACTIVITY_DAYS = 120;
+    private static final Set<String> EXPIRABLE_STATUSES = Stream.concat(
+            EnumSet.complementOf(EnumSet.copyOf(LostPost.FINAL_STATUSES)).stream(),
+            EnumSet.complementOf(EnumSet.copyOf(AdoptionPost.FINAL_STATUSES)).stream()
+    ).map(Enum::name).collect(Collectors.toSet());
 
     private final AnimalPostRepository animalPostRepository;
     private final ReactionRepository reactionRepository;
     private final AnimalPostFactory animalPostFactory;
-    private final NotificationService notificationService;
+    private final EventPublisher eventPublisher;
+
+    private final AdoptionFormRepository adoptionFormRepository;
 
     @Override
+    @Transactional
     public AnimalPostResponse create(CreateAnimalPostRequest request, User owner) {
         AnimalPost saved = animalPostRepository.save(
                 animalPostFactory.buildAnimalPost(request, owner)
         );
 
-        if (Boolean.TRUE.equals(request.needTransport())) {
-            notificationService.notify(
-                    NotificationType.NEW_CARRIAGE_REQUEST,
-                    Map.of("postId", saved.getId()));
-        }
-
-        if (isStreetAnimal(saved)) {
-            notificationService.notify(
-                    NotificationType.SIMILAR_ANIMAL_RECENTLY_LOST,
-                    Map.of("postId", saved.getId(), "location", describe(saved.getLocation())),
-                    new NotificationContext(owner.getId(), new AnimalTraits(saved.getAnimal().getType(), saved.getAnimal().getColor())));
-        }
-
-        if (isSearchingTransit(saved)) {
-            notifyTransitHomes(saved);
-        }
+        eventPublisher.publishNewAnimalPostEvent(request, owner, saved);
 
         log.info("Animal post created: id={} type={} owner={}", saved.getId(), saved.getType(), owner.getId());
-        return AnimalPostResponse.from(saved, false);
+        return AnimalPostResponse.from(saved, false, null);
     }
 
     @Override
@@ -88,19 +84,29 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                 request.animalGender(),
                 request.animalAge(),
                 request.animalColor(),
-                LostPost.HAPPY_STATUSES,
-                AdoptionPost.HAPPY_STATUSES,
+                LostPost.FINAL_STATUSES,
+                AdoptionPost.FINAL_STATUSES,
                 pageable
         );
-        Set<UUID> reactedPostIds = reactedPostIds(posts.getContent(), authenticatedUser);
-        return posts.map(post -> AnimalPostResponse.from(post, reactedPostIds.contains(post.getId())));
+
+        List<AnimalPost<?, ?>> postList = posts.getContent();
+        Set<UUID> reactedPostIds = reactedPostIds(postList, authenticatedUser);
+        Set<UUID> postsWithForm = resolveAdoptionFormStatuses(postList, authenticatedUser);
+
+        return posts.map(post -> {
+            Boolean hasForm = (post instanceof AdoptionPost) ? postsWithForm.contains(post.getId()) : null;
+            return AnimalPostResponse.from(post, reactedPostIds.contains(post.getId()), hasForm);
+        });
     }
 
     @Override
     @Transactional(readOnly = true)
     public AnimalPostResponse getAnimalPost(UUID animalPostId, User authenticatedUser) {
         AnimalPost post = getAnimalPostOrThrow(animalPostId);
-        return AnimalPostResponse.from(post, reactionRepository.existsByPostAndOwner(post, authenticatedUser));
+        boolean reactedByMe = reactionRepository.existsByPostAndOwner(post, authenticatedUser);
+        Boolean hasForm = resolveAdoptionFormStatus(post, authenticatedUser);
+
+        return AnimalPostResponse.from(post, reactedByMe, hasForm);
     }
 
     @Override
@@ -123,17 +129,31 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                 animalPostId, previousStatus, request.status(), authenticatedUser.getId());
 
         AnimalPost saved = animalPostRepository.save(post);
-        if (isSearchingTransit(saved)) {
-            notifyTransitHomes(saved);
-        }
-        return AnimalPostResponse.from(saved, reactionRepository.existsByPostAndOwner(saved, authenticatedUser));
+
+        eventPublisher.publishAnimalPostStatusChangedEvent(authenticatedUser, saved, previousStatus);
+
+        boolean reactedByMe = reactionRepository.existsByPostAndOwner(saved, authenticatedUser);
+        Boolean hasForm = resolveAdoptionFormStatus(saved, authenticatedUser);
+        return AnimalPostResponse.from(saved, reactedByMe, hasForm);
     }
 
     @Override
+    @Transactional
+    public void repost(UUID animalPostId, User authenticatedUser) {
+        AnimalPost post = getAnimalPostOrThrow(animalPostId);
+
+        post.repost();
+        animalPostRepository.save(post);
+        log.info("Animal post reposted: id={} by={}", animalPostId, authenticatedUser.getId());
+    }
+
+    @Override
+    @Transactional
     public void delete(UUID animalPostId, User authenticatedUser) {
         AnimalPost post = getAnimalPostOrThrow(animalPostId);
 
         animalPostRepository.delete(post);
+        animalPostRepository.flush();
         log.info("Animal post deleted: id={} by={}", animalPostId, authenticatedUser.getId());
     }
 
@@ -170,13 +190,28 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     public List<AnimalPostResponse> getUserAnimalPosts(User user, User authenticatedUser) {
         List<AnimalPost<?, ?>> posts = animalPostRepository.findAllByOwnerOrderByCreatedAtDesc(user);
         Set<UUID> reactedPostIds = reactedPostIds(posts, authenticatedUser);
+        Set<UUID> postsWithForm = resolveAdoptionFormStatuses(posts, authenticatedUser);
+
         return posts.stream()
-                .map(post -> AnimalPostResponse.from(post, reactedPostIds.contains(post.getId())))
+                .map(post -> {
+                    Boolean hasForm = (post instanceof AdoptionPost) ? postsWithForm.contains(post.getId()) : null;
+                    return AnimalPostResponse.from(post, reactedPostIds.contains(post.getId()), hasForm);
+                })
                 .toList();
     }
 
     private Set<UUID> reactedPostIds(List<AnimalPost<?, ?>> posts, User user) {
         return reactionRepository.findPostIdsReactedBy(user, posts.stream().map(AnimalPost::getId).toList());
+    }
+
+    @Override
+    public long countUserAnimalPosts(User user) {
+        return animalPostRepository.countByOwner(user);
+    }
+
+    @Override
+    public long countUserHappyCases(User user) {
+        return animalPostRepository.countHappyCasesByOwner(user, LostPost.HAPPY_STATUSES, AdoptionPost.HAPPY_STATUSES);
     }
 
     @Override
@@ -187,10 +222,24 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     @Override
     @Transactional(readOnly = true)
     public List<AnimalPostResponse> getActiveLostPosts() {
-        return animalPostRepository.findActiveLostPosts(LostPost.HAPPY_STATUSES)
+        return animalPostRepository.findActiveLostPosts(LostPost.FINAL_STATUSES)
                 .stream()
-                .map(post -> AnimalPostResponse.from(post, false))
+                .map(post -> AnimalPostResponse.from(post, false, null))
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public void expireInactivePosts() {
+        List<AnimalPost<?, ?>> inactive = animalPostRepository.findWithoutActivitySince(
+                LocalDateTime.now().minusDays(INACTIVITY_DAYS),
+                EXPIRABLE_STATUSES
+        );
+
+        if (!inactive.isEmpty()) {
+            log.info("Expiring {} animal posts without activity", inactive.size());
+            inactive.forEach(AnimalPost::expire);
+        }
     }
 
     @Override
@@ -205,23 +254,32 @@ public class AnimalPostServiceImpl implements AnimalPostService {
                 ));
     }
 
-    private static boolean isSearchingTransit(AnimalPost<?, ?> post) {
-        return post instanceof AdoptionPost adoptionPost && adoptionPost.isSearchingTransit();
+    @Override
+    @Transactional(readOnly = true)
+    public UUID getOwnerId(UUID animalPostId) {
+        return getAnimalPostOrThrow(animalPostId).getOwner().getId();
     }
 
-    private void notifyTransitHomes(AnimalPost<?, ?> post) {
-        notificationService.notify(
-                NotificationType.IN_ADOPTION_AND_TRANSIT_PET,
-                Map.of("postId", post.getId()),
-                new NotificationContext(post.getOwner().getId()));
+    private Set<UUID> resolveAdoptionFormStatuses(List<AnimalPost<?, ?>> posts, User authenticatedUser) {
+        if (posts.isEmpty()) {
+            return Set.of();
+        }
+        List<UUID> adoptionPostIds = posts.stream()
+                .filter(post -> post instanceof AdoptionPost)
+                .map(AnimalPost::getId)
+                .toList();
+
+        if (adoptionPostIds.isEmpty()) {
+            return Set.of();
+        }
+        return adoptionFormRepository.findPostIdsWithFormByApplicantAndPostIds(authenticatedUser, adoptionPostIds);
     }
 
-    private static boolean isStreetAnimal(AnimalPost<?, ?> post) {
-        return post.getType() == AnimalPostFilter.IN_STREET;
-    }
-
-    private static String describe(Location location) {
-        return location.getStreet() + " " + location.getHouseNumber() + ", " + location.getCity();
+    private Boolean resolveAdoptionFormStatus(AnimalPost<?, ?> post, User authenticatedUser) {
+        if (!(post instanceof AdoptionPost)) {
+            return null;
+        }
+        return adoptionFormRepository.existsByAdoptionPostIdAndApplicantId(post.getId(), authenticatedUser.getId());
     }
 
     private static boolean isRecentlyResolved(AnimalPost<?, ?> post) {
