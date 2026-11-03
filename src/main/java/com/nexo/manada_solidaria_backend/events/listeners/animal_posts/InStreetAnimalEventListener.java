@@ -57,6 +57,6 @@ public class InStreetAnimalEventListener extends BaseEventNotificationListener<A
 
 
     private String describe(Location location) {
-        return location.getAddress() + " " + location.getNumber() + ", " + location.getName();
+        return location.getStreet() + " " + location.getHouseNumber() + ", " + location.getCity();
     }
 }

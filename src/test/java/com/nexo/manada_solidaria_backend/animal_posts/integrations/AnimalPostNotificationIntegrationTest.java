@@ -40,7 +40,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class AnimalPostNotificationIntegrationTest extends BaseCommittedNotificationIntegrationTest {
@@ -110,7 +111,7 @@ class AnimalPostNotificationIntegrationTest extends BaseCommittedNotificationInt
 
         NotificationDelivery delivery = similarLostPetDeliveriesOf("busca-perro").getFirst();
         NotificationPayload payload = delivery.getPayload();
-        assertThat(payload.getMessage()).isEqualTo("Vieron un animal en Corrientes 500, Esquina. Revisá si puede ser tu mascota perdida.");
+        assertThat(payload.getMessage()).isEqualTo("Vieron un animal en Corrientes 500, Buenos Aires. Revisá si puede ser tu mascota perdida.");
         assertThat(delivery.getStatusHistory().getLast().getStatus()).isEqualTo(NotificationStatus.SENT);
     }
 
@@ -275,7 +276,7 @@ class AnimalPostNotificationIntegrationTest extends BaseCommittedNotificationInt
     }
 
     private Location location() {
-        return new Location("Parque", "Av. Patricias", 100, -34.6, -58.4);
+        return new Location("Argentina", "Villa María", "Parque", "Av. Patricias 100", "Av. Patricias", 100, -34.6, -58.4);
     }
 
     private void seedSimilarLostPetScenario() {

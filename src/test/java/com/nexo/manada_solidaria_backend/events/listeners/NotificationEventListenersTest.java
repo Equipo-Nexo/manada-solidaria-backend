@@ -37,7 +37,7 @@ class NotificationEventListenersTest {
     private final UUID postId = UUID.randomUUID();
     private final UUID ownerId = UUID.randomUUID();
     private final NotificationContext context = new NotificationContext(ownerId);
-    private final Location location = new Location("Esquina", "Corrientes", 500, -34.6, -58.4);
+    private final Location location = new Location("Argentina", "Villa María", "Esquina", "Corrientes 500", "Corrientes", 500, -34.6, -58.4);
 
     @ParameterizedTest
     @EnumSource(AnimalPostFilter.class)
@@ -45,7 +45,7 @@ class NotificationEventListenersTest {
         new InStreetAnimalEventListener(notificationService).onEvent(created(type, false, TO_RESCUE));
         if (type == AnimalPostFilter.IN_STREET) {
             verify(notificationService).notify(NotificationType.SIMILAR_ANIMAL_RECENTLY_LOST,
-                    Map.of("postId", postId, "location", "Corrientes 500, Esquina"), context);
+                    Map.of("postId", postId, "location", "Corrientes 500, Villa María"), context);
             verifyNoMoreInteractions(notificationService);
         } else {
             verifyNoInteractions(notificationService);
