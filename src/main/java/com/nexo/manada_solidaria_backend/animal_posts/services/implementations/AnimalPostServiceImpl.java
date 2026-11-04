@@ -260,6 +260,16 @@ public class AnimalPostServiceImpl implements AnimalPostService {
         return getAnimalPostOrThrow(animalPostId).getOwner().getId();
     }
 
+    @Override
+    public List<AnimalPost<?, ?>> getAboutToExpirePosts() {
+        LocalDate targetDate = LocalDate.now().minusDays(110);
+        LocalDateTime startDate = targetDate.atStartOfDay();
+        LocalDateTime endDate = targetDate.plusDays(1).atStartOfDay();
+
+        return animalPostRepository.findAllByExpirationDateBetween(startDate, endDate);
+
+    }
+
     private Set<UUID> resolveAdoptionFormStatuses(List<AnimalPost<?, ?>> posts, User authenticatedUser) {
         if (posts.isEmpty()) {
             return Set.of();
