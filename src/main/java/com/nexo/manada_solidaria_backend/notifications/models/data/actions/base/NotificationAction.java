@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.nexo.manada_solidaria_backend.notifications.models.data.actions.implementations.CloseAction;
 import com.nexo.manada_solidaria_backend.notifications.models.data.actions.implementations.RedirectAction;
+import com.nexo.manada_solidaria_backend.notifications.models.data.actions.implementations.RequestAction;
 import lombok.Getter;
 
 import java.util.Map;
@@ -16,7 +17,8 @@ import java.util.Map;
 )
 @JsonSubTypes({
         @JsonSubTypes.Type(value = RedirectAction.class, name = "REDIRECT"),
-        @JsonSubTypes.Type(value = CloseAction.class, name = "CLOSE")
+        @JsonSubTypes.Type(value = CloseAction.class, name = "CLOSE"),
+        @JsonSubTypes.Type(value = RequestAction.class, name = "REQUEST")
 })
 @Getter
 public abstract class NotificationAction {

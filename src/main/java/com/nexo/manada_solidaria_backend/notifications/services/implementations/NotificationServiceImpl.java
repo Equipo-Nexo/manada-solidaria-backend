@@ -63,7 +63,8 @@ public class NotificationServiceImpl implements NotificationService {
 
         senders.forEach(sender ->
                 recipients.forEach(user ->
-                        sender.notify(user, payload, type)
+                                log.info("Sending notification payload is [{}]", payload)
+                        // sender.notify(user, payload, type)
                 )
         );
     }

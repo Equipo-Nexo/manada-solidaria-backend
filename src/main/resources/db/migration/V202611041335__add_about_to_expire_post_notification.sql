@@ -4,16 +4,30 @@ INSERT INTO notification (
     message,
     title,
     type,
-    icon,
-    redirect_to
+    actions
 )
 VALUES
 (
-    UUID_TO_BIN('f39c1467-477d-4f3d-9f86-17b87ca72db1'),
-    '2026-11-04 13:537:13.551601',
-    'Pong',
-    'Ping',
-    'PING',
-    NULL,
-    NULL
+    UUID_TO_BIN('3aa9b234-b53b-4658-968f-d735cd8a3d94'),
+    '2026-11-04 13:53:13.551601',
+    'Tu publicación sobre {animalName} se eliminará el {expirationDate}. Tocá «Renovar» para darle mayor visibilidad y evitar que se elimine.',
+    'Tu publicación está a punto de vencer',
+    'POST_ABOUT_TO_EXPIRE',
+    JSON_ARRAY(
+        JSON_OBJECT(
+            'type', 'REQUEST',
+            'title', 'Renovar',
+            'order', 1,
+            'url', '/animal-posts/{animalPostId}/repost',
+            'httpMethod', 'POST',
+            'headers', JSON_OBJECT(
+                'Authorization', '{otp}'
+            )
+        ),
+        JSON_OBJECT(
+            'type', 'CLOSE',
+            'title', 'Cerrar',
+            'order', 0
+        )
+    )
 );

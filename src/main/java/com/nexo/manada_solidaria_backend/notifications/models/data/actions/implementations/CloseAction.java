@@ -8,7 +8,7 @@ public class CloseAction extends NotificationAction {
 
     @JsonCreator
     public CloseAction() {
-        super("Cerrar");
+        super("Renovar");
     }
 
     @Override

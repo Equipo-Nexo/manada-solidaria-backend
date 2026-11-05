@@ -100,6 +100,15 @@ public class PasswordRecoveryServiceImpl implements PasswordRecoveryService {
         log.info("Password reset completed: user={}", recovery.getUser().getId());
     }
 
+    @Override
+    public PasswordRecovery getTotp(User user) {
+        return new PasswordRecovery(
+                user,
+                passwordEncoder.encode(generateAlphanumericCode()),
+                LocalDateTime.now().plusMinutes(properties.codeExpiration())
+        );
+    }
+
     private void startRecovery(User user) {
         Optional<PasswordRecovery> open = passwordRecoveryRepository.findByUserAndStatusIn(user, OPEN);
         if (open.filter(this::isWithinResendCooldown).isPresent()) {
@@ -117,6 +126,15 @@ public class PasswordRecoveryServiceImpl implements PasswordRecoveryService {
         applicationEventPublisher.publishEvent(
                 new PasswordRecoveryRequested(user.getProfile().getEmail(), code)
         );
+    }
+
+    private String generateAlphanumericCode() {
+        byte[] bytes = new byte[32];
+        new SecureRandom().nextBytes(bytes);
+
+        return Base64.getUrlEncoder()
+                .withoutPadding()
+                .encodeToString(bytes);
     }
 
     private void revokeAndFlush(PasswordRecovery recovery) {
