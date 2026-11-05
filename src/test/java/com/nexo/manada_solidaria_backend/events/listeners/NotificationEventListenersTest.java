@@ -59,8 +59,7 @@ class NotificationEventListenersTest {
         new NeedTransportEventListener(notificationService)
                 .onEvent(created(AnimalPostFilter.LOST, transport, SEARCHING));
         if (Boolean.TRUE.equals(transport)) {
-            verify(notificationService).notify(NotificationType.NEW_CARRIAGE_REQUEST,
-                    Map.of("postId", postId), null);
+            verify(notificationService).notify(NotificationType.NEW_CARRIAGE_REQUEST, Map.of("postId", postId), (NotificationContext) null);
             verifyNoMoreInteractions(notificationService);
         } else {
             verifyNoInteractions(notificationService);

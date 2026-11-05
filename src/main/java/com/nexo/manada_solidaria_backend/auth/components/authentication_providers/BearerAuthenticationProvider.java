@@ -28,12 +28,16 @@ public class BearerAuthenticationProvider implements AuthenticationProvider {
 
     @Override
     public @Nullable Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        User user = getAuthenticatedUser(authentication);
-        return BearerTokenAuthentication.authenticated(
-                user,
-                authentication.getCredentials(),
-                user.getAuthorities()
-        );
+        try {
+            User user = getAuthenticatedUser(authentication);
+            return BearerTokenAuthentication.authenticated(
+                    user,
+                    authentication.getCredentials(),
+                    user.getAuthorities()
+            );
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @Override

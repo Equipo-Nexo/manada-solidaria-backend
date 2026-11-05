@@ -15,7 +15,7 @@ public class OneTimePasswordConverter implements AuthenticationConverter {
     @Override
     public @Nullable Authentication convert(HttpServletRequest request) {
         String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if(authorizationHeader.contains(OTP_PREFIX)) {
+        if(authorizationHeader != null && authorizationHeader.contains(OTP_PREFIX)) {
             return OneTimePasswordAuthentication.unauthenticated(authorizationHeader.substring(OTP_PREFIX.length()));
         }
 

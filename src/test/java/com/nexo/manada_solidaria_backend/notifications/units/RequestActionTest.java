@@ -12,7 +12,7 @@ class RequestActionTest {
 
     @Test
     void createCopyWithReplacedPlaceholders_shouldResolveEachPayloadWithoutModifyingTemplate() {
-        RequestAction template = new RequestAction("Renovar", "/animal-posts/{animalPostId}/repost",
+        RequestAction template = new RequestAction("Renovar", (byte) 1, "/animal-posts/{animalPostId}/repost",
                 "POST", Map.of("Authorization", "OTP {token}"));
 
         RequestAction first = (RequestAction) template.createCopyWithReplacedPlaceholders(Map.of("animalPostId", "first", "token", "first-token"));
@@ -31,7 +31,7 @@ class RequestActionTest {
 
     @Test
     void createCopyWithReplacedPlaceholders_shouldSupportMissingHeaders() {
-        RequestAction template = new RequestAction("Renovar", "/repost", "POST", null);
+        RequestAction template = new RequestAction("Renovar", (byte) 1, "/repost", "POST", null);
 
         RequestAction copy = (RequestAction) template.createCopyWithReplacedPlaceholders(Map.of());
 

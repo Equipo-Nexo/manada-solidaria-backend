@@ -42,7 +42,6 @@ public class NotificationServiceImpl implements NotificationService {
         sendNotificationsToUsers(params, Set.of(recipient), type);
     }
 
-
     /**
      * Sends a notification to recipients determined by the notification type and context, using the provided parameters.
      */

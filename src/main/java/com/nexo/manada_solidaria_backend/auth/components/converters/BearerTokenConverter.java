@@ -16,7 +16,7 @@ public class BearerTokenConverter implements AuthenticationConverter {
     @Override
     public Authentication convert(HttpServletRequest request) {
         String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (authorizationHeader.contains(BEARER_PREFIX)) {
+        if (authorizationHeader != null && authorizationHeader.contains(BEARER_PREFIX)) {
             return BearerTokenAuthentication.unauthenticated(authorizationHeader.substring(BEARER_PREFIX.length()));
         }
 
