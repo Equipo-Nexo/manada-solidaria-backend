@@ -11,7 +11,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextHolderStrategy;
-import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
+import org.springframework.security.web.authentication.AuthenticationConverter;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -26,19 +26,20 @@ public class BearerTokenFilter extends OncePerRequestFilter {
 
     private SecurityContextHolderStrategy securityContextHolderStrategy;
     private AuthenticationManager authenticationManager;
-    private BearerTokenConverter bearerTokenConverter;
-    private SecurityContextRepository securityContextRepository = new RequestAttributeSecurityContextRepository();
+    private AuthenticationConverter authenticationConverter;
+    private SecurityContextRepository securityContextRepository;
 
-    public BearerTokenFilter(AuthenticationManager authenticationManager, BearerTokenConverter bearerTokenConverter) {
+    public BearerTokenFilter(AuthenticationManager authenticationManager, AuthenticationConverter authenticationConverter, SecurityContextRepository securityContextRepository) {
         this.securityContextHolderStrategy = SecurityContextHolder.getContextHolderStrategy();
         this.authenticationManager = authenticationManager;
-        this.bearerTokenConverter = bearerTokenConverter;
+        this.authenticationConverter = authenticationConverter;
+        this.securityContextRepository = securityContextRepository;
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
-            Authentication auth = this.bearerTokenConverter.convert(request);
+            Authentication auth = this.authenticationConverter.convert(request);
             if (auth == null) {
                 this.logger.trace("Did not process authentication request since failed to find JWT in Authorization Header");
                 filterChain.doFilter(request, response);

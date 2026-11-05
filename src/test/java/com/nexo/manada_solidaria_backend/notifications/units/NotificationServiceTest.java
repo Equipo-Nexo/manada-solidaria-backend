@@ -2,6 +2,7 @@ package com.nexo.manada_solidaria_backend.notifications.units;
 
 import com.nexo.manada_solidaria_backend.common.configs.NotificationConfiguration;
 import com.nexo.manada_solidaria_backend.notifications.components.notifiers.NotificationResolver;
+import com.nexo.manada_solidaria_backend.notifications.components.recipients.data.NotificationContext;
 import com.nexo.manada_solidaria_backend.notifications.models.data.Notification;
 import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationPayload;
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
@@ -19,6 +20,7 @@ import org.springframework.test.context.jdbc.Sql;
 
 import java.util.Collections;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.mockito.Mockito.*;
 
@@ -45,7 +47,7 @@ class NotificationServiceTest {
 
         when(notificationRepository.findByType(type)).thenReturn(Optional.of(notification));
 
-        notificationService.notify(type, Collections.emptyMap(), null);
+        notificationService.notify(type, Collections.emptyMap(), new NotificationContext(UUID.randomUUID()));
         verify(notificationResolver, atLeastOnce())
                 .notify(any(User.class), any(NotificationPayload.class), any());
     }

@@ -32,25 +32,30 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationRecipientFactory notificationRecipientFactory;
     private final List<NotificationResolver> notificationResolvers;
 
+    /**
+     * Sends a notification to a set of recipients based on the provided notification type, parameters, and context.
+     */
+    @Override
+    @Async("notificationExecutor")
+    @Transactional
+    public void notify(NotificationType type, Map<String, Object> params, User recipient) {
+        sendNotificationsToUsers(params, Set.of(recipient), type);
+    }
+
+    /**
+     * Sends a notification to recipients determined by the notification type and context, using the provided parameters.
+     */
     @Override
     @Async("notificationExecutor")
     @Transactional
     public void notify(NotificationType type, Map<String, Object> params, NotificationContext context) {
-        sendNotificationsToUsers(type, params, context);
+        log.info("Sending notification {}", type);
+        Set<User> recipients = getRecipientsByNotificationType(type, context);
+        sendNotificationsToUsers(params, recipients, type);
     }
 
-    private void sendNotificationsToUsers(NotificationType type, Map<String, Object> params, NotificationContext context) {
-        log.info("Sending notification {}", type);
-        Notification notification = notificationRepository
-                .findByType(type)
-                .orElseThrow(() -> new ResponseStatusException(INTERNAL_SERVER_ERROR, "Notification not found for type: " + type));
-
-        NotificationPayload notificationPayload = this.buildNotificationPayload(notification, params);
-
-        Set<User> recipients = notificationRecipientFactory
-                .resolve(type)
-                .getRecipients(context);
-
+    private void sendNotificationsToUsers(Map<String, Object> params, Set<User> recipients, NotificationType type) {
+        NotificationPayload payload = this.buildNotificationPayload(type, params);
         Set<NotificationResolver> senders = notificationResolvers
                 .stream()
                 .filter(sender -> type.getChannels().contains(sender.getNotificationChannel()))
@@ -58,25 +63,34 @@ public class NotificationServiceImpl implements NotificationService {
 
         senders.forEach(sender ->
                 recipients.forEach(user ->
-                        sender.notify(user, notificationPayload, notification.getType())
+                        sender.notify(user, payload, type)
                 )
         );
     }
 
-    private NotificationPayload buildNotificationPayload(Notification notification, Map<String, Object> params) {
+    private Set<User> getRecipientsByNotificationType(NotificationType type, NotificationContext context) {
+        return notificationRecipientFactory
+                .resolve(type)
+                .getRecipients(context);
+    }
+
+    private NotificationPayload buildNotificationPayload(NotificationType type, Map<String, Object> params) {
+        Notification notification = notificationRepository
+                .findByType(type)
+                .orElseThrow(() -> new ResponseStatusException(INTERNAL_SERVER_ERROR, "Notification not found for type: " + type));
+
         return replaceParams(
                 new NotificationPayload(
                         notification.getTitle(),
                         notification.getMessage(),
                         notification.getIcon(),
-                        notification.getActions()
+                        notification.getActions().stream().map(action -> action.createCopyWithReplacedPlaceholders(params)).toList()
                 ),
                 params
         );
     }
 
     private NotificationPayload replaceParams(NotificationPayload notification, Map<String, Object> params) {
-        notification.getActions().forEach(action -> action.replaceParams(params));
         params.forEach((key, value) -> {
             String placeholder = "{" + key + "}";
 

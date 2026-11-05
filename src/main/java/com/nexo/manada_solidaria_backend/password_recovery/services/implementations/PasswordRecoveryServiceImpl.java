@@ -15,6 +15,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,6 +31,7 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -100,6 +102,38 @@ public class PasswordRecoveryServiceImpl implements PasswordRecoveryService {
         log.info("Password reset completed: user={}", recovery.getUser().getId());
     }
 
+    @Override
+    @Transactional
+    public PasswordRecovery createTotp(User user) {
+        passwordRecoveryRepository
+                .findByUserAndStatusIn(user, List.of(ACTIVE))
+                .ifPresent(PasswordRecovery::revoke);
+
+        passwordRecoveryRepository.flush();
+        String code = generateAlphanumericCode();
+
+
+        return passwordRecoveryRepository.save(
+                new PasswordRecovery(
+                        user,
+                        passwordEncoder.encode(code),
+                        LocalDateTime.now().plusMinutes(properties.codeExpiration())
+                )
+        );
+    }
+
+    @Override
+    @Transactional
+    public User getUserByTokenOrThrowException(String token) {
+        PasswordRecovery passwordRecovery = this.passwordRecoveryRepository
+                .findByVerificationCode(token)
+                .filter(PasswordRecovery::isUsable)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Requested token was not found."));
+        passwordRecovery.markUsed();
+
+        return passwordRecovery.getUser();
+    }
+
     private void startRecovery(User user) {
         Optional<PasswordRecovery> open = passwordRecoveryRepository.findByUserAndStatusIn(user, OPEN);
         if (open.filter(this::isWithinResendCooldown).isPresent()) {
@@ -117,6 +151,15 @@ public class PasswordRecoveryServiceImpl implements PasswordRecoveryService {
         applicationEventPublisher.publishEvent(
                 new PasswordRecoveryRequested(user.getProfile().getEmail(), code)
         );
+    }
+
+    private String generateAlphanumericCode() {
+        byte[] bytes = new byte[32];
+        new SecureRandom().nextBytes(bytes);
+
+        return Base64.getUrlEncoder()
+                .withoutPadding()
+                .encodeToString(bytes);
     }
 
     private void revokeAndFlush(PasswordRecovery recovery) {

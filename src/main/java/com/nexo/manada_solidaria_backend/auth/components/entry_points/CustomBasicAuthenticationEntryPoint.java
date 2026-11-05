@@ -1,4 +1,4 @@
-package com.nexo.manada_solidaria_backend.auth.components;
+package com.nexo.manada_solidaria_backend.auth.components.entry_points;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nexo.manada_solidaria_backend.common.exceptions.responses.ApiError;

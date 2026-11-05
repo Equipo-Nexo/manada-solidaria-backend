@@ -47,6 +47,10 @@ public class AnimalPostServiceImpl implements AnimalPostService {
 
     private static final int RECENT_DAYS = 7;
     private static final int INACTIVITY_DAYS = 120;
+    /**
+     * This window indicates how many days in advance the user needs to be notified that their listing is about to expire.
+     */
+    private static final int ABOUT_TO_EXPIRE_WINDOWS = 120 - 10;
     private static final Set<String> EXPIRABLE_STATUSES = Stream.concat(
             EnumSet.complementOf(EnumSet.copyOf(LostPost.FINAL_STATUSES)).stream(),
             EnumSet.complementOf(EnumSet.copyOf(AdoptionPost.FINAL_STATUSES)).stream()
@@ -258,6 +262,16 @@ public class AnimalPostServiceImpl implements AnimalPostService {
     @Transactional(readOnly = true)
     public UUID getOwnerId(UUID animalPostId) {
         return getAnimalPostOrThrow(animalPostId).getOwner().getId();
+    }
+
+    @Override
+    public List<AnimalPost<?, ?>> getAboutToExpirePosts() {
+        LocalDate targetDate = LocalDate.now().minusDays(ABOUT_TO_EXPIRE_WINDOWS);
+        return animalPostRepository.findAllByExpirationDateBetween(
+                targetDate.atStartOfDay(),
+                targetDate.plusDays(1).atStartOfDay()
+        );
+
     }
 
     private Set<UUID> resolveAdoptionFormStatuses(List<AnimalPost<?, ?>> posts, User authenticatedUser) {

@@ -4,7 +4,6 @@ import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthentica
 import com.nexo.manada_solidaria_backend.notifications.models.data.Notification;
 import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationChannel;
 import com.nexo.manada_solidaria_backend.notifications.models.data.NotificationPayload;
-import com.nexo.manada_solidaria_backend.notifications.models.data.actions.base.NotificationAction;
 import com.nexo.manada_solidaria_backend.notifications.models.data.actions.implementations.RedirectAction;
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationStatus;
 import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
@@ -27,9 +26,7 @@ import java.util.UUID;
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.FORBIDDEN_MESSAGE;
 import static com.nexo.manada_solidaria_backend.notifications.utils.MockNotificationDataUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -162,7 +159,7 @@ class NotificationControllerTest extends BaseAuthenticatedIntegrationTest {
 
         notificationDeliveryService.createNotificationDelivery(
                 userRepository.findByUsername("admin").orElseThrow(),
-                new NotificationPayload("Traslado", "Firulais necesita transporte", null, List.of(new RedirectAction("/animal-posts/99"))),
+                new NotificationPayload("Traslado", "Firulais necesita transporte", null, List.of(new RedirectAction("Traslado", (byte) 1, "/animal-posts/99"))),
                 NotificationChannel.IN_APP,
                 NotificationType.NEW_CARRIAGE_REQUEST
         );

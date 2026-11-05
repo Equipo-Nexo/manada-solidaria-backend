@@ -9,9 +9,9 @@ public class BearerTokenAuthentication extends AbstractAuthenticationToken {
     private final Object principal;
     private Object credentials;
 
-    public BearerTokenAuthentication(Object principal, Object credentials) {
+    public BearerTokenAuthentication(Object credentials) {
         super((Collection) null);
-        this.principal = principal;
+        this.principal = null;
         this.credentials = credentials;
         this.setAuthenticated(false);
     }
@@ -33,8 +33,8 @@ public class BearerTokenAuthentication extends AbstractAuthenticationToken {
         return this.principal;
     }
 
-    public static BearerTokenAuthentication unauthenticated(Object principal, Object credentials) {
-        return new BearerTokenAuthentication(principal, credentials);
+    public static BearerTokenAuthentication unauthenticated(Object credentials) {
+        return new BearerTokenAuthentication(credentials);
     }
 
     public static BearerTokenAuthentication authenticated(Object principal, Object credentials, Collection<? extends GrantedAuthority> authorities) {

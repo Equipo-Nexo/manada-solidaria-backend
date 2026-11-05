@@ -1,5 +1,7 @@
 package com.nexo.manada_solidaria_backend.auth.configs;
 
+import com.nexo.manada_solidaria_backend.auth.components.converters.BearerTokenConverter;
+import com.nexo.manada_solidaria_backend.auth.components.converters.OneTimePasswordConverter;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -21,8 +23,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationConverter;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.DelegatingAuthenticationConverter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.webauthn.authentication.WebAuthnAuthenticationFilter;
 import org.springframework.security.web.webauthn.management.JdbcPublicKeyCredentialUserEntityRepository;
 import org.springframework.security.web.webauthn.management.JdbcUserCredentialRepository;
@@ -86,15 +92,33 @@ public class SecurityConfig {
     }
 
     @Bean
+    public SecurityContextRepository securityContextRepository() {
+        return new RequestAttributeSecurityContextRepository();
+    }
+
+    @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationProvider daoAuthenticationProvider,
-            AuthenticationProvider bearerAuthenticationProvider
+            AuthenticationProvider bearerAuthenticationProvider,
+            AuthenticationProvider oneTimePasswordAuthenticationProvider
     ) {
         return new ProviderManager(
                 List.of(
                         daoAuthenticationProvider,
+                        oneTimePasswordAuthenticationProvider,
                         bearerAuthenticationProvider
                 )
+        );
+    }
+
+    @Bean
+    public AuthenticationConverter authenticationConverter(
+            BearerTokenConverter jwtConverter,
+            OneTimePasswordConverter otpConverter
+    ) {
+        return new DelegatingAuthenticationConverter(
+                jwtConverter,
+                otpConverter
         );
     }
 

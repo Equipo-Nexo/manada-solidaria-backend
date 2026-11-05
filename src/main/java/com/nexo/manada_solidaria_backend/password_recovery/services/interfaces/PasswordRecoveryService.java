@@ -4,6 +4,8 @@ import com.nexo.manada_solidaria_backend.password_recovery.controllers.requests.
 import com.nexo.manada_solidaria_backend.password_recovery.controllers.requests.ResetPasswordRequest;
 import com.nexo.manada_solidaria_backend.password_recovery.controllers.requests.VerifyRecoveryCodeRequest;
 import com.nexo.manada_solidaria_backend.password_recovery.controllers.responses.RecoveryTokenResponse;
+import com.nexo.manada_solidaria_backend.password_recovery.data.models.PasswordRecovery;
+import com.nexo.manada_solidaria_backend.users.data.models.User;
 
 public interface PasswordRecoveryService {
 
@@ -12,4 +14,8 @@ public interface PasswordRecoveryService {
     RecoveryTokenResponse verifyCode(VerifyRecoveryCodeRequest request);
 
     void resetPassword(ResetPasswordRequest request);
+
+    PasswordRecovery createTotp(User user);
+
+    User getUserByTokenOrThrowException(String token);
 }
