@@ -22,7 +22,7 @@ public class CloseAction extends NotificationAction {
     }
 
     @Override
-    public NotificationAction copy(Map<String, Object> params) {
+    public NotificationAction createCopyWithReplacedPlaceholders(Map<String, Object> params) {
         return new CloseAction(this.getTitle(), this.getOrder());
     }
 }

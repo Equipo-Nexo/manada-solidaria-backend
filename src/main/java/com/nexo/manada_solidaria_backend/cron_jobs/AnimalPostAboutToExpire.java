@@ -30,8 +30,7 @@ public class AnimalPostAboutToExpire {
     );
 
 
-    // @Scheduled(cron = "0 0 1 * * *")
-    @Scheduled(cron = "*/30 * * * * *")
+    @Scheduled(cron = "0 0 1 * * *")
     void sendAboutToExpirePostNotification() {
         getAnimalPostsAboutToExpire()
                 .forEach(animalPost -> {

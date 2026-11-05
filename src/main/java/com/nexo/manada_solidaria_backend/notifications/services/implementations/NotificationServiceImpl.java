@@ -84,7 +84,7 @@ public class NotificationServiceImpl implements NotificationService {
                         notification.getTitle(),
                         notification.getMessage(),
                         notification.getIcon(),
-                        notification.getActions().stream().map(action -> action.copy(params)).toList()
+                        notification.getActions().stream().map(action -> action.createCopyWithReplacedPlaceholders(params)).toList()
                 ),
                 params
         );

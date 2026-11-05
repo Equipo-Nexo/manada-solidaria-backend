@@ -30,7 +30,7 @@ public class RedirectAction extends NotificationAction {
     }
 
     @Override
-    public NotificationAction copy(Map<String, Object> params) {
+    public NotificationAction createCopyWithReplacedPlaceholders(Map<String, Object> params) {
         return new RedirectAction(
                 this.getTitle(),
                 this.getOrder(),

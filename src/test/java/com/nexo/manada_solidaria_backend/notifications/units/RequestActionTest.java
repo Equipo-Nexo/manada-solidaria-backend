@@ -5,17 +5,18 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RequestActionTest {
 
     @Test
-    void copy_shouldResolveEachPayloadWithoutModifyingTemplate() {
+    void createCopyWithReplacedPlaceholders_shouldResolveEachPayloadWithoutModifyingTemplate() {
         RequestAction template = new RequestAction("Renovar", "/animal-posts/{animalPostId}/repost",
                 "POST", Map.of("Authorization", "OTP {token}"));
 
-        RequestAction first = (RequestAction) template.copy(Map.of("animalPostId", "first", "token", "first-token"));
-        RequestAction second = (RequestAction) template.copy(Map.of("animalPostId", "second", "token", "second-token"));
+        RequestAction first = (RequestAction) template.createCopyWithReplacedPlaceholders(Map.of("animalPostId", "first", "token", "first-token"));
+        RequestAction second = (RequestAction) template.createCopyWithReplacedPlaceholders(Map.of("animalPostId", "second", "token", "second-token"));
 
         assertEquals("/animal-posts/{animalPostId}/repost", template.getUrl());
         assertEquals(Map.of("Authorization", "OTP {token}"), template.getHeaders());
@@ -29,10 +30,10 @@ class RequestActionTest {
     }
 
     @Test
-    void copy_shouldSupportMissingHeaders() {
+    void createCopyWithReplacedPlaceholders_shouldSupportMissingHeaders() {
         RequestAction template = new RequestAction("Renovar", "/repost", "POST", null);
 
-        RequestAction copy = (RequestAction) template.copy(Map.of());
+        RequestAction copy = (RequestAction) template.createCopyWithReplacedPlaceholders(Map.of());
 
         assertTrue(copy.getHeaders().isEmpty());
     }

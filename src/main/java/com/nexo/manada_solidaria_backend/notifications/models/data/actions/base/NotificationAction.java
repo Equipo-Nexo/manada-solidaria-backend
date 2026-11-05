@@ -53,5 +53,5 @@ public abstract class NotificationAction {
         return text;
     }
 
-    public abstract NotificationAction copy(Map<String, Object> params);
+    public abstract NotificationAction createCopyWithReplacedPlaceholders(Map<String, Object> params);
 }
