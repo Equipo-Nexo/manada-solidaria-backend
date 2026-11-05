@@ -32,22 +32,23 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationRecipientFactory notificationRecipientFactory;
     private final List<NotificationResolver> notificationResolvers;
 
-    @Override
-    @Async("notificationExecutor")
-    @Transactional
     /**
      * Sends a notification to a set of recipients based on the provided notification type, parameters, and context.
      */
+    @Override
+    @Async("notificationExecutor")
+    @Transactional
     public void notify(NotificationType type, Map<String, Object> params, User recipient) {
         sendNotificationsToUsers(params, Set.of(recipient), type);
     }
 
-    @Override
-    @Async("notificationExecutor")
-    @Transactional
+
     /**
      * Sends a notification to recipients determined by the notification type and context, using the provided parameters.
      */
+    @Override
+    @Async("notificationExecutor")
+    @Transactional
     public void notify(NotificationType type, Map<String, Object> params, NotificationContext context) {
         log.info("Sending notification {}", type);
         Set<User> recipients = getRecipientsByNotificationType(type, context);
