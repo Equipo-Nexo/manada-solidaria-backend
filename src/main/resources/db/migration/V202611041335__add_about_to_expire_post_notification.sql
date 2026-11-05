@@ -21,7 +21,7 @@ VALUES
             'url', '/animal-posts/{animalPostId}/repost',
             'httpMethod', 'POST',
             'headers', JSON_OBJECT(
-                'Authorization', '{otp}'
+                'Authorization', 'OTP {otp}'
             )
         ),
         JSON_OBJECT(

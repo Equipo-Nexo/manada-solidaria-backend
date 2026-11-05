@@ -63,8 +63,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         senders.forEach(sender ->
                 recipients.forEach(user ->
-                                log.info("Sending notification payload is [{}]", payload)
-                        // sender.notify(user, payload, type)
+                        sender.notify(user, payload, type)
                 )
         );
     }
@@ -85,14 +84,13 @@ public class NotificationServiceImpl implements NotificationService {
                         notification.getTitle(),
                         notification.getMessage(),
                         notification.getIcon(),
-                        notification.getActions()
+                        notification.getActions().stream().map(action -> action.copy(params)).toList()
                 ),
                 params
         );
     }
 
     private NotificationPayload replaceParams(NotificationPayload notification, Map<String, Object> params) {
-        notification.getActions().forEach(action -> action.replaceParams(params));
         params.forEach((key, value) -> {
             String placeholder = "{" + key + "}";
 

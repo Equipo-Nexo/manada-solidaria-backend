@@ -6,6 +6,7 @@ import com.nexo.manada_solidaria_backend.notifications.models.data.actions.base.
 import com.nexo.manada_solidaria_backend.notifications.models.data.actions.base.NotificationActionType;
 import lombok.Getter;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -21,14 +22,15 @@ public class RequestAction extends NotificationAction {
     @JsonCreator
     public RequestAction(
             @JsonProperty("title") String title,
+            @JsonProperty("order") Byte order,
             @JsonProperty("url") String url,
             @JsonProperty("httpMethod") String httpMethod,
             @JsonProperty("headers") Map<String, String> headers
     ) {
-        super(title);
+        super(title, order);
         this.url = url;
         this.httpMethod = httpMethod;
-        this.headers = Optional.of(headers).orElse(emptyMap());
+        this.headers = Optional.ofNullable(headers).orElse(emptyMap());
     }
 
     @Override
@@ -37,10 +39,19 @@ public class RequestAction extends NotificationAction {
     }
 
     @Override
-    public RequestAction replaceParams(Map<String, Object> params) {
-        super.replaceParams(params);
-        this.url = replacePlaceholders(this.url, params);
-        this.headers.forEach((key, value) -> this.headers.put(key, replacePlaceholders(value, params)));
-        return this;
+    public NotificationAction copy(Map<String, Object> params) {
+        return new RequestAction(
+                replacePlaceholders(getTitle(), params),
+                this.getOrder(),
+                replacePlaceholders(url, params),
+                httpMethod,
+                replaceHeadersPlaceholders(params)
+        );
+    }
+
+    private Map<String, String> replaceHeadersPlaceholders(Map<String, Object> params) {
+        Map<String, String> replacedHeaders = new HashMap<>();
+        this.headers.forEach((key, value) -> replacedHeaders.put(key, replacePlaceholders(value, params)));
+        return replacedHeaders;
     }
 }

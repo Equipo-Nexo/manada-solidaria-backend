@@ -25,8 +25,9 @@ public abstract class NotificationAction {
     private String title;
     private Byte order;
 
-    public NotificationAction(String title) {
+    public NotificationAction(String title, Byte order) {
         this.title = title;
+        this.order = order;
     }
 
     @JsonProperty("type")
@@ -52,8 +53,5 @@ public abstract class NotificationAction {
         return text;
     }
 
-    public NotificationAction replaceParams(Map<String, Object> params) {
-        this.title = replacePlaceholders(this.title, params);
-        return this;
-    }
+    public abstract NotificationAction copy(Map<String, Object> params);
 }

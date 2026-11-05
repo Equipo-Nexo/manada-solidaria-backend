@@ -31,6 +31,7 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -102,11 +103,20 @@ public class PasswordRecoveryServiceImpl implements PasswordRecoveryService {
     }
 
     @Override
+    @Transactional
     public PasswordRecovery createTotp(User user) {
+        passwordRecoveryRepository
+                .findByUserAndStatusIn(user, List.of(ACTIVE))
+                .ifPresent(PasswordRecovery::revoke);
+
+        passwordRecoveryRepository.flush();
+        String code = generateAlphanumericCode();
+
+
         return passwordRecoveryRepository.save(
                 new PasswordRecovery(
                         user,
-                        passwordEncoder.encode(generateAlphanumericCode()),
+                        passwordEncoder.encode(code),
                         LocalDateTime.now().plusMinutes(properties.codeExpiration())
                 )
         );

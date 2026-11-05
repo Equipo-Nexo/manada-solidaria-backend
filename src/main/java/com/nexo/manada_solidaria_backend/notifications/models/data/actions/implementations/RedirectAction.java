@@ -15,8 +15,12 @@ public class RedirectAction extends NotificationAction {
     private String url;
 
     @JsonCreator
-    public RedirectAction(@JsonProperty("url") String url) {
-        super("Ver publicación");
+    public RedirectAction(
+            @JsonProperty("title") String title,
+            @JsonProperty("order") Byte order,
+            @JsonProperty("url") String url
+    ) {
+        super(title, order);
         this.url = url;
     }
 
@@ -26,9 +30,12 @@ public class RedirectAction extends NotificationAction {
     }
 
     @Override
-    public RedirectAction replaceParams(Map<String, Object> params) {
-        super.replaceParams(params);
-        this.url = replacePlaceholders(this.url, params);
-        return this;
+    public NotificationAction copy(Map<String, Object> params) {
+        return new RedirectAction(
+                this.getTitle(),
+                this.getOrder(),
+                replacePlaceholders(url, params)
+        );
     }
+
 }
