@@ -34,6 +34,10 @@ http:
       value: EXPIRED
       type: query
       disabled: true
+    - name: animalGender
+      value: MALE
+      type: query
+      disabled: true
   auth: inherit
 
 runtime:
@@ -60,6 +64,9 @@ settings:
 docs: |-
   Listado paginado de publicaciones (home). Filtros opcionales: `type`, `status`, `animalType`,
   `animalSize`, `animalGender`, `animalAge`, `animalColor`, mas `page` / `size` / `sort`.
+
+  `animalGender` trae el sexo pedido mas los de sexo desconocido: `MALE` devuelve `MALE` + `UNKNOWN`,
+  `FEMALE` devuelve `FEMALE` + `UNKNOWN` y `UNKNOWN` devuelve solo los desconocidos.
 
   Sin `status` NO vienen las publicaciones en estado final (`FOUND`, `RESCUED`, `ADOPTED`):
   esas se listan en `GET /animal-posts/happy-cases`. Para traerlas igual, pedir el estado

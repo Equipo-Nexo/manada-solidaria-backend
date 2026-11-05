@@ -625,6 +625,16 @@ public class MockAnimalPostDataUtils {
         );
     }
 
+    private static Stream<Arguments> provideUnknownGenderFilterCases() {
+        return Stream.of(
+                Arguments.of("animalGender=MALE devuelve el macho y el desconocido", Map.of("animalGender", "MALE"), 2),
+                Arguments.of("animalGender=FEMALE devuelve las hembras y el desconocido", Map.of("animalGender", "FEMALE"), 3),
+                Arguments.of("animalGender=UNKNOWN devuelve solo el desconocido", Map.of("animalGender", "UNKNOWN"), 1),
+                Arguments.of("animalGender=MALE y animalType=CAT no suma al perro desconocido",
+                        Map.of("animalGender", "MALE", "animalType", "CAT"), 0)
+        );
+    }
+
     private static Stream<Arguments> provideInvalidFilterCases() {
         return Stream.of(
                 Arguments.of("type invalido", "type", "INVALIDO"),
