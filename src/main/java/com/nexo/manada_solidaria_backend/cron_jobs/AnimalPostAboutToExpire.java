@@ -30,12 +30,12 @@ public class AnimalPostAboutToExpire {
     );
 
 
-    @Scheduled(cron = "* * * * * *")
+    @Scheduled(cron = "0 0 1 * * *")
     void sendAboutToExpirePostNotification() {
         getAnimalPostsAboutToExpire()
                 .forEach(animalPost -> {
                     User user = animalPost.getOwner();
-                    PasswordRecovery passwordRecovery = passwordRecoveryService.getTotp(user);
+                    PasswordRecovery passwordRecovery = passwordRecoveryService.createTotp(user);
 
                     notificationService.notify(
                             NotificationType.POST_ABOUT_TO_EXPIRE,

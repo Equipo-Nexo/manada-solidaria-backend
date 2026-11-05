@@ -15,5 +15,7 @@ public interface PasswordRecoveryService {
 
     void resetPassword(ResetPasswordRequest request);
 
-    PasswordRecovery getTotp(User user);
+    PasswordRecovery createTotp(User user);
+
+    User getUserByTokenOrThrowException(String token);
 }

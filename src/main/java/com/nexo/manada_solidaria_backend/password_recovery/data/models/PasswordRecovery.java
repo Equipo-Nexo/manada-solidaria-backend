@@ -2,12 +2,7 @@ package com.nexo.manada_solidaria_backend.password_recovery.data.models;
 
 import com.nexo.manada_solidaria_backend.password_recovery.data.enums.PasswordRecoveryStatus;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -43,6 +38,10 @@ public class PasswordRecovery {
         this.user = user;
         this.verificationCode = verificationCode;
         this.expiresAt = expiresAt;
+    }
+
+    public boolean isUsable() {
+        return status == PasswordRecoveryStatus.ACTIVE;
     }
 
     public boolean isVerified() {

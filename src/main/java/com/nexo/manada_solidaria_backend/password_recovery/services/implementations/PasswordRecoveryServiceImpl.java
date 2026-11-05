@@ -15,6 +15,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -101,12 +102,26 @@ public class PasswordRecoveryServiceImpl implements PasswordRecoveryService {
     }
 
     @Override
-    public PasswordRecovery getTotp(User user) {
-        return new PasswordRecovery(
-                user,
-                passwordEncoder.encode(generateAlphanumericCode()),
-                LocalDateTime.now().plusMinutes(properties.codeExpiration())
+    public PasswordRecovery createTotp(User user) {
+        return passwordRecoveryRepository.save(
+                new PasswordRecovery(
+                        user,
+                        passwordEncoder.encode(generateAlphanumericCode()),
+                        LocalDateTime.now().plusMinutes(properties.codeExpiration())
+                )
         );
+    }
+
+    @Override
+    @Transactional
+    public User getUserByTokenOrThrowException(String token) {
+        PasswordRecovery passwordRecovery = this.passwordRecoveryRepository
+                .findByVerificationCode(token)
+                .filter(PasswordRecovery::isUsable)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Requested token was not found."));
+        passwordRecovery.markUsed();
+
+        return passwordRecovery.getUser();
     }
 
     private void startRecovery(User user) {
