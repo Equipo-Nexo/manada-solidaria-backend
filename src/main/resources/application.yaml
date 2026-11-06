@@ -40,7 +40,7 @@ server:
         secure: true
 security:
   access-token-expiration: ${ACCESS_TOKEN_EXPIRATION:60}
-  refresh-token-expiration: 120
+  refresh-token-expiration: ${REFRESH_TOKEN_EXPIRATION:1440}
   secret: ${SECURITY_KEY}
   password-recovery:
     code-expiration: 10
@@ -72,3 +72,8 @@ push:
     public-key: ${VAPID_PUBLIC_KEY}
     private-key: ${VAPID_PRIVATE_KEY}
     subject: mailto:06nexo@gmail.com
+app:
+  report:
+    threshold: 15
+    admin-email: ${ADMIN_EMAIL}
+    frontend-url: ${FRONTEND_URL}

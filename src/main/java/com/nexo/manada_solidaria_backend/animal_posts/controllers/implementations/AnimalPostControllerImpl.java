@@ -53,6 +53,11 @@ public class AnimalPostControllerImpl implements AnimalPostController {
     }
 
     @Override
+    public void repost(UUID animalPostId, User authenticatedUser) {
+        animalPostService.repost(animalPostId, authenticatedUser);
+    }
+
+    @Override
     public void delete(UUID animalPostId, User authenticatedUser) {
         animalPostService.delete(animalPostId, authenticatedUser);
     }

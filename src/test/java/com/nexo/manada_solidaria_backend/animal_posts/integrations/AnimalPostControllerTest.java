@@ -4,25 +4,20 @@ import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.Anima
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.*;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.*;
+import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AdoptionFormRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.AnimalPostRepository;
+import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.QuestionFormRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.data.repositories.ReactionRepository;
 import com.nexo.manada_solidaria_backend.animal_posts.utils.MockAnimalPostDataUtils;
 import com.nexo.manada_solidaria_backend.common.data.models.PhoneNumber;
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseAuthenticatedIntegrationTest;
+import com.nexo.manada_solidaria_backend.events.data.models.AnimalPostCreatedEvent;
+import com.nexo.manada_solidaria_backend.events.data.models.AnimalPostStatusChangedEvent;
 import com.nexo.manada_solidaria_backend.locations.data.models.Location;
-import com.nexo.manada_solidaria_backend.notifications.clients.WebPushClient;
-import com.nexo.manada_solidaria_backend.notifications.models.data.*;
-import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationStatus;
-import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
-import com.nexo.manada_solidaria_backend.notifications.models.repositories.NotificationDeliveryRepository;
-import com.nexo.manada_solidaria_backend.notifications.models.repositories.NotificationRepository;
-import com.nexo.manada_solidaria_backend.notifications.models.repositories.PushSuscriptionRepository;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.Profile;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import com.nexo.manada_solidaria_backend.users.data.repositories.UserRepository;
-import org.apache.http.HttpResponse;
-import org.apache.http.StatusLine;
 import org.hamcrest.Matcher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,26 +27,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.event.ApplicationEvents;
+import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.*;
 
+import static com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusLostPost.SEARCHING;
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.FORBIDDEN_MESSAGE;
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@RecordApplicationEvents
 @Transactional
 class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
 
@@ -65,89 +60,29 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private NotificationRepository notificationRepository;
+    private AdoptionFormRepository adoptionFormRepository;
     @Autowired
-    private NotificationDeliveryRepository notificationDeliveryRepository;
+    private QuestionFormRepository questionFormRepository;
+
+
     @Autowired
-    private PushSuscriptionRepository pushSuscriptionRepository;
-
-    @MockitoBean
-    private WebPushClient webPushClient;
-
-    @DisplayName("POST /animal-posts de un animal en la calle notifica por push a quien busca uno del mismo tipo")
-    @ParameterizedTest(name = "{index} - {0}")
-    @MethodSource(MOCK_DATA + "provideSimilarLostPetRecipientCases")
-    void create_lost_notifiesOwnersSearchingSameAnimalType(String testName, String body, String username, int expectedDeliveries) throws Exception {
-        seedSimilarLostPetScenario();
-        givenPushResponds(201);
-
-        postAnimalPost(body).andExpect(status().isCreated());
-
-        assertThat(similarLostPetDeliveriesOf(username)).hasSize(expectedDeliveries);
-    }
+    private ApplicationEvents applicationEvents;
 
     @Test
-    @DisplayName("POST /animal-posts en la calle: el push lleva la direccion y el link al post, y queda SENT")
-    void create_lost_sendsPushWithAddressAndLink() throws Exception {
-        seedSimilarLostPetScenario();
-        givenPushResponds(201);
-
-        String response = postAnimalPost(MockAnimalPostDataUtils.LOST_STREET_WITHOUT_PHONE)
-                .andExpect(status().isCreated())
-                .andReturn().getResponse().getContentAsString();
-        String postId = mapper.readTree(response).get("id").asText();
-
-        NotificationDelivery delivery = similarLostPetDeliveriesOf("busca-perro").getFirst();
-        NotificationPayload payload = delivery.getPayload();
-        assertThat(payload.getMessage()).isEqualTo("Vieron un animal en Corrientes 500, Buenos Aires. Revisá si puede ser tu mascota perdida.");
-        assertThat(delivery.getStatusHistory().getLast().getStatus()).isEqualTo(NotificationStatus.SENT);
-    }
-
-    @Test
-    @DisplayName("POST /animal-posts en la calle: si falla el push el post se crea igual y la entrega queda FAILED")
-    void create_lost_whenPushFails_createsPostAndMarksDeliveryFailed() throws Exception {
-        seedSimilarLostPetScenario();
-        given(webPushClient.send(any(), any())).willThrow(new IOException("push caido"));
-
-        postAnimalPost(MockAnimalPostDataUtils.LOST_STREET_WITHOUT_PHONE).andExpect(status().isCreated());
-
-        assertThat(similarLostPetDeliveriesOf("busca-perro").getFirst().getStatusHistory().getLast().getStatus())
-                .isEqualTo(NotificationStatus.FAILED);
-    }
-
-    @Test
-    @DisplayName("POST /animal-posts en la calle: notifica por campanita aunque el usuario no tenga push")
-    void create_lost_notifiesInAppWithoutPushSubscription() throws Exception {
-        seedSimilarLostPetScenario();
-        givenPushResponds(201);
-        User withoutPush = userRepository.save(new User("busca-perro-sin-push", "x",
-                new Profile("busca-perro-sin-push@mail.com", new PhoneNumber("353", "4014524"), Set.of(Rol.COMMUNITY))));
-        saveLostPostOf(withoutPush, AnimalType.DOG, StatusLostPost.SEARCHING, true);
-
-        postAnimalPost(MockAnimalPostDataUtils.LOST_STREET_WITHOUT_PHONE).andExpect(status().isCreated());
-
-        assertThat(similarLostPetDeliveriesOf("busca-perro-sin-push", NotificationChannel.PUSH)).isEmpty();
-        assertThat(similarLostPetDeliveriesOf("busca-perro-sin-push", NotificationChannel.IN_APP))
-                .singleElement()
-                .satisfies(delivery -> assertThat(delivery.getStatusHistory().getLast().getStatus()).isEqualTo(NotificationStatus.SENT));
-    }
-
-    @DisplayName("POST /animal-posts en la calle: el color solo descarta cuando los dos estan cargados y son distintos")
-    @ParameterizedTest(name = "{index} - {0}")
-    @MethodSource(MOCK_DATA + "provideSimilarLostPetColorCases")
-    void create_street_matchesColorOnlyWhenBothAreLoaded(
-            String testName,
-            String streetColor,
-            String searchedColor,
-            int expectedDeliveries
-    ) throws Exception {
-        seedSimilarLostPetScenario();
-        givenPushResponds(201);
-        saveLostPostOf(subscribedUser("busca-por-color"), AnimalType.DOG, searchedColor, StatusLostPost.SEARCHING, true);
-
-        postAnimalPost(MockAnimalPostDataUtils.streetDogWithColor(streetColor)).andExpect(status().isCreated());
-
-        assertThat(similarLostPetDeliveriesOf("busca-por-color")).hasSize(expectedDeliveries);
+    @DisplayName("Crear una publicacion publica el evento con los datos persistidos")
+    void create_publishesAnimalPostCreatedEvent() throws Exception {
+        UUID id = createOwnedPostReturningId();
+        AnimalPost<?, ?> saved = animalPostRepository.findById(id).orElseThrow();
+        assertThat(applicationEvents.stream(AnimalPostCreatedEvent.class))
+                .singleElement().satisfies(event -> {
+                    assertThat(event.postId()).isEqualTo(id);
+                    assertThat(event.ownerId()).isEqualTo(saved.getOwner().getId());
+                    assertThat(event.type()).isEqualTo(saved.getType());
+                    assertThat(event.status()).isEqualTo(saved.getCurrentStatus().getStatus());
+                    assertThat(event.context().postOwnerId()).isEqualTo(saved.getOwner().getId());
+                    assertThat(event.context().animal().type()).isEqualTo(saved.getAnimal().getType());
+                    assertThat(event.context().animal().color()).isEqualTo(saved.getAnimal().getColor());
+                });
     }
 
     @DisplayName("POST /animal-post — código de estado por payload")
@@ -369,7 +304,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     @MethodSource(MOCK_DATA + "provideFilterCases")
     void filterTests(String testName, String type, String status, int expectedCount) throws Exception {
         saveLostPost("Lost creado", StatusLostPost.CREATED);
-        saveLostPost("Lost buscando", StatusLostPost.SEARCHING);
+        saveLostPost("Lost buscando", SEARCHING);
         saveLostPost("En la calle", StatusLostPost.TO_RESCUE, false);
         saveAdoptionPost("Adopción en búsqueda y tránsito", StatusAdoptionPost.SEARCHING_ADOPT_AND_TRANSIT);
         saveAdoptionPost("Adopción adoptada", StatusAdoptionPost.ADOPTED);
@@ -410,7 +345,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     @Test
     @DisplayName("GET /animal-posts?status=SEARCHING devuelve solo perdidos en ese estado")
     void filterByStatus_returnsOnlyMatchingStatusAndSubtype() throws Exception {
-        saveLostPost("En búsqueda", StatusLostPost.SEARCHING);
+        saveLostPost("En búsqueda", SEARCHING);
         saveLostPost("Recién creado", StatusLostPost.CREATED);
         saveAdoptionPost("Adopción", StatusAdoptionPost.SEARCHING_ADOPT);
 
@@ -629,6 +564,38 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     }
 
     @Test
+    @DisplayName("DELETE /animal-posts/{id} de adopción con formularios asociados: borra el post y sus formularios en cascada")
+    void delete_adoptionPostWithAssociatedForms_removesPostAndFormsInCascade() throws Exception {
+        User owner = admin();
+        User applicant = saveUserWithRoleAndGet("solicitante", Rol.COMMUNITY);
+
+        AdoptionPost post = saveAdoptionPost("Perro en adopción con formularios", StatusAdoptionPost.SEARCHING_ADOPT);
+        QuestionForm q1 = questionFormRepository.save(new QuestionForm("¿Tenés patio?", QuestionType.TEXT, "icon", "placeholder", 1, true, null, new ArrayList<>(), UUID.randomUUID()));
+
+        AdoptionForm form = new AdoptionForm("Quiero adoptarlo", new PhoneNumber("353", "4123456"), applicant, post);
+        form.addAnswer(new AdoptionFormDetail("Sí, tengo patio", form, q1));
+
+        post.addAdoptionForm(form);
+        animalPostRepository.save(post);
+
+        assertThat(adoptionFormRepository.findAll()).hasSize(1);
+
+        mockMvc.perform(
+                        delete("/animal-posts/" + post.getId())
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(
+                        get("/animal-posts/" + post.getId())
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isNotFound());
+
+        assertThat(adoptionFormRepository.findAll()).isEmpty();
+    }
+
+    @Test
     @DisplayName("DELETE /animal-posts/{id} inexistente devuelve 404 con mensaje")
     void delete_nonExistentPost_returnsNotFound() throws Exception {
         mockMvc.perform(
@@ -755,7 +722,6 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(status().is(expectedStatus.value()));
     }
 
-
     @DisplayName("PATCH /animal-posts/{id}/status — transiciones validas, estado ajeno al tipo y transiciones prohibidas")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource(MOCK_DATA + "provideStatusTransitionCases")
@@ -779,14 +745,23 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     @Test
     @DisplayName("PATCH /animal-posts/{id}/status persiste el nuevo estado y cierra el anterior")
     void transitionStatus_persistsNewStatusAndClosesPrevious() throws Exception {
-        LostPost post = saveLostPost("Perdido", StatusLostPost.SEARCHING);
+        LostPost post = saveLostPost("Perdido", SEARCHING);
 
         patchStatus(post.getId(), "FOUND").andExpect(status().isOk());
+
+        assertThat(applicationEvents.stream(AnimalPostStatusChangedEvent.class))
+                .singleElement().satisfies(event -> {
+                    assertThat(event.postId()).isEqualTo(post.getId());
+                    assertThat(event.ownerId()).isEqualTo(post.getOwner().getId());
+                    assertThat(event.type()).isEqualTo(post.getType());
+                    assertThat(event.oldStatus()).isEqualTo("SEARCHING");
+                    assertThat(event.status()).isEqualTo(StatusLostPost.FOUND);
+                });
 
         LostPost saved = (LostPost) animalPostRepository.findById(post.getId()).orElseThrow();
         assertThat(saved.getCurrentStatus().getStatus()).isEqualTo(StatusLostPost.FOUND);
         assertThat(saved.getStatusHistory())
-                .filteredOn(history -> history.getStatus() == StatusLostPost.SEARCHING)
+                .filteredOn(history -> history.getStatus() == SEARCHING)
                 .allSatisfy(history -> assertThat(history.getFinishedAt()).isNotNull());
     }
 
@@ -799,7 +774,7 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
     @Test
     @DisplayName("PATCH /animal-posts/{id}/status sin la clave status devuelve 400")
     void transitionStatus_withoutStatus_returnsBadRequest() throws Exception {
-        LostPost post = saveLostPost("Perdido", StatusLostPost.SEARCHING);
+        LostPost post = saveLostPost("Perdido", SEARCHING);
 
         mockMvc.perform(
                         patch("/animal-posts/" + post.getId() + "/status")
@@ -826,78 +801,99 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         mockMvc.perform(request).andExpect(status().isUnauthorized());
     }
 
-    @DisplayName("POST /animal-posts avisa a los hogares de transito, menos al autor, solo si la adopcion busca transito")
+    @DisplayName("POST /animal-posts/{id}/repost actualiza updatedAt solo si la publicacion no esta finalizada")
     @ParameterizedTest(name = "{index} - {0}")
-    @MethodSource(MOCK_DATA + "provideTransitNotificationCreateCases")
-    @Sql(statements = "INSERT INTO profile_roles (profile_id, role) VALUES ('11111111-1111-1111-1111-111111111111', 'TRANSITIONAL_HOME')")
-    void create_notifiesTransitHomesWhenSearchingTransit(String testName, String body, String username, int expectedDeliveries) throws Exception {
-        seedTransitScenario();
+    @MethodSource(MOCK_DATA + "provideRepostCases")
+    void repostTests(String testName, AnimalPostFilter postType, String status, HttpStatus expectedStatus) throws Exception {
+        AnimalPost<?, ?> post = animalPostRepository.findById(seedPost(postType, status)).orElseThrow();
+        LocalDateTime previousUpdatedAt = LocalDateTime.now().minusDays(30);
+        post.setUpdatedAt(previousUpdatedAt);
 
-        postAnimalPost(body).andExpect(status().isCreated());
+        repost(post.getId()).andExpect(status().is(expectedStatus.value()));
 
-        assertThat(transitDeliveriesOf(username)).hasSize(expectedDeliveries);
-    }
-
-    @DisplayName("PATCH /animal-posts/{id}/status avisa a los hogares de transito solo si la adopcion pasa a buscar transito")
-    @ParameterizedTest(name = "{index} - {0}")
-    @MethodSource(MOCK_DATA + "provideTransitNotificationTransitionCases")
-    void transitionStatus_notifiesTransitHomesWhenSearchingTransit(
-            String testName,
-            String startStatus,
-            String targetStatus,
-            int expectedDeliveries
-    ) throws Exception {
-        seedTransitScenario();
-        AdoptionPost post = saveAdoptionPost("Adopcion", StatusAdoptionPost.valueOf(startStatus));
-
-        patchStatus(post.getId(), targetStatus).andExpect(status().isOk());
-
-        assertThat(transitDeliveriesOf("transito")).hasSize(expectedDeliveries);
+        LocalDateTime updatedAt = animalPostRepository.findById(post.getId()).orElseThrow().getUpdatedAt();
+        if (expectedStatus.is2xxSuccessful()) {
+            assertThat(updatedAt).isAfter(previousUpdatedAt);
+        } else {
+            assertThat(updatedAt).isEqualTo(previousUpdatedAt);
+        }
     }
 
     @Test
-    @DisplayName("El aviso de transito en la campanita lleva el texto y el link al post, y queda SENT")
-    void transitNotification_hasTextAndLinkToPost() throws Exception {
-        seedTransitScenario();
+    @DisplayName("POST /animal-posts/{id}/repost lleva la publicacion al principio de GET /animal-posts")
+    void repost_movesPostToTheTopOfTheList() throws Exception {
+        LostPost older = saveLostPost("Mas vieja", SEARCHING);
+        Thread.sleep(2);
+        saveLostPost("Mas nueva", SEARCHING);
+        Thread.sleep(2);
 
-        String response = postAnimalPost(MockAnimalPostDataUtils.ADOPTION_VALID)
-                .andExpect(status().isCreated())
-                .andReturn().getResponse().getContentAsString();
-        String postId = mapper.readTree(response).get("id").asText();
+        repost(older.getId()).andExpect(status().isNoContent());
 
-        NotificationDelivery delivery = transitDeliveriesOf("transito").getFirst();
-        NotificationPayload payload = delivery.getPayload();
-        assertThat(payload.getTitle()).isEqualTo("🏠 Un animal necesita hogar de tránsito");
-        assertThat(payload.getMessage()).isEqualTo("Hay un animal buscando tránsito. ¿Podés recibirlo?");
-        assertThat(delivery.getStatusHistory().getLast().getStatus()).isEqualTo(NotificationStatus.SENT);
+        mockMvc.perform(
+                        get("/animal-posts").header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].name").value("Mas vieja"))
+                .andExpect(jsonPath("$.content[1].name").value("Mas nueva"));
     }
 
-    private void seedTransitScenario() {
-        notificationRepository.save(new Notification(
-                "🏠 Un animal necesita hogar de tránsito",
-                "Hay un animal buscando tránsito. ¿Podés recibirlo?",
-                null,
-                NotificationType.IN_ADOPTION_AND_TRANSIT_PET
-        ));
-        saveUserWithRole("transito", Rol.TRANSITIONAL_HOME);
-        saveUserWithRole("comunidad", Rol.COMMUNITY);
+    @Test
+    @DisplayName("POST /animal-posts deja updatedAt igual a createdAt")
+    void create_setsUpdatedAtEqualToCreatedAt() throws Exception {
+        AnimalPost<?, ?> created = animalPostRepository.findById(createOwnedPostReturningId()).orElseThrow();
+
+        assertThat(created.getUpdatedAt()).isEqualTo(created.getCreatedAt());
     }
 
-    private void saveUserWithRole(String username, Rol role) {
-        userRepository.save(new User(username, "x",
+    @Test
+    @DisplayName("POST /animal-posts/{id}/repost inexistente devuelve 404")
+    void repost_nonExistentPost_returnsNotFound() throws Exception {
+        repost(UUID.randomUUID()).andExpect(status().isNotFound());
+    }
+
+    @DisplayName("POST /animal-posts/{id}/repost sin autenticacion valida devuelve 401")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideTransitionUnauthorizedCases")
+    void repost_unauthorized(String testName, String token) throws Exception {
+        MockHttpServletRequestBuilder request = post("/animal-posts/" + UUID.randomUUID() + "/repost");
+
+        if (token != null) {
+            request = request.header("Authorization", "Bearer " + token);
+        }
+
+        mockMvc.perform(request).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("GET /animal-posts — Devuelve hasCompletedAdoptionForm como true/false en adopciones y null en perdidos")
+    void getAnimalPosts_returnsHasCompletedAdoptionFormCorrectly() throws Exception {
+        User postOwner = saveUserWithRoleAndGet("owner-post", Rol.COMMUNITY);
+        User applicant = admin();
+
+        AdoptionPost adoptionPostWithForm = saveAdoptionPost("Adopción con formulario", StatusAdoptionPost.SEARCHING_ADOPT, postOwner);
+        AdoptionPost adoptionPostWithoutForm = saveAdoptionPost("Adopción sin formulario", StatusAdoptionPost.SEARCHING_ADOPT, postOwner);
+        LostPost lostPost = saveLostPost("Perdido", SEARCHING);
+
+        AdoptionForm form = new AdoptionForm("Quiero adoptar", new PhoneNumber("353", "123456"), applicant, adoptionPostWithForm);
+        adoptionFormRepository.save(form);
+
+        mockMvc.perform(
+                        get("/animal-posts")
+                                .header("Authorization", "Bearer " + accessToken)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[?(@.id == '" + adoptionPostWithForm.getId() + "')].hasCompletedAdoptionForm", hasItem(true)))
+                .andExpect(jsonPath("$.content[?(@.id == '" + adoptionPostWithoutForm.getId() + "')].hasCompletedAdoptionForm", hasItem(false)))
+                .andExpect(jsonPath("$.content[?(@.id == '" + lostPost.getId() + "')].hasCompletedAdoptionForm", hasItem(nullValue())));
+    }
+
+    private User saveUserWithRoleAndGet(String username, Rol role) {
+        return userRepository.save(new User(username, "x",
                 new Profile(username + "@mail.com", new PhoneNumber("353", "4014524"), Set.of(role))));
     }
 
-    private List<NotificationDelivery> transitDeliveriesOf(String username) {
-        User recipient = userRepository.findByUsername(username).orElseThrow();
-        return notificationDeliveryRepository.findAllByRecipientAndChannelOrderByCreatedAtDesc(recipient, NotificationChannel.IN_APP)
-                .stream()
-                .filter(delivery -> delivery.getType() == NotificationType.IN_ADOPTION_AND_TRANSIT_PET)
-                .toList();
-    }
-
     private void seedAnimalVariety() {
-        saveLostPost("Perro chico perdido", StatusLostPost.SEARCHING, true,
+        saveLostPost("Perro chico perdido", SEARCHING, true,
                 animal(AnimalType.DOG, AnimalSize.SMALL, AnimalGender.MALE, AnimalAge.PUPPY, "BLACK"));
         saveLostPost("Gata grande en la calle", StatusLostPost.TO_RESCUE, false,
                 animal(AnimalType.CAT, AnimalSize.LARGE, AnimalGender.FEMALE, AnimalAge.ADULT, "WHITE"));
@@ -919,6 +915,13 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                         .header("Authorization", "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(toJson(new TransitionStatusRequest(targetStatus)))
+        );
+    }
+
+    private ResultActions repost(UUID postId) throws Exception {
+        return mockMvc.perform(
+                post("/animal-posts/" + postId + "/repost")
+                        .header("Authorization", "Bearer " + accessToken)
         );
     }
 
@@ -1108,6 +1111,12 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
         return saveAdoptionPost(name, status, animal());
     }
 
+    private AdoptionPost saveAdoptionPost(String name, StatusAdoptionPost status, User owner) {
+        AdoptionPost post = new AdoptionPost(name, "Descripción", "cf-img", null, new PhoneNumber("3533", "436249"), owner, animal(), location(), false);
+        post.setStatusHistory(new ArrayList<>(List.of(new AdoptionPostStatusHistory(status, post))));
+        return animalPostRepository.save(post);
+    }
+
     private AdoptionPost saveAdoptionPost(String name, StatusAdoptionPost status, Animal animal) {
         AdoptionPost post = new AdoptionPost(name, "Descripción", "cf-img", null, new PhoneNumber("3533", "436249"), admin(), animal, location(), false);
         post.setStatusHistory(new ArrayList<>(List.of(new AdoptionPostStatusHistory(status, post))));
@@ -1128,82 +1137,5 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
 
     private Location location() {
         return new Location("Argentina", "Buenos Aires", "Av. Patricias 100, Buenos Aires", "Caballito", "Av. Patricias", 100, -34.6, -58.4);
-    }
-
-    private void seedSimilarLostPetScenario() {
-        notificationRepository.save(new Notification(
-                "🚨 Vieron un animal en la calle",
-                "Vieron un animal en {location}. Revisá si puede ser tu mascota perdida.",
-                null,
-                NotificationType.SIMILAR_ANIMAL_RECENTLY_LOST
-        ));
-        saveLostPostOf(subscribedUser("busca-perro"), AnimalType.DOG, StatusLostPost.SEARCHING, true);
-        User twoDogs = subscribedUser("busca-dos-perros");
-        saveLostPostOf(twoDogs, AnimalType.DOG, StatusLostPost.SEARCHING, true);
-        saveLostPostOf(twoDogs, AnimalType.DOG, StatusLostPost.SEARCHING, true);
-        saveLostPostOf(subscribedUser("busca-gato"), AnimalType.CAT, StatusLostPost.SEARCHING, true);
-        LostPost found = new LostPost("Ya aparecio", "Descripción", "cf-img", null, new PhoneNumber("3533", "436249"), true, subscribedUser("encontro-perro"), location(), animal(), null);
-        found.transitionTo("FOUND");
-        animalPostRepository.save(found);
-        saveLostPostOf(subscribedUser("rescata-perro"), AnimalType.DOG, StatusLostPost.TO_RESCUE, false);
-        User admin = admin();
-        subscribe(admin);
-        saveLostPostOf(admin, AnimalType.DOG, StatusLostPost.SEARCHING, true);
-    }
-
-    private User subscribedUser(String username) {
-        User user = userRepository.save(new User(username, "x",
-                new Profile(username + "@mail.com", new PhoneNumber("353", "4014524"), Set.of(Rol.COMMUNITY))));
-        subscribe(user);
-        return user;
-    }
-
-    private void subscribe(User user) {
-        PushSubscription subscription = new PushSubscription();
-        subscription.setUser(user);
-        subscription.setEndpoint("https://push.test/" + user.getUsername());
-        subscription.setEndpointHash(Arrays.copyOf(user.getUsername().getBytes(), 32));
-        subscription.setP256dh("p256dh");
-        subscription.setAuth("auth");
-        pushSuscriptionRepository.save(subscription);
-    }
-
-    private void saveLostPostOf(User owner, AnimalType type, StatusLostPost status, boolean hasOwner) {
-        saveLostPostOf(owner, type, null, status, hasOwner);
-    }
-
-    private void saveLostPostOf(User owner, AnimalType type, String color, StatusLostPost status, boolean hasOwner) {
-        LostPost post = new LostPost("De " + owner.getUsername(), "Descripción", "cf-img", null, new PhoneNumber("3533", "436249"), hasOwner, owner, location(), animal(type, AnimalSize.MEDIUM, AnimalGender.MALE, null, color), null);
-        post.setStatusHistory(new ArrayList<>(List.of(new LostPostStatusHistory(status, post))));
-        animalPostRepository.save(post);
-    }
-
-    private void givenPushResponds(int statusCode) throws Exception {
-        HttpResponse response = mock(HttpResponse.class);
-        StatusLine statusLine = mock(StatusLine.class);
-        given(statusLine.getStatusCode()).willReturn(statusCode);
-        given(response.getStatusLine()).willReturn(statusLine);
-        given(webPushClient.send(any(), any())).willReturn(response);
-    }
-
-    private List<NotificationDelivery> similarLostPetDeliveriesOf(String username) {
-        return similarLostPetDeliveriesOf(username, NotificationChannel.PUSH);
-    }
-
-    private List<NotificationDelivery> similarLostPetDeliveriesOf(String username, NotificationChannel channel) {
-        User recipient = userRepository.findByUsername(username).orElseThrow();
-        return notificationDeliveryRepository.findAllByRecipientAndChannelOrderByCreatedAtDesc(recipient, channel)
-                .stream()
-                .filter(delivery -> delivery.getType() == NotificationType.SIMILAR_ANIMAL_RECENTLY_LOST)
-                .toList();
-    }
-
-    private ResultActions postAnimalPost(String body) throws Exception {
-        return mockMvc.perform(
-                post("/animal-posts")
-                        .header("Authorization", "Bearer " + accessToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body)
-        );
     }
 }

@@ -15,8 +15,10 @@ import com.nexo.manada_solidaria_backend.users.controllers.requests.CreateUserLo
 import com.nexo.manada_solidaria_backend.users.controllers.responses.*;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.Profile;
+import com.nexo.manada_solidaria_backend.users.data.models.TermsAcceptance;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import com.nexo.manada_solidaria_backend.users.data.models.UserLocation;
+import com.nexo.manada_solidaria_backend.users.data.repositories.TermsAcceptanceRepository;
 import com.nexo.manada_solidaria_backend.users.data.repositories.UserLocationRepository;
 import com.nexo.manada_solidaria_backend.users.data.repositories.UserRepository;
 import com.nexo.manada_solidaria_backend.users.services.interfaces.UserService;
@@ -48,6 +50,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserLocationRepository userLocationRepository;
+    private final TermsAcceptanceRepository termsAcceptanceRepository;
     private final CampaignService campaignService;
     private final AnimalPostService animalPostService;
     private final PasswordEncoder passwordEncoder;
@@ -77,9 +80,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void createUser(CreateUserRequest createUserRequest) {
         try {
             User created = userRepository.saveAndFlush(buildUser(createUserRequest));
+            termsAcceptanceRepository.save(new TermsAcceptance(created, createUserRequest.getTermsVersion()));
             log.info("User created: id={} username={}", created.getId(), created.getUsername());
         } catch (DataIntegrityViolationException e) {
             log.error("Username or email already exists", e);
@@ -100,7 +105,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserProfileResponse getUserProfile(UUID userId) {
         User user = getUserById(userId);
-        return UserProfileResponse.from(user);
+        return UserProfileResponse.from(user, getMetrics(user));
+    }
+
+    private UserMetricsResponse getMetrics(User user) {
+        return new UserMetricsResponse(
+                animalPostService.countUserAnimalPosts(user) + campaignService.countUserCampaigns(user),
+                animalPostService.countUserHappyCases(user)
+        );
     }
 
     @Override

@@ -31,6 +31,9 @@ public interface AnimalPostService {
     AnimalPostResponse transitionStatus(UUID animalPostId, TransitionStatusRequest request, User authenticatedUser);
 
     @AnimalPostOwner
+    void repost(UUID animalPostId, User authenticatedUser);
+
+    @AnimalPostOwner
     void delete(UUID animalPostId, User authenticatedUser);
 
     void like(UUID animalPostId, User authenticatedUser);
@@ -41,9 +44,17 @@ public interface AnimalPostService {
 
     List<AnimalPostResponse> getUserAnimalPosts(User user, User authenticatedUser);
 
+    long countUserAnimalPosts(User user);
+
+    long countUserHappyCases(User user);
+
     Set<UUID> getSearchingOwnerIds(AnimalType animalType, String animalColor);
 
     List<AnimalPostResponse> getActiveLostPosts();
 
+    void expireInactivePosts();
+
     AdoptionPost getAdoptionPostOrThrow(UUID adoptionPostId);
+
+    UUID getOwnerId(UUID animalPostId);
 }

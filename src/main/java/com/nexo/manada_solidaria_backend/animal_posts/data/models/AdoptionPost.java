@@ -24,6 +24,7 @@ import java.util.Set;
 public class AdoptionPost extends AnimalPost<StatusAdoptionPost, AdoptionPostStatusHistory> {
 
     public static final Set<StatusAdoptionPost> HAPPY_STATUSES = Set.of(StatusAdoptionPost.ADOPTED);
+    public static final Set<StatusAdoptionPost> FINAL_STATUSES = Set.of(StatusAdoptionPost.ADOPTED, StatusAdoptionPost.EXPIRED);
 
     @OneToMany(
             mappedBy = "post",
@@ -34,9 +35,21 @@ public class AdoptionPost extends AnimalPost<StatusAdoptionPost, AdoptionPostSta
             List.of(new AdoptionPostStatusHistory(StatusAdoptionPost.CREATED, this))
     );
 
+    @OneToMany(
+            mappedBy = "adoptionPost",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<AdoptionForm> adoptionForms = new ArrayList<>();
+
     public AdoptionPost(String name, String description, String imageUrl, String sharePostUrl, PhoneNumber phoneNumber, User owner, Animal animal, Location location, boolean inTransit) {
         super(name, description, imageUrl, sharePostUrl, phoneNumber, owner, animal, location);
         startSearching(inTransit);
+    }
+
+    public void addAdoptionForm(AdoptionForm form) {
+        this.adoptionForms.add(form);
+        form.setAdoptionPost(this);
     }
 
     @Override
@@ -58,14 +71,24 @@ public class AdoptionPost extends AnimalPost<StatusAdoptionPost, AdoptionPostSta
     protected boolean isTransitionAllowed(StatusAdoptionPost current, StatusAdoptionPost target) {
         return switch (current) {
             case SEARCHING_ADOPT, SEARCHING_ADOPT_AND_TRANSIT ->
-                    target != StatusAdoptionPost.CREATED && target != current;
-            case CREATED, ADOPTED -> false;
+                    target != StatusAdoptionPost.CREATED && target != StatusAdoptionPost.EXPIRED && target != current;
+            case CREATED, ADOPTED, EXPIRED -> false;
         };
+    }
+
+    @Override
+    protected StatusAdoptionPost expiredStatus() {
+        return StatusAdoptionPost.EXPIRED;
     }
 
     @Override
     protected void addStatus(StatusAdoptionPost status) {
         this.statusHistory.add(new AdoptionPostStatusHistory(status, this));
+    }
+
+    @Override
+    protected Set<StatusAdoptionPost> finalStatuses() {
+        return FINAL_STATUSES;
     }
 
     private void startSearching(boolean inTransit) {

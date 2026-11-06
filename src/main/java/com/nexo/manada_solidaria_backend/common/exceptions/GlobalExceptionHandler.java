@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.common.exceptions;
 
+import com.nexo.manada_solidaria_backend.common.exceptions.custom_exceptions.InvalidJwtException;
 import com.nexo.manada_solidaria_backend.common.exceptions.responses.ApiError;
 import tools.jackson.databind.exc.InvalidFormatException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,16 +17,15 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
-import tools.jackson.databind.exc.InvalidFormatException;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 
 import java.util.Arrays;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 @Slf4j
 @RestControllerAdvice
@@ -47,6 +47,18 @@ public class GlobalExceptionHandler {
                         .timestamp(LocalDateTime.now())
                         .build()
                 );
+    }
+
+    @ExceptionHandler(InvalidJwtException.class)
+    ResponseEntity<ApiError> handleInvalidJwtException(InvalidJwtException exception, HttpServletRequest request) {
+        return ResponseEntity
+                .status(UNAUTHORIZED.value())
+                .body(ApiError.builder()
+                        .status(UNAUTHORIZED.value())
+                        .errors(List.of(exception.getMessage()))
+                        .path(request.getRequestURI())
+                        .timestamp(LocalDateTime.now())
+                        .build());
     }
 
     @ExceptionHandler(AccessDeniedException.class)

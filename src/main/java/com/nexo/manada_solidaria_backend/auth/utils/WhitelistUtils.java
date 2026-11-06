@@ -11,6 +11,7 @@ public class WhitelistUtils {
             "/v3/api-docs/**",
             "/actuator/info",
             "/auth/signup",
+            "/auth/refresh",
             "/password-recovery/**"
     };
 
@@ -21,6 +22,7 @@ public class WhitelistUtils {
             "/actuator/info",
             "/auth/signup",
             "/auth/login",
+            "/auth/refresh",
             "/password-recovery"
     };
 }

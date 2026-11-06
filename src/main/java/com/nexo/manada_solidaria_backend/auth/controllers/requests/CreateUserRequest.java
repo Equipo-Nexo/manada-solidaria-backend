@@ -6,6 +6,7 @@ import com.nexo.manada_solidaria_backend.common.controllers.validations.Password
 import com.nexo.manada_solidaria_backend.common.controllers.validations.SecurePassword;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -34,4 +35,10 @@ public class CreateUserRequest implements PasswordConfirmation {
     private String email;
     @Valid
     private PhoneNumberRequest phoneNumber;
+    @NotNull(message = "Debe aceptar los términos y condiciones")
+    @AssertTrue(message = "Debe aceptar los términos y condiciones")
+    private Boolean termsAccepted;
+    @NotBlank(message = "Debe indicar la versión de los términos y condiciones")
+    @Size(max = 20, message = "La versión de los términos y condiciones no puede superar los 20 caracteres")
+    private String termsVersion;
 }
