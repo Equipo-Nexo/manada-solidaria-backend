@@ -18,6 +18,8 @@ class DatabasePopulateTest {
                 .password(DatabasePopulate.ADMIN_PASSWORD)
                 .repeatedPassword(DatabasePopulate.ADMIN_PASSWORD)
                 .email("admin@mail.com")
+                .termsAccepted(true)
+                .termsVersion("1.0")
                 .build();
 
         try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {

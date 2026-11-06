@@ -22,6 +22,7 @@ public class MockAuthDataUtils {
     public static final String VERY_STRONG_PASSWORD = "VeryStrong1!";
     public static final String WRONG_PASSWORD = "wrongpassword";
     public static final String EMAIL = "test@gmail.com";
+    public static final String TERMS_VERSION = "1.0";
 
     private static final String SEVEN_CHARACTERS = "Aa1!sss";
     private static final String WITHOUT_UPPERCASE = "aa1!ssss";
@@ -55,7 +56,7 @@ public class MockAuthDataUtils {
                 ),
                 Arguments.of(
                         "con rol rescuer queda solo como rescuer",
-                        CreateUserRequest.builder().username(NON_REPEATED_USER).password(VERY_STRONG_PASSWORD).repeatedPassword(VERY_STRONG_PASSWORD).email(EMAIL).roles(Set.of(RESCUER)).build(),
+                        CreateUserRequest.builder().username(NON_REPEATED_USER).password(VERY_STRONG_PASSWORD).repeatedPassword(VERY_STRONG_PASSWORD).email(EMAIL).roles(Set.of(RESCUER)).termsAccepted(true).termsVersion(TERMS_VERSION).build(),
                         List.of(RESCUER)
                 )
         );
@@ -70,12 +71,12 @@ public class MockAuthDataUtils {
                 ),
                 Arguments.of(
                         "las contraseñas no coinciden",
-                        CreateUserRequest.builder().username(NON_EXISTENT_USER).password(VERY_STRONG_PASSWORD).repeatedPassword(WRONG_PASSWORD).email(EMAIL).build(),
+                        CreateUserRequest.builder().username(NON_EXISTENT_USER).password(VERY_STRONG_PASSWORD).repeatedPassword(WRONG_PASSWORD).email(EMAIL).termsAccepted(true).termsVersion(TERMS_VERSION).build(),
                         hasItem(containsString("no coinciden"))
                 ),
                 Arguments.of(
                         "no se envia el email",
-                        CreateUserRequest.builder().username(NON_EXISTENT_USER).password(VERY_STRONG_PASSWORD).repeatedPassword(VERY_STRONG_PASSWORD).build(),
+                        CreateUserRequest.builder().username(NON_EXISTENT_USER).password(VERY_STRONG_PASSWORD).repeatedPassword(VERY_STRONG_PASSWORD).termsAccepted(true).termsVersion(TERMS_VERSION).build(),
                         hasItem(containsString("Debe ingresar un correo"))
                 ),
                 Arguments.of(
@@ -112,6 +113,26 @@ public class MockAuthDataUtils {
                         "la contraseña supera los setenta y dos bytes",
                         signupWith(NON_EXISTENT_USER, OVER_SEVENTY_TWO_BYTES),
                         hasItem(containsString("no puede superar los 64 caracteres"))
+                ),
+                Arguments.of(
+                        "no acepta los terminos y condiciones",
+                        CreateUserRequest.builder().username(NON_EXISTENT_USER).password(VERY_STRONG_PASSWORD).repeatedPassword(VERY_STRONG_PASSWORD).email(EMAIL).termsAccepted(false).termsVersion(TERMS_VERSION).build(),
+                        hasItem(containsString("Debe aceptar los t"))
+                ),
+                Arguments.of(
+                        "no se envia si acepta los terminos y condiciones",
+                        CreateUserRequest.builder().username(NON_EXISTENT_USER).password(VERY_STRONG_PASSWORD).repeatedPassword(VERY_STRONG_PASSWORD).email(EMAIL).termsVersion(TERMS_VERSION).build(),
+                        hasItem(containsString("Debe aceptar los t"))
+                ),
+                Arguments.of(
+                        "no se envia la version de los terminos",
+                        CreateUserRequest.builder().username(NON_EXISTENT_USER).password(VERY_STRONG_PASSWORD).repeatedPassword(VERY_STRONG_PASSWORD).email(EMAIL).termsAccepted(true).build(),
+                        hasItem(containsString("Debe indicar la versi"))
+                ),
+                Arguments.of(
+                        "la version de los terminos supera los veinte caracteres",
+                        CreateUserRequest.builder().username(NON_EXISTENT_USER).password(VERY_STRONG_PASSWORD).repeatedPassword(VERY_STRONG_PASSWORD).email(EMAIL).termsAccepted(true).termsVersion("v".repeat(21)).build(),
+                        hasItem(containsString("no puede superar los 20 caracteres"))
                 )
         );
     }
@@ -122,6 +143,8 @@ public class MockAuthDataUtils {
                 .password(password)
                 .repeatedPassword(password)
                 .email(EMAIL)
+                .termsAccepted(true)
+                .termsVersion(TERMS_VERSION)
                 .build();
     }
 }
