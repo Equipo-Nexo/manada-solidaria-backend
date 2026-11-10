@@ -41,7 +41,7 @@ public class PasswordRecovery {
     }
 
     public boolean isUsable() {
-        return status == PasswordRecoveryStatus.ACTIVE;
+        return status == PasswordRecoveryStatus.ACTIVE && !isCodeExpired();
     }
 
     public boolean isVerified() {

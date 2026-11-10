@@ -269,7 +269,8 @@ public class AnimalPostServiceImpl implements AnimalPostService {
         LocalDate targetDate = LocalDate.now().minusDays(ABOUT_TO_EXPIRE_WINDOWS);
         return animalPostRepository.findAllByExpirationDateBetween(
                 targetDate.atStartOfDay(),
-                targetDate.plusDays(1).atStartOfDay()
+                targetDate.plusDays(1).atStartOfDay(),
+                EXPIRABLE_STATUSES
         );
 
     }

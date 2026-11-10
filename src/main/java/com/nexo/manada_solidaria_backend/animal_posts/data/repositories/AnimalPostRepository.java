@@ -142,9 +142,14 @@ public interface AnimalPostRepository extends JpaRepository<AnimalPost, UUID> {
                 FROM AnimalPost ap
                 WHERE ap.updatedAt >= :startDate
                   AND ap.updatedAt < :endDate
+                  AND (EXISTS (SELECT 1 FROM LostPostStatusHistory h
+                         WHERE h.post.id = ap.id AND h.finishedAt IS NULL AND cast(h.status as string) IN :expirableStatuses)
+                OR EXISTS (SELECT 1 FROM AdoptionPostStatusHistory h
+                           WHERE h.post.id = ap.id AND h.finishedAt IS NULL AND cast(h.status as string) IN :expirableStatuses))
             """)
     List<AnimalPost<?, ?>> findAllByExpirationDateBetween(
             @Param("startDate") LocalDateTime startDate,
-            @Param("endDate") LocalDateTime endDate
+            @Param("endDate") LocalDateTime endDate,
+            @Param("expirableStatuses") Set<String> expirableStatuses
     );
 }
