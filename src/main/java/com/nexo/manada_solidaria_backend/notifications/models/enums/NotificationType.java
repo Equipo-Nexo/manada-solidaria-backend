@@ -58,6 +58,11 @@ public enum NotificationType {
     SIMILAR_ANIMAL_RECENTLY_LOST(
             NotificationChannel.PUSH,
             NotificationChannel.IN_APP
+    ),
+
+    POST_ABOUT_TO_EXPIRE(
+            NotificationChannel.PUSH,
+            NotificationChannel.IN_APP
     );
 
     private final Set<NotificationChannel> channels;

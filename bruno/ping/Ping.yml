@@ -6,7 +6,9 @@ info:
 http:
   method: GET
   url: "{{MANADA_SOLIDARIA_HOST}}/ping"
-  auth: inherit
+  auth:
+    type: bearer
+    token: "{{access_token}}"
 
 settings:
   encodeUrl: true

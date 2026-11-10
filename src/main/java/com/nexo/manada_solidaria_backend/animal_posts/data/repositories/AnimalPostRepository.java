@@ -1,11 +1,6 @@
 package com.nexo.manada_solidaria_backend.animal_posts.data.repositories;
 
-import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalAge;
-import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalGender;
-import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalSize;
-import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
-import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusAdoptionPost;
-import com.nexo.manada_solidaria_backend.animal_posts.data.enums.StatusLostPost;
+import com.nexo.manada_solidaria_backend.animal_posts.data.enums.*;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.LostPost;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
@@ -139,6 +134,22 @@ public interface AnimalPostRepository extends JpaRepository<AnimalPost, UUID> {
             """)
     List<AnimalPost<?, ?>> findWithoutActivitySince(
             @Param("since") LocalDateTime since,
+            @Param("expirableStatuses") Set<String> expirableStatuses
+    );
+
+    @Query("""
+                SELECT ap
+                FROM AnimalPost ap
+                WHERE ap.updatedAt >= :startDate
+                  AND ap.updatedAt < :endDate
+                  AND (EXISTS (SELECT 1 FROM LostPostStatusHistory h
+                         WHERE h.post.id = ap.id AND h.finishedAt IS NULL AND cast(h.status as string) IN :expirableStatuses)
+                OR EXISTS (SELECT 1 FROM AdoptionPostStatusHistory h
+                           WHERE h.post.id = ap.id AND h.finishedAt IS NULL AND cast(h.status as string) IN :expirableStatuses))
+            """)
+    List<AnimalPost<?, ?>> findAllByExpirationDateBetween(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate,
             @Param("expirableStatuses") Set<String> expirableStatuses
     );
 }

@@ -16,4 +16,6 @@ public interface PasswordRecoveryRepository extends JpaRepository<PasswordRecove
     Optional<PasswordRecovery> findByUserProfileEmailAndStatus(String email, PasswordRecoveryStatus status);
 
     Optional<PasswordRecovery> findByResetToken(String resetToken);
+
+    Optional<PasswordRecovery> findByVerificationCode(String token);
 }

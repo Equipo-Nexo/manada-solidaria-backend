@@ -1,14 +1,15 @@
 package com.nexo.manada_solidaria_backend.animal_posts.services.interfaces;
 
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.GetAnimalPostsRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAnimalPostRequest;
+import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.GetAnimalPostsRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.TransitionStatusRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.UpdateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AnimalPostResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.HappyCaseResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalType;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AdoptionPost;
-import com.nexo.manada_solidaria_backend.auth.components.pre_filters.AnimalPostOwner;
+import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
+import com.nexo.manada_solidaria_backend.auth.components.filters.AnimalPostOwner;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -57,4 +58,6 @@ public interface AnimalPostService {
     AdoptionPost getAdoptionPostOrThrow(UUID adoptionPostId);
 
     UUID getOwnerId(UUID animalPostId);
+
+    List<AnimalPost<?, ?>> getAboutToExpirePosts();
 }

@@ -6,7 +6,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.Adop
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AdoptionFormsWithCountersResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormFilter;
 import com.nexo.manada_solidaria_backend.animal_posts.data.enums.FormStatusFilter;
-import com.nexo.manada_solidaria_backend.auth.components.pre_filters.AnimalPostOwner;
+import com.nexo.manada_solidaria_backend.auth.components.filters.AnimalPostOwner;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 
 import java.util.List;

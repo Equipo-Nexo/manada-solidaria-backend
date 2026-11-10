@@ -15,10 +15,10 @@ import java.util.List;
 @Getter
 @Setter
 public class NotificationPayload {
-        private String title;
-        private String message;
-        private String icon;
-        private List<NotificationAction> actions = Collections.emptyList();
+    private String title;
+    private String message;
+    private String icon;
+    private List<NotificationAction> actions = Collections.emptyList();
 
     public List<NotificationAction> getActions() {
         return this.actions.stream()
