@@ -4,10 +4,10 @@ import com.nexo.manada_solidaria_backend.auth.controllers.requests.CreateUserReq
 import com.nexo.manada_solidaria_backend.auth.services.implementations.JsonWebTokenServiceImpl;
 import com.nexo.manada_solidaria_backend.auth.services.interfaces.JsonWebTokenService;
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseIntegrationTest;
+import com.nexo.manada_solidaria_backend.terms_acceptances.data.models.TermsAcceptance;
+import com.nexo.manada_solidaria_backend.terms_acceptances.data.repositories.TermsAcceptanceRepository;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
-import com.nexo.manada_solidaria_backend.users.data.models.TermsAcceptance;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
-import com.nexo.manada_solidaria_backend.users.data.repositories.TermsAcceptanceRepository;
 import com.nexo.manada_solidaria_backend.users.data.repositories.UserRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;

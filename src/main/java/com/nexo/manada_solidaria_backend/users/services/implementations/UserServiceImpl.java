@@ -9,16 +9,15 @@ import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.Animal
 import com.nexo.manada_solidaria_backend.auth.controllers.requests.CreateUserRequest;
 import com.nexo.manada_solidaria_backend.campaigns.services.interfaces.CampaignService;
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
+import com.nexo.manada_solidaria_backend.terms_acceptances.services.interfaces.TermsAcceptanceService;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateProfileRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.UpdateRolesRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.requests.CreateUserLocationRequest;
 import com.nexo.manada_solidaria_backend.users.controllers.responses.*;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.Profile;
-import com.nexo.manada_solidaria_backend.users.data.models.TermsAcceptance;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import com.nexo.manada_solidaria_backend.users.data.models.UserLocation;
-import com.nexo.manada_solidaria_backend.users.data.repositories.TermsAcceptanceRepository;
 import com.nexo.manada_solidaria_backend.users.data.repositories.UserLocationRepository;
 import com.nexo.manada_solidaria_backend.users.data.repositories.UserRepository;
 import com.nexo.manada_solidaria_backend.users.services.interfaces.UserService;
@@ -50,7 +49,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserLocationRepository userLocationRepository;
-    private final TermsAcceptanceRepository termsAcceptanceRepository;
+    private final TermsAcceptanceService termsAcceptanceService;
     private final CampaignService campaignService;
     private final AnimalPostService animalPostService;
     private final PasswordEncoder passwordEncoder;
@@ -84,7 +83,7 @@ public class UserServiceImpl implements UserService {
     public void createUser(CreateUserRequest createUserRequest) {
         try {
             User created = userRepository.saveAndFlush(buildUser(createUserRequest));
-            termsAcceptanceRepository.save(new TermsAcceptance(created, createUserRequest.getTermsVersion()));
+            termsAcceptanceService.accept(created, createUserRequest.getTermsVersion());
             log.info("User created: id={} username={}", created.getId(), created.getUsername());
         } catch (DataIntegrityViolationException e) {
             log.error("Username or email already exists", e);

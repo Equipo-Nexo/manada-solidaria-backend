@@ -1,5 +1,6 @@
-package com.nexo.manada_solidaria_backend.users.data.models;
+package com.nexo.manada_solidaria_backend.terms_acceptances.data.models;
 
+import com.nexo.manada_solidaria_backend.users.data.models.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
