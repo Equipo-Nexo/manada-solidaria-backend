@@ -407,6 +407,23 @@ class AnimalPostControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.totalElements").value(expectedCount));
     }
 
+    @DisplayName("GET /animal-posts?animalGender incluye a los de sexo desconocido")
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource(MOCK_DATA + "provideUnknownGenderFilterCases")
+    void unknownGenderFilterTests(String testName, Map<String, String> params, int expectedCount) throws Exception {
+        seedAnimalVariety();
+        saveLostPost("Perro de sexo desconocido", SEARCHING, true,
+                animal(AnimalType.DOG, AnimalSize.SMALL, AnimalGender.UNKNOWN, AnimalAge.ADULT, "BROWN"));
+
+        MockHttpServletRequestBuilder request = get("/animal-posts")
+                .header("Authorization", "Bearer " + accessToken);
+        params.forEach(request::param);
+
+        mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(expectedCount));
+    }
+
     @Test
     @DisplayName("GET /animal-posts?animalType=DOG&animalSize=SMALL devuelve la publicacion que cumple las dos condiciones")
     void animalFilter_combined_returnsOnlyTheMatchingPost() throws Exception {

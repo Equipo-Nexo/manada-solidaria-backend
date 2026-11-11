@@ -36,7 +36,7 @@ public interface AnimalPostRepository extends JpaRepository<AnimalPost, UUID> {
                            WHERE h.post.id = p.id AND h.finishedAt IS NULL AND cast(h.status as string) = :status))
             AND (:animalType IS NULL OR p.animal.type = :animalType)
             AND (:animalSize IS NULL OR p.animal.size = :animalSize)
-            AND (:animalGender IS NULL OR p.animal.gender = :animalGender)
+            AND (:animalGender IS NULL OR p.animal.gender IN (:animalGender, com.nexo.manada_solidaria_backend.animal_posts.data.enums.AnimalGender.UNKNOWN))
             AND (:animalAge IS NULL OR p.animal.age = :animalAge)
             AND (:animalColor IS NULL OR p.animal.color = :animalColor)
             """)
