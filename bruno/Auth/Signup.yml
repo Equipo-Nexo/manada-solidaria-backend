@@ -10,21 +10,20 @@ http:
     type: json
     data: |-
       {
-          "username": "admin",
-          "password": "admin",
-          "repeatedPassword": "admin",
-          "email": "admin@gmail.com",
-          "roles": ["COMMUNITY", "CARRIAGE", "TRANSITIONAL_HOME"]
+          "username": "usuario{{$timestamp}}",
+          "password": "VeryStrong1!",
+          "repeatedPassword": "VeryStrong1!",
+          "email": "usuario{{$timestamp}}@mail.com",
+          "roles": ["COMMUNITY", "CARRIAGE", "TRANSITIONAL_HOME"],
+          "termsAccepted": true,
+          "termsVersion": "1.0"
       }
 
 runtime:
-  scripts:
-    - type: after-response
-      code: "const response = res.getBody();\r
-
-        bru.setGlobalEnvVar(\"access_token\", response.accessToken);\r
-
-        bru.setGlobalEnvVar(\"refresh_token\", response.refreshToken);"
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "201"
 
 settings:
   encodeUrl: true
@@ -32,3 +31,29 @@ settings:
   followRedirects: true
   maxRedirects: 5
   forwardAuthorizationHeader: true
+
+docs: |-
+  Registra un usuario nuevo. Es publico (no necesita token).
+  El username y el email llevan {{$timestamp}} para que la request se pueda correr varias veces.
+
+  Body:
+  - `username`: obligatorio, minimo 4 caracteres, unico
+  - `password`: obligatoria, 8 a 64 caracteres con mayuscula, minuscula, numero y caracter especial
+  - `repeatedPassword`: obligatoria, igual a `password`
+  - `email`: obligatorio, unico
+  - `roles`: opcional; sin roles queda como COMMUNITY
+  - `phoneNumber`: opcional ({ "areaCode": "353", "number": "4123456" })
+  - `termsAccepted`: obligatorio, tiene que ser `true`
+  - `termsVersion`: obligatoria, version de los terminos y condiciones que acepto el usuario (hasta 20 caracteres)
+
+  La aceptacion se guarda en `terms_acceptance` con la version y la fecha y hora.
+
+  Respuesta: 201 sin body.
+
+  Errores (400). Ej.:
+    { "status": 400, "errors": ["Debe aceptar los términos y condiciones"], "path": "/auth/signup" }
+  - `termsAccepted` ausente o `false`: "Debe aceptar los términos y condiciones"
+  - `termsVersion` ausente o vacia: "Debe indicar la versión de los términos y condiciones"
+  - `termsVersion` de mas de 20 caracteres: "La versión de los términos y condiciones no puede superar los 20 caracteres"
+  - username o email repetido: "El nombre de usuario o el correo electrónico ya están en uso"
+  - contraseñas distintas o que no cumplen la politica

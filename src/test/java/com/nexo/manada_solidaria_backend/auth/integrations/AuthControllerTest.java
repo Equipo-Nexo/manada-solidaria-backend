@@ -4,6 +4,8 @@ import com.nexo.manada_solidaria_backend.auth.controllers.requests.CreateUserReq
 import com.nexo.manada_solidaria_backend.auth.services.implementations.JsonWebTokenServiceImpl;
 import com.nexo.manada_solidaria_backend.auth.services.interfaces.JsonWebTokenService;
 import com.nexo.manada_solidaria_backend.common.integrations.base.BaseIntegrationTest;
+import com.nexo.manada_solidaria_backend.terms_acceptances.data.models.TermsAcceptance;
+import com.nexo.manada_solidaria_backend.terms_acceptances.data.repositories.TermsAcceptanceRepository;
 import com.nexo.manada_solidaria_backend.users.data.enums.Rol;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import com.nexo.manada_solidaria_backend.users.data.repositories.UserRepository;
@@ -29,6 +31,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import static com.nexo.manada_solidaria_backend.auth.utils.MockAuthDataUtils.TERMS_VERSION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -42,6 +45,8 @@ class AuthControllerTest extends BaseIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private TermsAcceptanceRepository termsAcceptanceRepository;
     @Autowired
     private JsonWebTokenService jsonWebTokenService;
     @Value("${security.secret}")
@@ -96,6 +101,10 @@ class AuthControllerTest extends BaseIntegrationTest {
 
         User created = userRepository.findByUsername(request.getUsername()).orElseThrow();
         assertThat(created.getProfile().getRoles()).containsExactlyInAnyOrderElementsOf(expectedRoles);
+        assertThat(termsAcceptanceRepository.findAll())
+                .filteredOn(acceptance -> acceptance.getUser().getId().equals(created.getId()))
+                .extracting(TermsAcceptance::getTermsVersion)
+                .containsExactly(TERMS_VERSION);
     }
 
     @DisplayName("Refresh user session")
