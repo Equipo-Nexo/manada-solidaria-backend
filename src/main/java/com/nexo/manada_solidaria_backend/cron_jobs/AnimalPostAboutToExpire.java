@@ -8,6 +8,7 @@ import com.nexo.manada_solidaria_backend.password_recovery.data.models.PasswordR
 import com.nexo.manada_solidaria_backend.password_recovery.services.interfaces.PasswordRecoveryService;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +19,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 @Component
+@Slf4j
 @AllArgsConstructor
 public class AnimalPostAboutToExpire {
 
@@ -30,8 +32,9 @@ public class AnimalPostAboutToExpire {
     );
 
 
-    @Scheduled(cron = "0 0 1 * * *")
+    @Scheduled(cron = "0 0 20 * * *")
     void sendAboutToExpirePostNotification() {
+        log.info("Ejecutando cronjob para enviar notificaciones de publicaciones a punto de expirar.");
         getAnimalPostsAboutToExpire()
                 .forEach(animalPost -> {
                     User user = animalPost.getOwner();
