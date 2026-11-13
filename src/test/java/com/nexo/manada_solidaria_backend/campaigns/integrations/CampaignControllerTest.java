@@ -71,7 +71,10 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                     : "CREATED";
 
             result.andExpect(jsonPath("$.type").value(expectedType))
-                    .andExpect(jsonPath("$.status").value(expectedStatusValue));
+                    .andExpect(jsonPath("$.status").value(expectedStatusValue))
+                    .andExpect(jsonPath("$.ownerId").exists())
+                    .andExpect(jsonPath("$.owner").exists())
+                    .andExpect(jsonPath("$.owner.username").exists());
         }
     }
 
@@ -89,6 +92,8 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(jsonPath("$.type").value("fundraising"))
                 .andExpect(jsonPath("$.title").value("Operación de mofli"))
                 .andExpect(jsonPath("$.ownerId").value(adminId.toString()))
+                .andExpect(jsonPath("$.owner").exists())
+                .andExpect(jsonPath("$.owner.username").value("admin"))
                 .andReturn().getResponse().getContentAsString();
 
         UUID generatedId = UUID.fromString(mapper.readTree(responseBody).get("id").asText());
@@ -135,6 +140,8 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(2))
                 .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.content[0].ownerId").exists())
+                .andExpect(jsonPath("$.content[0].owner").exists())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
@@ -156,7 +163,9 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                         .param("category", "VACCINATION"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(1))
-                .andExpect(jsonPath("$.content[0].type").value("vaccination"));
+                .andExpect(jsonPath("$.content[0].type").value("vaccination"))
+                .andExpect(jsonPath("$.content[0].ownerId").exists())
+                .andExpect(jsonPath("$.content[0].owner").exists());
     }
 
     @Test
@@ -173,7 +182,9 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                         .param("category", "DONATION"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(1))
-                .andExpect(jsonPath("$.content[0].type").value("donation"));
+                .andExpect(jsonPath("$.content[0].type").value("donation"))
+                .andExpect(jsonPath("$.content[0].ownerId").exists())
+                .andExpect(jsonPath("$.content[0].owner").exists());
     }
 
     @Test
@@ -189,7 +200,9 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(1))
-                .andExpect(jsonPath("$.content[0].type").value("fundraising"));
+                .andExpect(jsonPath("$.content[0].type").value("fundraising"))
+                .andExpect(jsonPath("$.content[0].ownerId").exists())
+                .andExpect(jsonPath("$.content[0].owner").exists());
     }
 
     @Test
@@ -430,7 +443,10 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
         result.andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id.toString()))
                 .andExpect(jsonPath("$.type").value(expectedType))
-                .andExpect(jsonPath("$.title").value(expectedTitle));
+                .andExpect(jsonPath("$.title").value(expectedTitle))
+                .andExpect(jsonPath("$.ownerId").exists())
+                .andExpect(jsonPath("$.owner").exists())
+                .andExpect(jsonPath("$.owner.username").exists());
 
         if (expectedItems != null) {
             result.andExpect(jsonPath("$.items.length()").value(expectedItems));
@@ -485,7 +501,9 @@ class CampaignControllerTest extends BaseAuthenticatedIntegrationTest {
                                 ))
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value(targetStatus.name()));
+                .andExpect(jsonPath("$.status").value(targetStatus.name()))
+                .andExpect(jsonPath("$.ownerId").exists())
+                .andExpect(jsonPath("$.owner").exists());
 
         Campaign<?, ?> updated = campaignRepository.findById(campaign.getId()).orElseThrow();
 
