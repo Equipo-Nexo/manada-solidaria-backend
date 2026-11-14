@@ -17,6 +17,7 @@ import java.util.UUID;
 
 public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
 
+    @EntityGraph(attributePaths = {"location", "owner", "owner.profile"})
     @Query("""
         SELECT c
         FROM Campaign c
@@ -24,12 +25,14 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
     """)
     Page<Campaign<?, ?>> findCampaigns(Pageable pageable);
 
+    @EntityGraph(attributePaths = {"location", "owner", "owner.profile"})
     @Query("""
         SELECT c
         FROM DonationCampaign c
     """)
     Page<Campaign<?, ?>> findDonationCampaigns(Pageable pageable);
 
+    @EntityGraph(attributePaths = {"location", "owner", "owner.profile"})
     @Query("""
         SELECT c
         FROM NewsCampaign c
@@ -40,13 +43,14 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
             Pageable pageable
     );
 
+    @EntityGraph(attributePaths = {"location", "owner", "owner.profile"})
     @Query("""
         SELECT c
         FROM FundraisingCampaign c
     """)
     Page<Campaign<?, ?>> findFundraisingCampaigns(Pageable pageable);
 
-    @EntityGraph(attributePaths = {"location"})
+    @EntityGraph(attributePaths = {"location", "owner", "owner.profile"})
     @Query("""
         SELECT c
         FROM Campaign c
@@ -56,7 +60,7 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
     """)
     List<Campaign<?, ?>> findCampaignsByOwner(@Param("owner") User user);
 
-    @EntityGraph(attributePaths = {"location"})
+    @EntityGraph(attributePaths = {"location", "owner", "owner.profile"})
     @Query("""
         SELECT c
         FROM Campaign c

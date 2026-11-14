@@ -6,6 +6,7 @@ import com.nexo.manada_solidaria_backend.campaigns.data.models.DonationCampaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.FundraisingCampaign;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.NewsCampaign;
 import com.nexo.manada_solidaria_backend.locations.controllers.responses.LocationResponse;
+import com.nexo.manada_solidaria_backend.common.controllers.responses.OwnerResponse;
 import com.nexo.manada_solidaria_backend.common.controllers.responses.PhoneNumberResponse;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 
@@ -26,6 +27,7 @@ public record CampaignResponse(
         String status,
         LocalDateTime createdAt,
         UUID ownerId,
+        OwnerResponse owner,
         String accountAlias,
         Long amountToBeCollected,
         Long amountCollected,
@@ -55,9 +57,8 @@ public record CampaignResponse(
                 LocationResponse.from(campaign.getLocation()),
                 campaign.getCurrentStatus().getStatus().name(),
                 campaign.getCreatedAt(),
-                Optional.ofNullable(campaign.getOwner())
-                        .map(User::getId)
-                        .orElse(null),
+                Optional.ofNullable(campaign.getOwner()).map(User::getId).orElse(null),
+                OwnerResponse.from(campaign.getOwner()),
                 campaign.getAccountAlias(),
                 campaign.getAmountToBeCollected(),
                 campaign.getAmountCollected(),
@@ -79,9 +80,8 @@ public record CampaignResponse(
                 LocationResponse.from(campaign.getLocation()),
                 campaign.getCurrentStatus().getStatus().name(),
                 campaign.getCreatedAt(),
-                Optional.ofNullable(campaign.getOwner())
-                        .map(User::getId)
-                        .orElse(null),
+                Optional.ofNullable(campaign.getOwner()).map(User::getId).orElse(null),
+                OwnerResponse.from(campaign.getOwner()),
                 null,
                 null,
                 null,
@@ -108,6 +108,7 @@ public record CampaignResponse(
                 campaign.getCurrentStatus().getStatus().name(),
                 campaign.getCreatedAt(),
                 Optional.ofNullable(campaign.getOwner()).map(User::getId).orElse(null),
+                OwnerResponse.from(campaign.getOwner()),
                 null,
                 null,
                 null,
