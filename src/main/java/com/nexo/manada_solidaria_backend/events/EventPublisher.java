@@ -3,6 +3,7 @@ package com.nexo.manada_solidaria_backend.events;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.requests.CreateAnimalPostRequest;
 import com.nexo.manada_solidaria_backend.animal_posts.data.models.AnimalPost;
 import com.nexo.manada_solidaria_backend.campaigns.data.models.Campaign;
+import com.nexo.manada_solidaria_backend.events.data.models.AdoptionFormCreatedEvent;
 import com.nexo.manada_solidaria_backend.events.data.models.AnimalPostCreatedEvent;
 import com.nexo.manada_solidaria_backend.events.data.models.AnimalPostStatusChangedEvent;
 import com.nexo.manada_solidaria_backend.events.data.models.NewCampaignCreatedEvent;
@@ -12,6 +13,8 @@ import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
+
+import java.util.UUID;
 
 @Component
 @AllArgsConstructor
@@ -52,6 +55,16 @@ public class EventPublisher {
                         owner.getUsername(),
                         saved.getId(),
                         owner.getId()
+                )
+        );
+    }
+
+    public void publishAdoptionFormCreatedEvent(UUID adoptionFormId, UUID postOwnerId, String applicantName) {
+        publishEvent(
+                new AdoptionFormCreatedEvent(
+                        adoptionFormId,
+                        postOwnerId,
+                        applicantName
                 )
         );
     }

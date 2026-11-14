@@ -63,6 +63,11 @@ public enum NotificationType {
     POST_ABOUT_TO_EXPIRE(
             NotificationChannel.PUSH,
             NotificationChannel.IN_APP
+    ),
+
+    NEW_ADOPTION_FORM(
+            NotificationChannel.PUSH,
+            NotificationChannel.IN_APP
     );
 
     private final Set<NotificationChannel> channels;

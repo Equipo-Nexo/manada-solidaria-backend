@@ -14,6 +14,7 @@ import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.Adopti
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.QuestionService;
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
+import com.nexo.manada_solidaria_backend.events.EventPublisher;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,7 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
     private final AdoptionFormRepository adoptionFormRepository;
     private final AnimalPostService animalPostService;
     private final QuestionService questionService;
+    private final EventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -47,6 +49,12 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
 
         AdoptionForm saved = adoptionFormRepository.save(form);
         log.info("Adoption form created: id={} for post={} by user={}", saved.getId(), post.getId(), applicant.getId());
+
+        eventPublisher.publishAdoptionFormCreatedEvent(
+                saved.getId(),
+                post.getOwner().getId(),
+                applicant.getFullNameOrUsername()
+        );
 
         return AdoptionFormResponse.from(saved);
     }
