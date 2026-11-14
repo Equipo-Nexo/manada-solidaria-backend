@@ -11,7 +11,7 @@ VALUES
     UUID_TO_BIN('e8b4f123-4567-89ab-cdef-0123456789ab'),
     NOW(),
     '¡Nuevo formulario de adopción!',
-    '{applicantName} completó un formulario para adoptar a tu mascota. Ingresá para revisarlo.',
+    '{applicantName} envió un formulario de adopción para tu publicación. Ingresá para revisarlo.',
     'NEW_ADOPTION_FORM',
     JSON_ARRAY(
         JSON_OBJECT(

@@ -174,14 +174,14 @@ class NotificationControllerTest extends BaseAuthenticatedIntegrationTest {
     @DisplayName("Al crear una entrega de nuevo formulario de adopción se resuelve correctamente")
     void creatingAdoptionFormNotificationSnapshotsResolvedContent() throws Exception {
         Notification template = notificationRepository.save(
-                new Notification("¡Nuevo formulario de adopción!", "{applicantName} completó un formulario para adoptar a tu mascota. Ingresá para revisarlo.", null, NotificationType.NEW_ADOPTION_FORM)
+                new Notification("¡Nuevo formulario de adopción!", "{applicantName} envió un formulario de adopción para tu publicación. Ingresá para revisarlo.", null, NotificationType.NEW_ADOPTION_FORM)
         );
 
-        template.setMessage("Juan completó un formulario para adoptar a tu mascota. Ingresá para revisarlo.");
+        template.setMessage("Juan envió un formulario de adopción para tu publicación. Ingresá para revisarlo.");
 
         notificationDeliveryService.createNotificationDelivery(
                 userRepository.findByUsername("admin").orElseThrow(),
-                new NotificationPayload("¡Nuevo formulario de adopción!", "Juan completó un formulario para adoptar a tu mascota. Ingresá para revisarlo.", null, List.of(new RedirectAction("Revisar formulario", (byte) 1, "/adoption-forms/form-uuid-123"))),
+                new NotificationPayload("¡Nuevo formulario de adopción!", "Juan envió un formulario de adopción para tu publicación. Ingresá para revisarlo.", null, List.of(new RedirectAction("Revisar formulario", (byte) 1, "/adoption-forms/form-uuid-123"))),
                 NotificationChannel.IN_APP,
                 NotificationType.NEW_ADOPTION_FORM
         );
@@ -189,7 +189,7 @@ class NotificationControllerTest extends BaseAuthenticatedIntegrationTest {
         getNotificationsOf(ADMIN_ID)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.notifications[0].title", is("¡Nuevo formulario de adopción!")))
-                .andExpect(jsonPath("$.notifications[0].description", is("Juan completó un formulario para adoptar a tu mascota. Ingresá para revisarlo.")))
+                .andExpect(jsonPath("$.notifications[0].description", is("Juan envió un formulario de adopción para tu publicación. Ingresá para revisarlo.")))
                 .andExpect(jsonPath("$.notifications[0].redirectTo", is("/adoption-forms/form-uuid-123")));
     }
 
