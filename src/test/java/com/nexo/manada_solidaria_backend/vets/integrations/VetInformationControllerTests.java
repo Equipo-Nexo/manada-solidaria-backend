@@ -30,6 +30,7 @@ import java.util.UUID;
 import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.INVALID_ACCESS_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -186,7 +187,7 @@ public class VetInformationControllerTests extends BaseAuthenticatedIntegrationT
                 .andExpect(status().isUnauthorized());
     }
 
-    @DisplayName("GET /vets/{vetId} devuelve los datos de la veterinaria")
+    @DisplayName("GET /vets/{vetId} devuelve los datos de la veterinaria con calendario ordenado")
     @ParameterizedTest(name = "{index} - {0}")
     @MethodSource("com.nexo.manada_solidaria_backend.vets.utils.MockVetInformationDataUtils#provideGetVetInformationResponseCases")
     @Sql(
