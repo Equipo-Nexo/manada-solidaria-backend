@@ -442,7 +442,7 @@ public class MockCampaignDataUtils {
     }
 
 
-    public static com.nexo.manada_solidaria_backend.campaigns.data.models.NewsCampaign buildNewsModel(
+    public static NewsCampaign buildNewsModel(
             User owner
     ) {
         Location location = new Location(

@@ -2,7 +2,7 @@ package com.nexo.manada_solidaria_backend.users.controllers.responses;
 
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AnimalPostResponse;
 import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.AnimalPostResponse.AnimalResponse;
-import com.nexo.manada_solidaria_backend.animal_posts.controllers.responses.OwnerResponse;
+import com.nexo.manada_solidaria_backend.common.controllers.responses.OwnerResponse;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -31,7 +31,8 @@ public class AnimalUserPostResponse extends UserPostResponse {
                 animalPostResponse.type().name(),
                 animalPostResponse.location(),
                 animalPostResponse.phoneNumber(),
-                animalPostResponse.ownerId()
+                animalPostResponse.ownerId(),
+                animalPostResponse.owner()
         );
         this.animal = animalPostResponse.animal();
         this.owner = animalPostResponse.owner();

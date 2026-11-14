@@ -37,7 +37,8 @@ public class CampaignUserPostResponse extends UserPostResponse {
                 campaignResponse.type(),
                 campaignResponse.location(),
                 campaignResponse.phoneNumber(),
-                campaignResponse.ownerId()
+                campaignResponse.ownerId(),
+                campaignResponse.owner()
         );
         this.accountAlias = campaignResponse.accountAlias();
         this.amountToBeCollected = campaignResponse.amountToBeCollected();
