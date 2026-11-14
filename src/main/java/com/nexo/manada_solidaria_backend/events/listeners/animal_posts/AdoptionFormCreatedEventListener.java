@@ -13,7 +13,6 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import java.util.Map;
 
 import static com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType.NEW_ADOPTION_FORM;
-import static com.nexo.manada_solidaria_backend.notifications.utils.NotificationParamUtil.POST_ID;
 
 @Component
 @Slf4j
@@ -41,7 +40,6 @@ public class AdoptionFormCreatedEventListener extends BaseEventNotificationListe
     @Override
     protected Map<String, Object> getParams(AdoptionFormCreatedEvent event) {
         return Map.of(
-                POST_ID, event.adoptionPostId(),
                 "adoptionFormId", event.adoptionFormId(),
                 "applicantName", event.applicantName()
         );

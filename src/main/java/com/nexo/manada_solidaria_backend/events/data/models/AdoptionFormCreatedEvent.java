@@ -4,7 +4,6 @@ import java.util.UUID;
 
 public record AdoptionFormCreatedEvent(
         UUID adoptionFormId,
-        UUID adoptionPostId,
         UUID postOwnerId,
         String applicantName
 ) {}

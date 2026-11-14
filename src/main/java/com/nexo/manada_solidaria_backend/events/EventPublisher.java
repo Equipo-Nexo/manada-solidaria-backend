@@ -59,11 +59,10 @@ public class EventPublisher {
         );
     }
 
-    public void publishAdoptionFormCreatedEvent(UUID adoptionFormId, UUID adoptionPostId, UUID postOwnerId, String applicantName) {
+    public void publishAdoptionFormCreatedEvent(UUID adoptionFormId, UUID postOwnerId, String applicantName) {
         publishEvent(
                 new AdoptionFormCreatedEvent(
                         adoptionFormId,
-                        adoptionPostId,
                         postOwnerId,
                         applicantName
                 )

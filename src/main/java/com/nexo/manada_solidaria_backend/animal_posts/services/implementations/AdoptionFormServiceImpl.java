@@ -52,7 +52,6 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
 
         eventPublisher.publishAdoptionFormCreatedEvent(
                 saved.getId(),
-                post.getId(),
                 post.getOwner().getId(),
                 applicant.getFullNameOrUsername()
         );
