@@ -14,6 +14,9 @@ import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.Adopti
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.AnimalPostService;
 import com.nexo.manada_solidaria_backend.animal_posts.services.interfaces.QuestionService;
 import com.nexo.manada_solidaria_backend.common.controllers.requests.PhoneNumberRequest;
+import com.nexo.manada_solidaria_backend.notifications.models.enums.NotificationType;
+import com.nexo.manada_solidaria_backend.notifications.services.interfaces.NotificationService;
+import com.nexo.manada_solidaria_backend.notifications.utils.NotificationParamUtil;
 import com.nexo.manada_solidaria_backend.users.data.models.User;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -33,6 +37,7 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
     private final AdoptionFormRepository adoptionFormRepository;
     private final AnimalPostService animalPostService;
     private final QuestionService questionService;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -47,6 +52,16 @@ public class AdoptionFormServiceImpl implements AdoptionFormService {
 
         AdoptionForm saved = adoptionFormRepository.save(form);
         log.info("Adoption form created: id={} for post={} by user={}", saved.getId(), post.getId(), applicant.getId());
+
+        notificationService.notify(
+                NotificationType.NEW_ADOPTION_FORM,
+                Map.of(
+                        NotificationParamUtil.POST_ID, post.getId(),
+                        "adoptionFormId", saved.getId(),
+                        "applicantName", applicant.getFullNameOrUsername()
+                ),
+                post.getOwner()
+        );
 
         return AdoptionFormResponse.from(saved);
     }
