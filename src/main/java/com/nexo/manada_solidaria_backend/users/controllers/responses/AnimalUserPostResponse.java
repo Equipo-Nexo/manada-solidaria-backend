@@ -31,7 +31,8 @@ public class AnimalUserPostResponse extends UserPostResponse {
                 animalPostResponse.type().name(),
                 animalPostResponse.location(),
                 animalPostResponse.phoneNumber(),
-                animalPostResponse.ownerId()
+                animalPostResponse.ownerId(),
+                animalPostResponse.owner()
         );
         this.animal = animalPostResponse.animal();
         this.owner = animalPostResponse.owner();

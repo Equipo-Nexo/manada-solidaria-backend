@@ -1,5 +1,6 @@
 package com.nexo.manada_solidaria_backend.users.controllers.responses;
 
+import com.nexo.manada_solidaria_backend.common.controllers.responses.OwnerResponse;
 import com.nexo.manada_solidaria_backend.locations.controllers.responses.LocationResponse;
 import com.nexo.manada_solidaria_backend.common.controllers.responses.PhoneNumberResponse;
 import lombok.Getter;
@@ -28,6 +29,7 @@ public abstract class UserPostResponse {
     private final LocationResponse location;
     private final PhoneNumberResponse phoneNumber;
     private final UUID ownerId;
+    private final OwnerResponse owner;
     private final LocalDateTime createdAt;
 
     protected UserPostResponse(
@@ -41,7 +43,8 @@ public abstract class UserPostResponse {
             String type,
             LocationResponse location,
             PhoneNumberResponse phoneNumber,
-            UUID ownerId
+            UUID ownerId,
+            OwnerResponse owner
     ) {
         this.id = id;
         this.title = title;
@@ -54,6 +57,7 @@ public abstract class UserPostResponse {
         this.location = location;
         this.phoneNumber = phoneNumber;
         this.ownerId = ownerId;
+        this.owner = owner;
         this.createdAt = createdAt;
     }
 }
