@@ -13,6 +13,7 @@ import lombok.Setter;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -91,6 +92,7 @@ public class VetInformation {
 
         List<Schedule> schedules = request.calendar()
                 .stream()
+                .sorted(Comparator.comparing(UpdateVetInformationRequest.ScheduleRequest::dayOfWeek))
                 .map(schedule -> new Schedule(
                         this,
                         schedule.dayOfWeek(),

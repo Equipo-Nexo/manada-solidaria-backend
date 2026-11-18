@@ -46,7 +46,10 @@ public record VetInformationResponse(
                 vet.getVetPageUrl(),
                 vet.getDescription(),
                 LocationResponse.from(vet.getLocation()),
-                vet.getCalendar().stream().map(ScheduleResponse::new).toList(),
+                vet.getCalendar().stream()
+                        .sorted(java.util.Comparator.comparing(Schedule::getDayOfWeek))
+                        .map(ScheduleResponse::new)
+                        .toList(),
                 isOpen,
                 distanceInKm
         );
@@ -62,7 +65,10 @@ public record VetInformationResponse(
                 vet.getVetPageUrl(),
                 vet.getDescription(),
                 LocationResponse.from(vet.getLocation()),
-                vet.getCalendar().stream().map(ScheduleResponse::new).toList(),
+                vet.getCalendar().stream()
+                        .sorted(java.util.Comparator.comparing(Schedule::getDayOfWeek))
+                        .map(ScheduleResponse::new)
+                        .toList(),
                 null,
                 null
         );
