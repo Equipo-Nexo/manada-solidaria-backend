@@ -5,6 +5,7 @@ import com.nexo.manada_solidaria_backend.campaigns.services.interfaces.CampaignS
 import com.nexo.manada_solidaria_backend.common.components.ReportMailListener.ReportThresholdReachedEvent;
 import com.nexo.manada_solidaria_backend.common.configs.ReportProperties;
 import com.nexo.manada_solidaria_backend.common.controllers.requests.CreateReportPostRequest;
+import com.nexo.manada_solidaria_backend.common.data.enums.ReportableType;
 import com.nexo.manada_solidaria_backend.common.data.models.ReportPost;
 import com.nexo.manada_solidaria_backend.common.data.repositories.ReportPostRepository;
 import com.nexo.manada_solidaria_backend.common.services.interfaces.ReportService;
@@ -37,20 +38,21 @@ public class ReportServiceImpl implements ReportService {
     @Transactional
     public void reportPost(CreateReportPostRequest request, User authenticatedUser) {
         UUID postId = request.postId();
+        ReportableType type = request.type();
 
-        validateNotOwnPost(postId, request.type(), authenticatedUser);
+        validateNotOwnPost(postId, type, authenticatedUser);
         registerReport(postId, authenticatedUser);
-        checkThresholdAndNotify(postId);
+        checkThresholdAndNotify(postId, type);
     }
 
-    private UUID getOwnerId(UUID postId, com.nexo.manada_solidaria_backend.common.data.enums.ReportableType type) {
+    private UUID getOwnerId(UUID postId, ReportableType type) {
         return switch (type) {
             case ANIMAL_POST -> animalPostService.getOwnerId(postId);
             case CAMPAIGN -> campaignService.getOwnerId(postId);
         };
     }
 
-    private void validateNotOwnPost(UUID postId, com.nexo.manada_solidaria_backend.common.data.enums.ReportableType type, User authenticatedUser) {
+    private void validateNotOwnPost(UUID postId, ReportableType type, User authenticatedUser) {
         UUID ownerId = getOwnerId(postId, type);
         if (ownerId.equals(authenticatedUser.getId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No puedes reportar tu propia publicación");
@@ -70,10 +72,10 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 
-    private void checkThresholdAndNotify(UUID postId) {
+    private void checkThresholdAndNotify(UUID postId, ReportableType type) {
         long totalReports = reportPostRepository.countByPostId(postId);
         if (totalReports == reportProperties.threshold()) {
-            applicationEventPublisher.publishEvent(new ReportThresholdReachedEvent(postId));
+            applicationEventPublisher.publishEvent(new ReportThresholdReachedEvent(postId, type));
             log.info("Report threshold reached ({} reports) for post {}. Event published.", totalReports, postId);
         }
     }

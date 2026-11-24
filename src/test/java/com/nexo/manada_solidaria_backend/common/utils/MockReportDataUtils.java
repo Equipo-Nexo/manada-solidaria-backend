@@ -12,12 +12,17 @@ import static com.nexo.manada_solidaria_backend.common.utils.MockBaseDataUtils.I
 public class MockReportDataUtils {
 
     public static final UUID MOCK_POST_ID = UUID.fromString("55555555-5555-5555-5555-555555555555");
+    public static final UUID MOCK_DONATION_CAMPAIGN_ID = UUID.fromString("66666666-6666-6666-6666-666666666666");
+    public static final UUID MOCK_FUNDRAISING_CAMPAIGN_ID = UUID.fromString("77777777-7777-7777-7777-777777777777");
 
     public static final CreateReportPostRequest VALID_ANIMAL_REPORT_REQUEST =
             new CreateReportPostRequest(MOCK_POST_ID, ReportableType.ANIMAL_POST);
 
-    public static final CreateReportPostRequest VALID_CAMPAIGN_REPORT_REQUEST =
-            new CreateReportPostRequest(MOCK_POST_ID, ReportableType.CAMPAIGN);
+    public static final CreateReportPostRequest VALID_DONATION_CAMPAIGN_REPORT_REQUEST =
+            new CreateReportPostRequest(MOCK_DONATION_CAMPAIGN_ID, ReportableType.CAMPAIGN);
+
+    public static final CreateReportPostRequest VALID_FUNDRAISING_CAMPAIGN_REPORT_REQUEST =
+            new CreateReportPostRequest(MOCK_FUNDRAISING_CAMPAIGN_ID, ReportableType.CAMPAIGN);
 
     private static Stream<Arguments> provideUnauthorizedReportCases() {
         return Stream.of(

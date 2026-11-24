@@ -5,3 +5,6 @@ security:
   cors:
     allowed-origins: http://www.manadasolidaria.com, https://www.manadasolidaria.com
     allowed-credentials: true
+app:
+  report:
+    frontend-url: ${FRONTEND_URL:https://www.manadasolidaria.com}
