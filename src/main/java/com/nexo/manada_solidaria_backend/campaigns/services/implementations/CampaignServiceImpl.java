@@ -188,6 +188,12 @@ public class CampaignServiceImpl implements CampaignService {
         return campaigns.map(CampaignResponse::from);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public CampaignType getCampaignType(UUID campaignId) {
+        return getCampaignOrThrowException(campaignId).getCampaignType();
+    }
+
     private Campaign<?, ?> getCampaignOrThrowException(UUID campaignId) {
         return campaignRepository.findById(campaignId)
                 .orElseThrow(() ->

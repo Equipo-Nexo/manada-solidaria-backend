@@ -24,8 +24,7 @@ VALUES (
     'DOG'
 );
 
--- Publicación propiedad de OTRO usuario (por ejemplo, el ID de NOTADMIN o un usuario ajeno)
--- ID de NOTADMIN en data-setup.sql es '22222222-2222-2222-2222-222222222223'
+-- Publicación de animal propiedad de NOTADMIN
 MERGE INTO ANIMAL_POST (ID, NAME, DESCRIPTION, IMAGE_URL, AREA_CODE, PHONE_NUMBER, ANIMAL_ID, LOCATION_ID, OWNER_ID, CREATED_AT)
 KEY (ID)
 VALUES (
@@ -47,4 +46,53 @@ VALUES (
     '55555555-5555-5555-5555-555555555555',
     true,
     NULL
+);
+
+-- Campaña de donación (ruta /campanias/{id}) propiedad de NOTADMIN
+MERGE INTO DONATION_CAMPAIGN (
+    ID, TITLE, DESCRIPTION, IMAGE_ID, SHARE_CAMPAIGN_URL,
+    AREA_CODE, PHONE_NUMBER, CREATED_AT, UPDATED_AT, FINISHED_AT,
+    LOCATION_ID, OWNER_ID, CAMPAIGN_END_DATE
+)
+KEY (ID)
+VALUES (
+    '66666666-6666-6666-6666-666666666666',
+    'Campaña de alimento',
+    'Colecta de alimento balanceado',
+    'cf-img',
+    NULL,
+    '353',
+    '123456',
+    CURRENT_TIMESTAMP,
+    NULL,
+    NULL,
+    '11111111-1111-1111-1111-111111111111',
+    '22222222-2222-2222-2222-222222222223',
+    DATEADD('DAY', 10, CURRENT_DATE)
+);
+
+-- Colecta / Fundraising (ruta /colectas/{id}) propiedad de NOTADMIN
+MERGE INTO FUNDRAISING_CAMPAIGN (
+    ID, TITLE, DESCRIPTION, IMAGE_ID, SHARE_CAMPAIGN_URL,
+    AREA_CODE, PHONE_NUMBER, CREATED_AT, UPDATED_AT, FINISHED_AT,
+    LOCATION_ID, OWNER_ID, ACCOUNT_ALIAS, AMOUNT_TO_BE_COLLECTED, AMOUNT_COLLECTED, CAMPAIGN_END_DATE
+)
+KEY (ID)
+VALUES (
+    '77777777-7777-7777-7777-777777777777',
+    'Colecta cirugía',
+    'Ayuda para operación',
+    'cf-img',
+    NULL,
+    '353',
+    '123456',
+    CURRENT_TIMESTAMP,
+    NULL,
+    NULL,
+    '11111111-1111-1111-1111-111111111111',
+    '22222222-2222-2222-2222-222222222223',
+    'manada.solidaria.mp',
+    50000,
+    0,
+    DATEADD('DAY', 10, CURRENT_DATE)
 );
